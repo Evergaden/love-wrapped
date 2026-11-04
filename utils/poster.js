@@ -70,79 +70,74 @@ function limitLines(lines, max) {
   return cut
 }
 
-function fillCircle(ctx, x, y, r, color, alpha) {
+// 把 #RRGGBB 变成带透明度的 rgba(...)。
+function rgba(hex, alpha) {
+  const clean = String(hex || '').replace('#', '')
+  const full = clean.length === 3
+    ? clean.split('').map(ch => ch + ch).join('')
+    : clean
+  const num = parseInt(full, 16)
+  if (isNaN(num)) return 'rgba(255, 138, 171, ' + alpha + ')'
+  const r = (num >> 16) & 255
+  const g = (num >> 8) & 255
+  const b = num & 255
+  return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')'
+}
+
+// 一团柔和的色晕。和屏幕上的 radial-gradient 同一个办法：
+// 颜色从中间往外化开，没有硬边，也没有被切出的直线。
+function softBlob(ctx, cx, cy, rx, ry, color, alpha) {
   ctx.save()
-  ctx.globalAlpha = alpha
-  ctx.fillStyle = color
+  ctx.translate(cx, cy)
+  ctx.scale(rx, ry)
+  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 1)
+  grad.addColorStop(0, rgba(color, alpha))
+  grad.addColorStop(0.29, rgba(color, alpha * 0.45))
+  grad.addColorStop(0.48, rgba(color, alpha * 0.14))
+  grad.addColorStop(0.62, rgba(color, 0))
+  ctx.fillStyle = grad
   ctx.beginPath()
-  ctx.arc(x, y, r, 0, Math.PI * 2)
+  ctx.arc(0, 0, 1, 0, Math.PI * 2)
   ctx.fill()
   ctx.restore()
 }
 
-function strokeCircle(ctx, x, y, r, color, lineWidth) {
-  ctx.save()
-  ctx.strokeStyle = color
-  ctx.lineWidth = lineWidth
-  ctx.beginPath()
-  ctx.arc(x, y, r, 0, Math.PI * 2)
-  ctx.stroke()
-  ctx.restore()
-}
-
-function fillRoundRect(ctx, x, y, w, h, r, color, alpha) {
-  const radius = Math.min(r, w / 2, h / 2)
-  ctx.save()
-  ctx.globalAlpha = alpha
-  ctx.fillStyle = color
-  ctx.beginPath()
-  ctx.moveTo(x + radius, y)
-  ctx.arcTo(x + w, y, x + w, y + h, radius)
-  ctx.arcTo(x + w, y + h, x, y + h, radius)
-  ctx.arcTo(x, y + h, x, y, radius)
-  ctx.arcTo(x, y, x + w, y, radius)
-  ctx.closePath()
-  ctx.fill()
-  ctx.restore()
-}
-
-// 每页装饰形状最多两个，和屏幕上的几何色块对应。
+// 每页装饰最多两块色晕，和屏幕上的装饰对应。
 function drawShapes(ctx, w, h, slide) {
   const id = slide.id
   if (id === 'cover') {
-    fillCircle(ctx, w + 20, 20, 230, '#FFC2D1', 1)
-    fillRoundRect(ctx, 72, h - 168, 84, 84, 22, '#FF8FAB', 0.55)
+    softBlob(ctx, 490, 250, 230, 230, '#FF8FAB', 0.20)
+    softBlob(ctx, 450, 330, 110, 110, '#FFC2D1', 0.45)
     return
   }
   if (id === 'numbers') {
-    fillRoundRect(ctx, w - 80, 250, 170, 420, 85, '#FFC2D1', 1)
-    fillCircle(ctx, 108, h - 150, 28, '#FF8FAB', 0.75)
+    softBlob(ctx, 530, 470, 190, 290, '#FF8FAB', 0.15)
+    softBlob(ctx, 615, 130, 95, 95, '#FFC2D1', 0.45)
     return
   }
   if (id === 'start') {
-    fillCircle(ctx, w + 30, h - 10, 190, '#FFC2D1', 1)
-    fillRoundRect(ctx, w - 108, 72, 36, 36, 8, '#FF8FAB', 0.85)
+    softBlob(ctx, 510, h - 250, 210, 210, '#FFC2D1', 0.36)
     return
   }
   if (id === 'distance') {
-    fillCircle(ctx, w + 10, 70, 120, '#FFC2D1', 1)
+    softBlob(ctx, 540, 220, 170, 170, '#FFC2D1', 0.38)
     return
   }
   if (id === 'phrase') {
-    strokeCircle(ctx, w + 20, h - 60, 210, 'rgba(255,255,255,0.45)', 3)
+    softBlob(ctx, 500, h - 260, 220, 220, '#FFFFFF', 0.18)
     return
   }
   if (id === 'fight') {
-    fillRoundRect(ctx, w - 100, 280, 150, 300, 75, '#FFC2D1', 0.95)
+    softBlob(ctx, 550, 480, 160, 270, '#FFC2D1', 0.30)
     return
   }
   if (id === 'story') {
-    fillRoundRect(ctx, w - 116, 64, 48, 48, 12, '#FF8FAB', 0.75)
+    softBlob(ctx, 580, 180, 130, 130, '#FFC2D1', 0.32)
     return
   }
   if (id === 'ending') {
-    fillCircle(ctx, -30, h - 20, 180, '#FFC2D1', 1)
-    fillRoundRect(ctx, w - 120, 72, 40, 40, 10, '#FF8FAB', 0.8)
+    softBlob(ctx, 240, h - 250, 210, 210, '#FFC2D1', 0.34)
+    softBlob(ctx, 600, 150, 100, 100, '#FFC2D1', 0.28)
   }
 }
 

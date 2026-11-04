@@ -1,7 +1,7 @@
 <view class="stage theme-{{currentTheme}}" style="height: {{windowHeight}}px;">
   <view wx:if="{{empty}}" class="empty">
-    <view class="shape empty-circle"></view>
-    <view class="shape empty-square"></view>
+    <view class="glow empty-glow-1"></view>
+    <view class="glow empty-glow-2"></view>
     <view class="empty-inner">
       <text class="kicker">恋爱Wrapped</text>
       <text class="title title-lg">这本纪念册还是空白的</text>
@@ -73,8 +73,8 @@
         <view class="btn btn-primary" hover-class="pressed" bindtap="onExportAll">导出整本</view>
       </view>
       <view class="mock-line" hover-class="pressed" bindtap="onToggleWatermark">
-        <text wx:if="{{unlocked}}">已模拟去掉水印（不是真广告）· 点此恢复</text>
-        <text wx:else>导出的图片带演示水印 · 点此模拟激励视频</text>
+        <text wx:if="{{unlocked}}">已模拟去掉水印（这里没有真广告）· 点此恢复</text>
+        <text wx:else>导出的图片会带演示水印 · 点此模拟看完激励视频</text>
       </view>
     </view>
   </block>

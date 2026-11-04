@@ -1,8 +1,9 @@
 <view class="page">
   <view class="hero">
-    <!-- 装饰色块最多两个，都放在右上角，不压住正文。 -->
-    <view class="blob blob-circle"></view>
-    <view class="blob blob-square"></view>
+    <!-- 装饰只有两团很淡的色晕。都收在右上角，用径向渐变淡到透明，
+         所以没有硬边，也不会被切出一条直线。不挡字，也不吃点击。 -->
+    <view class="glow glow-rose"></view>
+    <view class="glow glow-pink"></view>
     <text class="eyebrow">一个人写的纪念册</text>
     <text class="hero-title">恋爱Wrapped</text>
     <text class="hero-sub">由你写下两个名字和一些小事。生成之后可以左右滑动，像翻一本只印了一份的小册子。</text>
@@ -227,7 +228,7 @@
     <text class="count-line">按现在的内容，会生成 {{slideCount}} 页{{slideCount > 6 ? '，含你填了的额外页' : ''}}</text>
 
     <view class="btn btn-ghost sample-btn" hover-class="pressed" bindtap="onSample">填入一组示例</view>
-    <text class="sample-note">示例是虚构的小熊和阿树，写了吵架和异地，所以会多出两页。可以改成你们的。</text>
+    <text class="sample-note">示例是虚构的小熊和阿树：写了吵架和异地，所以会多出两页。换成你们的故事就好。</text>
 
     <view class="quiet" wx:if="{{hasStored}}" hover-class="pressed" bindtap="onClear">清空这台设备上的答案</view>
     <text class="privacy">不联网，不登录。清缓存或换一台设备之后，这些字会消失。</text>

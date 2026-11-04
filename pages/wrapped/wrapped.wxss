@@ -1,4 +1,4 @@
-/* 纪念册。奶油底，每页最多两个几何色块。
+/* 纪念册。奶油底，每页最多两块柔和色晕。
    口头禅页是深玫瑰 #E85A7A，字是白的。 */
 
 .stage {
@@ -46,116 +46,130 @@
   display: block;
 }
 
+/* 每一页的装饰都画成渐变到透明的色晕。
+   没有方块、没有直角，边缘是化开的；形状也整个落在页内，
+   不会被裁出一条直线。正文在 .content 里，压在装饰上面。 */
 .id-cover .shape-1 {
-  width: 440rpx;
-  height: 440rpx;
-  border-radius: 50%;
-  background: #FFC2D1;
-  right: -180rpx;
-  top: -140rpx;
+  width: 460rpx;
+  height: 460rpx;
+  right: 30rpx;
+  top: 20rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 138, 171, 0.20) 0%,
+    rgba(255, 138, 171, 0.09) 29%,
+    rgba(255, 194, 209, 0.03) 48%,
+    rgba(255, 194, 209, 0) 62%);
 }
 
 .id-cover .shape-2 {
-  width: 92rpx;
-  height: 92rpx;
-  border-radius: 24rpx;
-  background: #FF8FAB;
-  opacity: 0.5;
-  left: 64rpx;
-  bottom: 48rpx;
+  width: 220rpx;
+  height: 220rpx;
+  right: 190rpx;
+  top: 210rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 194, 209, 0.42) 0%,
+    rgba(255, 194, 209, 0.17) 34%,
+    rgba(255, 194, 209, 0) 62%);
 }
 
 .id-numbers .shape-1 {
-  width: 190rpx;
-  height: 480rpx;
-  border-radius: 95rpx;
-  background: #FFC2D1;
-  right: -70rpx;
-  top: 240rpx;
+  width: 380rpx;
+  height: 560rpx;
+  right: 30rpx;
+  top: 170rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 138, 171, 0.18) 0%,
+    rgba(255, 138, 171, 0.08) 31%,
+    rgba(255, 194, 209, 0.02) 48%,
+    rgba(255, 194, 209, 0) 62%);
 }
 
 .id-numbers .shape-2 {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  background: #FF8FAB;
-  left: 72rpx;
-  bottom: 56rpx;
-  opacity: 0.75;
+  width: 190rpx;
+  height: 190rpx;
+  right: 40rpx;
+  top: 30rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 194, 209, 0.42) 0%,
+    rgba(255, 194, 209, 0.17) 34%,
+    rgba(255, 194, 209, 0) 62%);
 }
 
 .id-start .shape-1 {
-  width: 380rpx;
-  height: 380rpx;
-  border-radius: 50%;
-  background: #FFC2D1;
-  right: -150rpx;
-  bottom: -90rpx;
-}
-
-.id-start .shape-2 {
-  width: 40rpx;
-  height: 40rpx;
-  border-radius: 10rpx;
-  background: #FF8FAB;
-  right: 56rpx;
-  top: 40rpx;
+  width: 420rpx;
+  height: 420rpx;
+  right: 30rpx;
+  bottom: 40rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 194, 209, 0.38) 0%,
+    rgba(255, 194, 209, 0.15) 34%,
+    rgba(255, 194, 209, 0) 62%);
 }
 
 .id-distance .shape-1 {
-  width: 240rpx;
-  height: 240rpx;
-  border-radius: 50%;
-  background: #FFC2D1;
-  right: -80rpx;
-  top: -40rpx;
+  width: 340rpx;
+  height: 340rpx;
+  right: 40rpx;
+  top: 40rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 194, 209, 0.40) 0%,
+    rgba(255, 194, 209, 0.16) 34%,
+    rgba(255, 194, 209, 0) 62%);
 }
 
 .id-phrase .shape-1 {
-  width: 520rpx;
-  height: 520rpx;
-  border-radius: 50%;
-  border: 2rpx solid rgba(255, 255, 255, 0.4);
-  right: -180rpx;
-  bottom: 20rpx;
+  width: 440rpx;
+  height: 440rpx;
+  right: 30rpx;
+  bottom: 40rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 255, 255, 0.20) 0%,
+    rgba(255, 255, 255, 0.09) 33%,
+    rgba(255, 255, 255, 0) 62%);
 }
 
 .id-fight .shape-1 {
-  width: 180rpx;
-  height: 340rpx;
-  border-radius: 90rpx;
-  background: #FFC2D1;
-  right: -60rpx;
-  top: 280rpx;
+  width: 320rpx;
+  height: 540rpx;
+  right: 40rpx;
+  top: 200rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 194, 209, 0.36) 0%,
+    rgba(255, 194, 209, 0.14) 33%,
+    rgba(255, 194, 209, 0) 62%);
 }
 
 .id-story .shape-1 {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 14rpx;
-  background: #FF8FAB;
-  opacity: 0.7;
-  right: 56rpx;
-  top: 48rpx;
+  width: 260rpx;
+  height: 260rpx;
+  right: 50rpx;
+  top: 40rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 194, 209, 0.40) 0%,
+    rgba(255, 194, 209, 0.16) 33%,
+    rgba(255, 194, 209, 0) 62%);
 }
 
 .id-ending .shape-1 {
   width: 420rpx;
   height: 420rpx;
-  border-radius: 50%;
-  background: #FFC2D1;
-  left: -180rpx;
-  bottom: -160rpx;
+  left: 30rpx;
+  bottom: 40rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 194, 209, 0.40) 0%,
+    rgba(255, 194, 209, 0.16) 34%,
+    rgba(255, 194, 209, 0) 62%);
 }
 
 .id-ending .shape-2 {
-  width: 44rpx;
-  height: 44rpx;
-  border-radius: 12rpx;
-  background: #FF8FAB;
-  opacity: 0.75;
-  right: 64rpx;
-  top: 48rpx;
+  width: 200rpx;
+  height: 200rpx;
+  right: 50rpx;
+  top: 40rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 194, 209, 0.36) 0%,
+    rgba(255, 194, 209, 0.14) 34%,
+    rgba(255, 194, 209, 0) 62%);
 }
 
 .content {
@@ -301,10 +315,12 @@
 
 .theme-cream .dock {
   background: #FFF5F7;
+  box-shadow: 0 -10rpx 26rpx rgba(45, 27, 36, 0.05);
 }
 
 .theme-rose .dock {
   background: #E85A7A;
+  box-shadow: 0 -10rpx 26rpx rgba(120, 22, 48, 0.10);
 }
 
 .pager-row {
@@ -339,6 +355,7 @@
 .theme-rose .btn-primary {
   background: #FFFFFF;
   color: #E85A7A;
+  box-shadow: 0 12rpx 28rpx rgba(120, 22, 48, 0.18);
 }
 
 .theme-rose .btn-ghost {
@@ -369,27 +386,33 @@
   overflow: hidden;
 }
 
-.empty-circle {
-  display: block;
-  width: 420rpx;
-  height: 420rpx;
-  border-radius: 50%;
-  background: #FFC2D1;
+.glow {
   position: absolute;
-  right: -160rpx;
-  top: -80rpx;
+  display: block;
+  pointer-events: none;
 }
 
-.empty-square {
-  display: block;
-  width: 88rpx;
-  height: 88rpx;
-  border-radius: 22rpx;
-  background: #FF8FAB;
-  opacity: 0.45;
-  position: absolute;
-  left: 64rpx;
-  bottom: 120rpx;
+.empty-glow-1 {
+  width: 520rpx;
+  height: 520rpx;
+  right: -40rpx;
+  top: -40rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 138, 171, 0.20) 0%,
+    rgba(255, 138, 171, 0.09) 29%,
+    rgba(255, 194, 209, 0.03) 48%,
+    rgba(255, 194, 209, 0) 62%);
+}
+
+.empty-glow-2 {
+  width: 280rpx;
+  height: 280rpx;
+  left: -30rpx;
+  bottom: 60rpx;
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 194, 209, 0.42) 0%,
+    rgba(255, 194, 209, 0.17) 33%,
+    rgba(255, 194, 209, 0) 62%);
 }
 
 .empty-inner {
