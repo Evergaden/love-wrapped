@@ -1,0 +1,47 @@
+/* 全局只有底色、字色和按钮。
+   奶油底 #FFF5F7，粉色 #FF8FAB / #FFC2D1，字 #2D1B24。
+   口头禅那一页的深玫瑰 #E85A7A 写在 pages/wrapped/wrapped.wxss。
+   导出图片的同色写在 utils/poster.js，改颜色时三处一起改。 */
+
+page {
+  background: #FFF5F7;
+  color: #2D1B24;
+  font-family: "Smiley Sans", "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", sans-serif;
+  font-size: 30rpx;
+  line-height: 1.6;
+}
+
+view,
+text,
+input,
+textarea,
+scroll-view,
+swiper,
+swiper-item {
+  box-sizing: border-box;
+}
+
+.btn {
+  height: 88rpx;
+  line-height: 84rpx;
+  border: 2rpx solid transparent;
+  border-radius: 999rpx;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: #FF8FAB;
+  color: #2D1B24;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #2D1B24;
+  border-color: #FFC2D1;
+}
+
+.pressed {
+  opacity: 0.72;
+}

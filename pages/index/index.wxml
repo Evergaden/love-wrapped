@@ -1,0 +1,235 @@
+<view class="page">
+  <view class="hero">
+    <!-- 装饰色块最多两个，都放在右上角，不压住正文。 -->
+    <view class="blob blob-circle"></view>
+    <view class="blob blob-square"></view>
+    <text class="eyebrow">一个人写的纪念册</text>
+    <text class="hero-title">恋爱Wrapped</text>
+    <text class="hero-sub">由你写下两个名字和一些小事。生成之后可以左右滑动，像翻一本只印了一份的小册子。</text>
+  </view>
+
+  <view class="paper">
+    <text class="section-title">从这里开始</text>
+    <text class="section-hint">纪念册至少要知道：你们怎么称呼彼此，以及从哪一天算起。</text>
+
+    <view class="field-block">
+      <text class="field-label">你的昵称</text>
+      <input
+        class="field"
+        maxlength="10"
+        placeholder="比如：小熊"
+        placeholder-class="ph"
+        cursor-spacing="80"
+        value="{{form.myNickname}}"
+        data-key="myNickname"
+        bindinput="onInput"
+      />
+    </view>
+
+    <view class="field-block">
+      <text class="field-label">TA 的昵称</text>
+      <input
+        class="field"
+        maxlength="10"
+        placeholder="比如：阿树"
+        placeholder-class="ph"
+        cursor-spacing="80"
+        value="{{form.theirNickname}}"
+        data-key="theirNickname"
+        bindinput="onInput"
+      />
+    </view>
+
+    <view class="field-block">
+      <text class="field-label">在一起的日子</text>
+      <picker mode="date" value="{{form.togetherDate}}" start="1990-01-01" end="2035-12-31" bindchange="onDate">
+        <view class="field field-picker">
+          <text wx:if="{{togetherDateText}}">{{togetherDateText}}</text>
+          <text wx:else class="ph">选择那一天</text>
+        </view>
+      </picker>
+    </view>
+
+    <text class="section-title section-gap">可以慢慢填</text>
+    <text class="section-hint">空着也没关系。空着的那一页会用很轻的句子占着。只有「吵架」和「异地 / 同城」一项都不填，才不会多出页面。</text>
+
+    <view class="field-block">
+      <text class="field-label">第一次约会的地方</text>
+      <input
+        class="field"
+        maxlength="20"
+        placeholder="比如：学校西门的甜品店"
+        placeholder-class="ph"
+        cursor-spacing="80"
+        value="{{form.firstDatePlace}}"
+        data-key="firstDatePlace"
+        bindinput="onInput"
+      />
+    </view>
+
+    <view class="field-block">
+      <text class="field-label">一起去过几座城市</text>
+      <input
+        class="field"
+        type="number"
+        maxlength="5"
+        placeholder="比如：3"
+        placeholder-class="ph"
+        cursor-spacing="80"
+        value="{{form.cityCount}}"
+        data-key="cityCount"
+        bindinput="onInput"
+      />
+    </view>
+
+    <view class="field-block">
+      <text class="field-label">一起吃过多少顿饭</text>
+      <input
+        class="field"
+        type="number"
+        maxlength="5"
+        placeholder="比如：128"
+        placeholder-class="ph"
+        cursor-spacing="80"
+        value="{{form.mealCount}}"
+        data-key="mealCount"
+        bindinput="onInput"
+      />
+    </view>
+
+    <view class="field-block">
+      <text class="field-label">吵架</text>
+      <text class="field-help">次数和「谁先道歉」写了任意一项，纪念册里会多一页。都留空就没有这一页。</text>
+      <input
+        class="field"
+        type="number"
+        maxlength="5"
+        placeholder="次数，可不填。比如：2"
+        placeholder-class="ph"
+        cursor-spacing="80"
+        value="{{form.fightCount}}"
+        data-key="fightCount"
+        bindinput="onInput"
+      />
+      <radio-group class="choices" bindchange="onWho">
+        <label class="choice {{form.whoApologized === '' ? 'on' : ''}}">
+          <radio value="skip" checked="{{form.whoApologized === ''}}" color="#E85A7A" />
+          <text>先不写</text>
+        </label>
+        <label class="choice {{form.whoApologized === 'me' ? 'on' : ''}}">
+          <radio value="me" checked="{{form.whoApologized === 'me'}}" color="#E85A7A" />
+          <text>我先道歉</text>
+        </label>
+        <label class="choice {{form.whoApologized === 'them' ? 'on' : ''}}">
+          <radio value="them" checked="{{form.whoApologized === 'them'}}" color="#E85A7A" />
+          <text>TA 先道歉</text>
+        </label>
+        <label class="choice {{form.whoApologized === 'both' ? 'on' : ''}}">
+          <radio value="both" checked="{{form.whoApologized === 'both'}}" color="#E85A7A" />
+          <text>几乎同时</text>
+        </label>
+      </radio-group>
+    </view>
+
+    <view class="field-block">
+      <text class="field-label">口头禅</text>
+      <input
+        class="field"
+        maxlength="24"
+        placeholder="比如：到了跟我说一声"
+        placeholder-class="ph"
+        cursor-spacing="80"
+        value="{{form.catchphrase}}"
+        data-key="catchphrase"
+        bindinput="onInput"
+      />
+    </view>
+
+    <view class="field-block">
+      <text class="field-label">一件难忘的小事</text>
+      <textarea
+        class="textarea"
+        maxlength="140"
+        placeholder="下雨天、一顿饭、一句没头没尾的话，都可以。"
+        placeholder-class="ph"
+        cursor-spacing="100"
+        value="{{form.story}}"
+        data-key="story"
+        bindinput="onInput"
+      />
+      <text class="counter">{{storyCount}} / 140</text>
+    </view>
+
+    <view class="field-block">
+      <text class="field-label">异地，还是同城</text>
+      <text class="field-help">选了才会多出一页。异地填公里，同城填一起出门的次数。</text>
+      <radio-group class="choices" bindchange="onDistance">
+        <label class="choice {{form.distanceMode === '' ? 'on' : ''}}">
+          <radio value="skip" checked="{{form.distanceMode === ''}}" color="#E85A7A" />
+          <text>先不写</text>
+        </label>
+        <label class="choice {{form.distanceMode === 'ldr' ? 'on' : ''}}">
+          <radio value="ldr" checked="{{form.distanceMode === 'ldr'}}" color="#E85A7A" />
+          <text>我们异地</text>
+        </label>
+        <label class="choice {{form.distanceMode === 'same' ? 'on' : ''}}">
+          <radio value="same" checked="{{form.distanceMode === 'same'}}" color="#E85A7A" />
+          <text>同一座城</text>
+        </label>
+      </radio-group>
+      <view wx:if="{{form.distanceMode === 'ldr'}}" class="follow">
+        <text class="field-label">大约相隔多少公里</text>
+        <input
+          class="field"
+          type="number"
+          maxlength="5"
+          placeholder="比如：842"
+          placeholder-class="ph"
+          cursor-spacing="80"
+          value="{{form.distanceKm}}"
+          data-key="distanceKm"
+          bindinput="onInput"
+        />
+      </view>
+      <view wx:if="{{form.distanceMode === 'same'}}" class="follow">
+        <text class="field-label">一起出门大概几次</text>
+        <input
+          class="field"
+          type="number"
+          maxlength="5"
+          placeholder="比如：36"
+          placeholder-class="ph"
+          cursor-spacing="80"
+          value="{{form.meetCount}}"
+          data-key="meetCount"
+          bindinput="onInput"
+        />
+      </view>
+    </view>
+
+    <view class="field-block">
+      <text class="field-label">想对 TA 说的一句话</text>
+      <textarea
+        class="textarea textarea-short"
+        maxlength="40"
+        placeholder="比如：明年还想和你一起吃西瓜。"
+        placeholder-class="ph"
+        cursor-spacing="120"
+        value="{{form.sentence}}"
+        data-key="sentence"
+        bindinput="onInput"
+      />
+      <text class="counter">{{sentenceCount}} / 40</text>
+    </view>
+
+    <text class="error" wx:if="{{errorHint}}">{{errorHint}}</text>
+    <view class="btn btn-primary {{canOpen ? '' : 'dim'}}" hover-class="pressed" bindtap="onGenerate">生成纪念册</view>
+    <text class="count-line">按现在的内容，会生成 {{slideCount}} 页{{slideCount > 6 ? '，含你填了的额外页' : ''}}</text>
+
+    <view class="btn btn-ghost sample-btn" hover-class="pressed" bindtap="onSample">填入一组示例</view>
+    <text class="sample-note">示例是虚构的小熊和阿树，写了吵架和异地，所以会多出两页。可以改成你们的。</text>
+
+    <view class="quiet" wx:if="{{hasStored}}" hover-class="pressed" bindtap="onClear">清空这台设备上的答案</view>
+    <text class="privacy">不联网，不登录。清缓存或换一台设备之后，这些字会消失。</text>
+  </view>
+</view>

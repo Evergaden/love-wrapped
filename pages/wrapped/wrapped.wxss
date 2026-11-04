@@ -1,0 +1,487 @@
+/* 纪念册。奶油底，每页最多两个几何色块。
+   口头禅页是深玫瑰 #E85A7A，字是白的。 */
+
+.stage {
+  width: 100%;
+  overflow: hidden;
+}
+
+.theme-cream {
+  background: #FFF5F7;
+  color: #2D1B24;
+}
+
+.theme-rose {
+  background: #E85A7A;
+  color: #FFFFFF;
+}
+
+.swiper {
+  width: 100%;
+}
+
+.slide {
+  position: relative;
+  overflow: hidden;
+}
+
+.shape {
+  position: absolute;
+  display: none;
+  pointer-events: none;
+}
+
+.id-cover .shape-1,
+.id-cover .shape-2,
+.id-numbers .shape-1,
+.id-numbers .shape-2,
+.id-start .shape-1,
+.id-start .shape-2,
+.id-distance .shape-1,
+.id-phrase .shape-1,
+.id-fight .shape-1,
+.id-story .shape-1,
+.id-ending .shape-1,
+.id-ending .shape-2 {
+  display: block;
+}
+
+.id-cover .shape-1 {
+  width: 440rpx;
+  height: 440rpx;
+  border-radius: 50%;
+  background: #FFC2D1;
+  right: -180rpx;
+  top: -140rpx;
+}
+
+.id-cover .shape-2 {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 24rpx;
+  background: #FF8FAB;
+  opacity: 0.5;
+  left: 64rpx;
+  bottom: 48rpx;
+}
+
+.id-numbers .shape-1 {
+  width: 190rpx;
+  height: 480rpx;
+  border-radius: 95rpx;
+  background: #FFC2D1;
+  right: -70rpx;
+  top: 240rpx;
+}
+
+.id-numbers .shape-2 {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: #FF8FAB;
+  left: 72rpx;
+  bottom: 56rpx;
+  opacity: 0.75;
+}
+
+.id-start .shape-1 {
+  width: 380rpx;
+  height: 380rpx;
+  border-radius: 50%;
+  background: #FFC2D1;
+  right: -150rpx;
+  bottom: -90rpx;
+}
+
+.id-start .shape-2 {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 10rpx;
+  background: #FF8FAB;
+  right: 56rpx;
+  top: 40rpx;
+}
+
+.id-distance .shape-1 {
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 50%;
+  background: #FFC2D1;
+  right: -80rpx;
+  top: -40rpx;
+}
+
+.id-phrase .shape-1 {
+  width: 520rpx;
+  height: 520rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(255, 255, 255, 0.4);
+  right: -180rpx;
+  bottom: 20rpx;
+}
+
+.id-fight .shape-1 {
+  width: 180rpx;
+  height: 340rpx;
+  border-radius: 90rpx;
+  background: #FFC2D1;
+  right: -60rpx;
+  top: 280rpx;
+}
+
+.id-story .shape-1 {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 14rpx;
+  background: #FF8FAB;
+  opacity: 0.7;
+  right: 56rpx;
+  top: 48rpx;
+}
+
+.id-ending .shape-1 {
+  width: 420rpx;
+  height: 420rpx;
+  border-radius: 50%;
+  background: #FFC2D1;
+  left: -180rpx;
+  bottom: -160rpx;
+}
+
+.id-ending .shape-2 {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 12rpx;
+  background: #FF8FAB;
+  opacity: 0.75;
+  right: 64rpx;
+  top: 48rpx;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+}
+
+.content-inner {
+  padding: 88rpx 64rpx 72rpx;
+  max-width: 640px;
+}
+
+.kicker {
+  display: block;
+  margin-bottom: 28rpx;
+  font-size: 26rpx;
+  letter-spacing: 6rpx;
+}
+
+.theme-cream .kicker {
+  color: #E85A7A;
+}
+
+.theme-rose .kicker {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.title {
+  display: block;
+  font-weight: 600;
+  line-height: 1.28;
+  word-break: break-all;
+}
+
+.title-xl { font-size: 72rpx; }
+.title-lg { font-size: 60rpx; }
+.title-md { font-size: 48rpx; }
+.title-sm { font-size: 40rpx; }
+
+.theme-cream .title,
+.theme-cream .num,
+.theme-cream .unit {
+  color: #2D1B24;
+}
+
+.theme-rose .title {
+  color: #FFFFFF;
+}
+
+.name-line {
+  display: flex;
+  align-items: flex-end;
+  margin-top: 8rpx;
+}
+
+.and {
+  margin-right: 12rpx;
+  margin-bottom: 14rpx;
+  font-size: 30rpx;
+  color: #FF8FAB;
+}
+
+.body,
+.meta,
+.note,
+.stat-label {
+  display: block;
+}
+
+.body {
+  margin-top: 36rpx;
+  font-size: 32rpx;
+  line-height: 1.75;
+  white-space: pre-wrap;
+}
+
+.meta {
+  margin-top: 24rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.theme-cream .body,
+.theme-cream .meta,
+.theme-cream .note,
+.theme-cream .stat-label {
+  color: rgba(45, 27, 36, 0.72);
+}
+
+.theme-rose .body,
+.theme-rose .meta {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.id-cover .body {
+  margin-top: 56rpx;
+}
+
+.id-cover .meta {
+  margin-top: 12rpx;
+  font-size: 36rpx;
+  color: #2D1B24;
+}
+
+.stats {
+  margin-top: 48rpx;
+}
+
+.stat + .stat {
+  margin-top: 40rpx;
+}
+
+.stat-line {
+  display: flex;
+  align-items: baseline;
+}
+
+.num {
+  font-size: 88rpx;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.unit {
+  margin-left: 10rpx;
+  font-size: 30rpx;
+}
+
+.stat-label {
+  margin-top: 8rpx;
+  font-size: 28rpx;
+}
+
+.note {
+  margin-top: 48rpx;
+  font-size: 28rpx;
+  line-height: 1.6;
+}
+
+.dock {
+  padding-bottom: calc(12rpx + env(safe-area-inset-bottom));
+}
+
+.theme-cream .dock {
+  background: #FFF5F7;
+}
+
+.theme-rose .dock {
+  background: #E85A7A;
+}
+
+.pager-row {
+  display: flex;
+  align-items: baseline;
+  padding: 8rpx 40rpx 0;
+}
+
+.pager {
+  font-size: 26rpx;
+}
+
+.swipe-hint {
+  margin-left: 16rpx;
+  font-size: 26rpx;
+  opacity: 0.7;
+}
+
+.dock-actions {
+  display: flex;
+  padding: 16rpx 32rpx 0;
+}
+
+.dock-actions .btn {
+  flex: 1;
+}
+
+.dock-actions .btn + .btn {
+  margin-left: 16rpx;
+}
+
+.theme-rose .btn-primary {
+  background: #FFFFFF;
+  color: #E85A7A;
+}
+
+.theme-rose .btn-ghost {
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+}
+
+.mock-line {
+  padding: 14rpx 40rpx 8rpx;
+  text-align: center;
+  font-size: 26rpx;
+  line-height: 1.5;
+  text-decoration: underline;
+}
+
+.theme-cream .mock-line {
+  color: rgba(45, 27, 36, 0.62);
+}
+
+.theme-rose .mock-line {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.empty {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+.empty-circle {
+  display: block;
+  width: 420rpx;
+  height: 420rpx;
+  border-radius: 50%;
+  background: #FFC2D1;
+  position: absolute;
+  right: -160rpx;
+  top: -80rpx;
+}
+
+.empty-square {
+  display: block;
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 22rpx;
+  background: #FF8FAB;
+  opacity: 0.45;
+  position: absolute;
+  left: 64rpx;
+  bottom: 120rpx;
+}
+
+.empty-inner {
+  position: relative;
+  z-index: 1;
+  padding: 18vh 64rpx 0;
+}
+
+.empty-btn {
+  margin-top: 24rpx;
+}
+
+.empty-inner .body {
+  margin-bottom: 36rpx;
+}
+
+.poster-canvas {
+  position: fixed;
+  left: -8000px;
+  top: 0;
+  pointer-events: none;
+}
+
+.mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 20;
+  background: rgba(45, 27, 36, 0.28);
+  display: flex;
+  align-items: flex-end;
+}
+
+.sheet {
+  width: 100%;
+  padding: 32rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
+  background: #FFF5F7;
+  border-radius: 36rpx 36rpx 0 0;
+}
+
+.sheet-kicker {
+  display: block;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+  color: #E85A7A;
+}
+
+.sheet-title {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 40rpx;
+  font-weight: 600;
+  color: #2D1B24;
+}
+
+.sheet-scroll {
+  max-height: 52vh;
+  margin: 20rpx 0 16rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+}
+
+.sheet-img {
+  width: 100%;
+  display: block;
+}
+
+.sheet-tip {
+  display: block;
+  margin-bottom: 18rpx;
+  font-size: 26rpx;
+  line-height: 1.55;
+  color: rgba(45, 27, 36, 0.66);
+}
+
+.sheet-actions {
+  display: flex;
+}
+
+.sheet-actions .btn {
+  flex: 1;
+}
+
+.sheet-actions .btn + .btn {
+  margin-left: 16rpx;
+}
+
+.sheet-close {
+  margin-top: 18rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: rgba(45, 27, 36, 0.55);
+}

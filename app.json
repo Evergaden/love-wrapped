@@ -1,0 +1,15 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/wrapped/wrapped"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#FFF5F7",
+    "navigationBarTitleText": "恋爱Wrapped",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#FFF5F7",
+    "backgroundTextStyle": "dark"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
