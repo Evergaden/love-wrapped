@@ -6,6 +6,7 @@ const record = require('../../utils/record')
 const sample = require('../../utils/sample')
 const storage = require('../../utils/storage')
 const slides = require('../../utils/slides')
+const privacy = require('../../utils/privacy')
 
 const NUMERIC = {
   cityCount: true,
@@ -15,12 +16,36 @@ const NUMERIC = {
   meetCount: true
 }
 
+// 一共十一件事。吵架算一件（次数或谁先道歉，任意一个算），
+// 距离算一件（选了异地或同城就算）。
+const TOTAL = 11
+
+function countFilled(form) {
+  const one = [
+    form.myNickname,
+    form.theirNickname,
+    form.togetherDate,
+    form.firstDatePlace,
+    form.cityCount,
+    form.mealCount,
+    form.catchphrase,
+    form.story,
+    form.sentence
+  ].filter(value => String(value || '').trim() !== '').length
+  const fight = String(form.fightCount || '').trim() !== '' || String(form.whoApologized || '').trim() !== '' ? 1 : 0
+  const distance = String(form.distanceMode || '').trim() !== '' ? 1 : 0
+  return one + fight + distance
+}
+
 Page({
   data: {
     form: record.blankForm(),
     togetherDateText: '',
     canOpen: false,
     slideCount: 6,
+    filledCount: 0,
+    filledPercent: 0,
+    totalCount: TOTAL,
     storyCount: 0,
     sentenceCount: 0,
     hasStored: false,
@@ -33,6 +58,8 @@ Page({
     const form = saved ? record.normalize(saved) : record.blankForm()
     this.applyForm(form, { hasStored: !!saved, errorHint: '' })
     wx.showShareMenu({ menus: ['shareAppMessage'] })
+    // 填写会把内容写进本机缓存。首次进页问一次隐私授权，用户已同意过则直接通过。
+    privacy.checkPrivacy()
   },
 
   // 分享卡片不放昵称。对方点开会看到空白填写页，答案仍在你的设备上。
@@ -52,6 +79,8 @@ Page({
       togetherDateText: record.formatDate(normalized.togetherDate),
       canOpen: record.canGenerate(normalized),
       slideCount: slides.buildSlides(normalized).length,
+      filledCount: countFilled(copy),
+      filledPercent: Math.round(countFilled(copy) / TOTAL * 100),
       storyCount: copy.story.length,
       sentenceCount: copy.sentence.length,
       hasStored: !!(extra && extra.hasStored),
@@ -62,20 +91,26 @@ Page({
   // 打字时不把整份 form 再 setData 回去。
   // 否则输入框会重绘，光标经常跳到末尾。
   remember(form) {
-    const ok = storage.saveAnswers(form)
-    const normalized = record.normalize(form)
-    this.setData({
-      togetherDateText: record.formatDate(normalized.togetherDate),
-      canOpen: record.canGenerate(normalized),
-      slideCount: slides.buildSlides(normalized).length,
-      storyCount: String(form.story || '').length,
-      sentenceCount: String(form.sentence || '').length,
-      hasStored: true,
-      errorHint: ''
+    privacy.requirePrivacy().then(() => {
+      if (!this.data || this.unloaded) return
+      const ok = storage.saveAnswers(form)
+      const normalized = record.normalize(form)
+      const filled = countFilled(form)
+      this.setData({
+        togetherDateText: record.formatDate(normalized.togetherDate),
+        canOpen: record.canGenerate(normalized),
+        slideCount: slides.buildSlides(normalized).length,
+        filledCount: filled,
+        filledPercent: Math.round(filled / TOTAL * 100),
+        storyCount: String(form.story || '').length,
+        sentenceCount: String(form.sentence || '').length,
+        hasStored: true,
+        errorHint: ''
+      })
+      if (!ok) {
+        wx.showToast({ title: '没能保存', icon: 'none' })
+      }
     })
-    if (!ok) {
-      wx.showToast({ title: '没能保存', icon: 'none' })
-    }
   },
 
   onInput(e) {

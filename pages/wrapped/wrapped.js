@@ -1,13 +1,14 @@
 // 纪念册页。
 // 从本机读出答案，排成可以左右滑的几页。
 // 「导出」用画布把当前页或整本画成图片。
-// 底部的激励视频是假的：点「看完了」只会在本机记一笔，导出时不再画「演示水印」。
+// 导出不依赖任何「解锁」：写得出来，就能存下来。
 
 const record = require('../../utils/record')
 const sample = require('../../utils/sample')
 const storage = require('../../utils/storage')
 const slidesUtil = require('../../utils/slides')
 const poster = require('../../utils/poster')
+const privacy = require('../../utils/privacy')
 
 function readWindow() {
   let info = { windowWidth: 375, windowHeight: 667, screenHeight: 667, pixelRatio: 2 }
@@ -39,11 +40,12 @@ Page({
     windowHeight: 667,
     swiperHeight: 500,
     pixelRatio: 2,
-    unlocked: false,
     exporting: false,
     sheet: null,
     canvasW: 10,
-    canvasH: 10
+    canvasH: 10,
+    sharePath: '',
+    shareTitle: '恋爱Wrapped · 只属于我们的纪念册'
   },
 
   onLoad() {
@@ -55,7 +57,6 @@ Page({
       windowHeight: metrics.windowHeight,
       swiperHeight: metrics.swiperHeight,
       pixelRatio: metrics.pixelRatio,
-      unlocked: storage.loadUnlocked(),
       empty: !ready,
       slides: slides,
       current: 0,
@@ -63,6 +64,13 @@ Page({
     })
     this.syncChrome(slides[0])
     wx.showShareMenu({ menus: ['shareAppMessage'] })
+    // 分享封面在后台先画好，点「分享给 TA」时不用等。
+    if (ready) this.prepareShareImage(slides)
+  },
+
+  onShow() {
+    // 首次进页顺带确认一次隐私授权状态。declined 也能看，只是导出前会再拦一次。
+    privacy.checkPrivacy()
   },
 
   onReady() {
@@ -81,10 +89,87 @@ Page({
   },
 
   onShareAppMessage() {
+    const title = this.data.shareTitle || '恋爱Wrapped · 只属于我们的纪念册'
+    const imageUrl = this.data.sharePath || ''
     return {
-      title: '恋爱Wrapped · 只属于我们的纪念册',
-      path: '/pages/index/index'
+      title: title,
+      path: '/pages/index/index',
+      imageUrl: imageUrl
     }
+  },
+
+  // 朋友圈没有专门接口，标题由 onShareTimeline 返回。
+  onShareTimeline() {
+    return {
+      title: '我也写了一本《恋爱Wrapped》，只印了一份',
+      query: '',
+      imageUrl: this.data.sharePath || ''
+    }
+  },
+
+  // 把分享封面画成图片，存在 data.sharePath 里。
+  // 失败不打断用户：没有图就退回默认封面，卡片还是能发出去。
+  prepareShareImage(list) {
+    const page = this
+    const slides = list || this.data.slides
+    if (!slides || !slides.length) return
+    const cover = slides[0]
+    const phrase = slides.filter(s => s.id === 'phrase')[0] || null
+    const ending = slides.filter(s => s.id === 'ending')[0] || null
+
+    const card = {
+      nameA: cover.nameA || '',
+      nameB: cover.nameB || '',
+      title: '恋爱Wrapped',
+      line: phrase && phrase.title && phrase.title !== '还没写'
+        ? phrase.title
+        : (ending && ending.title && ending.title !== '还空着' ? ending.title : ''),
+      postmark: cover.meta || ''
+    }
+
+    this.createSelectorQuery()
+      .select('#share')
+      .fields({ node: true, size: true })
+      .exec(async (res) => {
+        const node = res && res[0] && res[0].node
+        if (!node || !node.getContext) return
+        try {
+          const ctx = node.getContext('2d')
+          const dpr = Math.min(this.data.pixelRatio || 2, 3)
+          node.width = poster.SHARE_W * dpr
+          node.height = poster.SHARE_H * dpr
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+          poster.drawShareCard(ctx, poster.SHARE_W, poster.SHARE_H, card)
+          const path = await this.shareCanvasToImage(node, dpr)
+          page.setData({ sharePath: path })
+        } catch (err) {
+          console.warn('分享封面没画出来', err)
+        }
+      })
+  },
+
+  shareCanvasToImage(canvas, dpr) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        wx.canvasToTempFilePath({
+          canvas: canvas,
+          x: 0,
+          y: 0,
+          width: poster.SHARE_W,
+          height: poster.SHARE_H,
+          destWidth: Math.round(poster.SHARE_W * dpr),
+          destHeight: Math.round(poster.SHARE_H * dpr),
+          fileType: 'png',
+          success(res) {
+            if (res && res.tempFilePath) resolve(res.tempFilePath)
+            else reject(new Error('分享封面是空的'))
+          },
+          fail(err) {
+            reject(err || new Error('分享封面导出失败'))
+          }
+        })
+      }, 60)
+    })
   },
 
   measureDock() {
@@ -99,11 +184,11 @@ Page({
       .exec()
   },
 
-  syncChrome(slide) {
-    const rose = !!(slide && slide.theme === 'rose')
+  // 每一页都是奶油底，导航栏不用再跟着换色。
+  syncChrome() {
     wx.setNavigationBarColor({
-      frontColor: rose ? '#ffffff' : '#000000',
-      backgroundColor: rose ? '#E85A7A' : '#FFF5F7',
+      frontColor: '#000000',
+      backgroundColor: '#FFF5F7',
       animation: { duration: 180, timingFunc: 'easeIn' }
     })
   },
@@ -144,39 +229,6 @@ Page({
     wx.showToast({ title: '已放上示例', icon: 'none' })
   },
 
-  onToggleWatermark() {
-    const page = this
-    if (this.data.unlocked) {
-      wx.showModal({
-        title: '恢复演示水印',
-        content: '之后导出的图片会重新画上「演示水印」。纪念册里的文字不受影响。',
-        confirmText: '恢复',
-        cancelText: '取消',
-        confirmColor: '#E85A7A',
-        success(res) {
-          if (!res.confirm) return
-          storage.saveUnlocked(false)
-          page.setData({ unlocked: false }, () => page.measureDock())
-          wx.showToast({ title: '已恢复水印', icon: 'none' })
-        }
-      })
-      return
-    }
-    wx.showModal({
-      title: '激励视频（演示）',
-      content: '这里没有真的广告，也不会跳到购物或支付。点「看完了」只是在这台设备上做个标记，之后导出的图片不再画水印。',
-      confirmText: '看完了',
-      cancelText: '取消',
-      confirmColor: '#E85A7A',
-      success(res) {
-        if (!res.confirm) return
-        storage.saveUnlocked(true)
-        page.setData({ unlocked: true }, () => page.measureDock())
-        wx.showToast({ title: '已模拟解锁', icon: 'none' })
-      }
-    })
-  },
-
   onExport() {
     const slide = this.data.slides[this.data.current]
     if (!slide) return
@@ -199,16 +251,14 @@ Page({
       const height = poster.POSTER_H * list.length
       const dpr = this.posterScale(list.length)
       const drawn = await this.prepareCanvas(width, height, dpr)
-      const watermark = !this.data.unlocked
+      // 先确认隐私授权。没做过授权的设备，这里会弹一次微信自带的说明。
+      await privacy.requirePrivacy()
       if (list.length === 1) {
         poster.drawSlide(drawn.ctx, width, poster.POSTER_H, list[0], {
-          watermark: watermark,
           pageLabel: pageLabel
         })
       } else {
-        poster.drawBook(drawn.ctx, width, poster.POSTER_H, list, {
-          watermark: watermark
-        })
+        poster.drawBook(drawn.ctx, width, poster.POSTER_H, list, {})
       }
       const path = await this.canvasToImage(drawn.node, width, height, drawn.destW, drawn.destH)
       wx.hideLoading()
@@ -216,8 +266,7 @@ Page({
         exporting: false,
         sheet: {
           path: path,
-          title: title,
-          watermarked: watermark
+          title: title
         }
       })
     } catch (err) {

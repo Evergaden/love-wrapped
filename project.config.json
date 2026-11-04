@@ -1,5 +1,5 @@
 {
-  "description": "恋爱Wrapped：一个人填写的纪念册演示",
+  "description": "恋爱Wrapped：写一本一个人的纪念册",
   "packOptions": {
     "ignore": [
       {
@@ -59,7 +59,7 @@
   },
   "compileType": "miniprogram",
   "libVersion": "3.5.5",
-  "appid": "touristappid",
+  "appid": "wx9f1ba14b847089d3",
   "projectname": "love-wrapped",
   "condition": {},
   "editorSetting": {

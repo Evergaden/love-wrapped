@@ -50,6 +50,7 @@ function buildSlides(raw, today) {
   }
   slides.push({
     id: 'cover',
+    mesh: 'mesh-1',
     layout: 'cover',
     theme: 'cream',
     kicker: '恋爱Wrapped',
@@ -82,6 +83,7 @@ function buildSlides(raw, today) {
   }
   slides.push({
     id: 'numbers',
+    mesh: 'mesh-2',
     layout: 'numbers',
     theme: 'cream',
     kicker: '数字',
@@ -96,6 +98,7 @@ function buildSlides(raw, today) {
   if (a.firstDatePlace) {
     slides.push({
       id: 'start',
+      mesh: 'mesh-3',
       layout: 'essay',
       theme: 'cream',
       kicker: '起点',
@@ -108,6 +111,7 @@ function buildSlides(raw, today) {
   } else {
     slides.push({
       id: 'start',
+      mesh: 'mesh-3',
       layout: 'essay',
       theme: 'cream',
       kicker: '起点',
@@ -123,6 +127,7 @@ function buildSlides(raw, today) {
   if (a.distanceMode === 'ldr') {
     slides.push({
       id: 'distance',
+      mesh: 'mesh-4',
       layout: 'essay',
       theme: 'cream',
       kicker: '距离',
@@ -135,6 +140,7 @@ function buildSlides(raw, today) {
   } else if (a.distanceMode === 'same') {
     slides.push({
       id: 'distance',
+      mesh: 'mesh-4',
       layout: 'essay',
       theme: 'cream',
       kicker: '同城',
@@ -146,12 +152,13 @@ function buildSlides(raw, today) {
     })
   }
 
-  // 4. 口头禅。这一页用深玫瑰底、白字。
+  // 4. 口头禅。和其他页一样是奶油底，不再单独换色。
   if (a.catchphrase) {
     slides.push({
       id: 'phrase',
+      mesh: 'mesh-5',
       layout: 'essay',
-      theme: 'rose',
+      theme: 'cream',
       kicker: '口头禅',
       title: a.catchphrase,
       titleSize: titleSize(a.catchphrase),
@@ -162,9 +169,10 @@ function buildSlides(raw, today) {
   } else {
     slides.push({
       id: 'phrase',
+      mesh: 'mesh-5',
       layout: 'essay',
-      theme: 'rose',
-      kicker: '口头禅',
+      theme: 'cream',
+      kicker: '留白',
       title: '还没写',
       titleSize: 'xl',
       body: '那句常说的话，想起来就补上。',
@@ -189,6 +197,7 @@ function buildSlides(raw, today) {
     }
     slides.push({
       id: 'fight',
+      mesh: 'mesh-5',
       layout: 'essay',
       theme: 'cream',
       kicker: '吵架',
@@ -204,6 +213,7 @@ function buildSlides(raw, today) {
   if (!a.story) {
     slides.push({
       id: 'story',
+      mesh: 'mesh-3',
       layout: 'essay',
       theme: 'cream',
       kicker: '一件小事',
@@ -216,6 +226,7 @@ function buildSlides(raw, today) {
   } else if (record.charCount(a.story) <= 18 && a.story.indexOf('\n') === -1) {
     slides.push({
       id: 'story',
+      mesh: 'mesh-3',
       layout: 'essay',
       theme: 'cream',
       kicker: '一件小事',
@@ -228,6 +239,7 @@ function buildSlides(raw, today) {
   } else {
     slides.push({
       id: 'story',
+      mesh: 'mesh-3',
       layout: 'essay',
       theme: 'cream',
       kicker: '一件小事',
@@ -243,6 +255,7 @@ function buildSlides(raw, today) {
   if (a.sentence) {
     slides.push({
       id: 'ending',
+      mesh: 'mesh-4',
       layout: 'essay',
       theme: 'cream',
       kicker: '想对你说',
@@ -255,6 +268,7 @@ function buildSlides(raw, today) {
   } else {
     slides.push({
       id: 'ending',
+      mesh: 'mesh-4',
       layout: 'essay',
       theme: 'cream',
       kicker: '想对你说',

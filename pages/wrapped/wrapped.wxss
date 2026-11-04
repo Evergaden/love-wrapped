@@ -1,7 +1,10 @@
-/* 纪念册。奶油底，每页最多两块柔和色晕。
-   口头禅页是深玫瑰 #E85A7A，字是白的。 */
+/* 纪念册。每一页铺一层弥散光，正文浮在一块磨砂卡上。
+   奶油底 #FFF5F7，粉 #FF8FAB、#FFC2D1，字 #2D1B24。
+   蜜桃 #FFB583、薰衣草 #B79CFF 只出现在弥散底和卡面上，
+   导出图片的同色在 utils/poster.js 里，改颜色时三处一起改。 */
 
 .stage {
+  position: relative;
   width: 100%;
   overflow: hidden;
 }
@@ -11,10 +14,6 @@
   color: #2D1B24;
 }
 
-.theme-rose {
-  background: #E85A7A;
-  color: #FFFFFF;
-}
 
 .swiper {
   width: 100%;
@@ -25,166 +24,73 @@
   overflow: hidden;
 }
 
-.shape {
-  position: absolute;
-  display: none;
-  pointer-events: none;
-}
-
-.id-cover .shape-1,
-.id-cover .shape-2,
-.id-numbers .shape-1,
-.id-numbers .shape-2,
-.id-start .shape-1,
-.id-start .shape-2,
-.id-distance .shape-1,
-.id-phrase .shape-1,
-.id-fight .shape-1,
-.id-story .shape-1,
-.id-ending .shape-1,
-.id-ending .shape-2 {
-  display: block;
-}
-
-/* 每一页的装饰都画成渐变到透明的色晕。
-   没有方块、没有直角，边缘是化开的；形状也整个落在页内，
-   不会被裁出一条直线。正文在 .content 里，压在装饰上面。 */
-.id-cover .shape-1 {
-  width: 460rpx;
-  height: 460rpx;
-  right: 30rpx;
-  top: 20rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 138, 171, 0.20) 0%,
-    rgba(255, 138, 171, 0.09) 29%,
-    rgba(255, 194, 209, 0.03) 48%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
-.id-cover .shape-2 {
-  width: 220rpx;
-  height: 220rpx;
-  right: 190rpx;
-  top: 210rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 194, 209, 0.42) 0%,
-    rgba(255, 194, 209, 0.17) 34%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
-.id-numbers .shape-1 {
-  width: 380rpx;
-  height: 560rpx;
-  right: 30rpx;
-  top: 170rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 138, 171, 0.18) 0%,
-    rgba(255, 138, 171, 0.08) 31%,
-    rgba(255, 194, 209, 0.02) 48%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
-.id-numbers .shape-2 {
-  width: 190rpx;
-  height: 190rpx;
-  right: 40rpx;
-  top: 30rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 194, 209, 0.42) 0%,
-    rgba(255, 194, 209, 0.17) 34%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
-.id-start .shape-1 {
-  width: 420rpx;
-  height: 420rpx;
-  right: 30rpx;
-  bottom: 40rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 194, 209, 0.38) 0%,
-    rgba(255, 194, 209, 0.15) 34%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
-.id-distance .shape-1 {
-  width: 340rpx;
-  height: 340rpx;
-  right: 40rpx;
-  top: 40rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 194, 209, 0.40) 0%,
-    rgba(255, 194, 209, 0.16) 34%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
-.id-phrase .shape-1 {
-  width: 440rpx;
-  height: 440rpx;
-  right: 30rpx;
-  bottom: 40rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 255, 255, 0.20) 0%,
-    rgba(255, 255, 255, 0.09) 33%,
-    rgba(255, 255, 255, 0) 62%);
-}
-
-.id-fight .shape-1 {
-  width: 320rpx;
-  height: 540rpx;
-  right: 40rpx;
-  top: 200rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 194, 209, 0.36) 0%,
-    rgba(255, 194, 209, 0.14) 33%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
-.id-story .shape-1 {
-  width: 260rpx;
-  height: 260rpx;
-  right: 50rpx;
-  top: 40rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 194, 209, 0.40) 0%,
-    rgba(255, 194, 209, 0.16) 33%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
-.id-ending .shape-1 {
-  width: 420rpx;
-  height: 420rpx;
-  left: 30rpx;
-  bottom: 40rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 194, 209, 0.40) 0%,
-    rgba(255, 194, 209, 0.16) 34%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
-.id-ending .shape-2 {
-  width: 200rpx;
-  height: 200rpx;
-  right: 50rpx;
-  top: 40rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 194, 209, 0.36) 0%,
-    rgba(255, 194, 209, 0.14) 34%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
 .content {
   position: relative;
   z-index: 1;
 }
 
+/* 卡片撑满整页：外圈只留一圈窄边给弥散底，
+   短的一页也不会吊在中间、上下空一大片。 */
 .content-inner {
-  padding: 88rpx 64rpx 72rpx;
-  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 28rpx 36rpx 32rpx;
+}
+
+.card {
+  position: relative;
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  padding: 48rpx 44rpx 44rpx;
+  border-radius: 40rpx;
+  /* 卡面压得薄一点，让底下的弥散能透上来，空白处就不是死白。 */
+  background: rgba(255, 255, 255, 0.40);
+  box-shadow:
+    inset 0 0 0 2rpx rgba(255, 255, 255, 0.72),
+    0 26rpx 60rpx rgba(45, 27, 36, 0.12);
+}
+
+/* 卡里的正文占满剩下的高度，上下居中；落款钉在最下面。 */
+.card-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+
+
+
+
+
+
+/* 卡口那道渐变细线。往里缩一点，避开圆角，才不会在拐角处翘出卡外。 */
+.hairline {
+  position: absolute;
+  left: 44rpx;
+  right: 44rpx;
+  top: 0;
+  height: 6rpx;
+}
+
+.kicker-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 26rpx;
+}
+
+.kicker-bar {
+  width: 30rpx;
+  height: 8rpx;
+  margin-right: 14rpx;
+  border-radius: 8rpx;
+  background: linear-gradient(90deg, #FF8FAB 0%, #B79CFF 100%);
 }
 
 .kicker {
   display: block;
-  margin-bottom: 28rpx;
   font-size: 26rpx;
   letter-spacing: 6rpx;
 }
@@ -193,11 +99,26 @@
   color: #E85A7A;
 }
 
-.theme-rose .kicker {
-  color: rgba(255, 255, 255, 0.86);
+/* 标题浸在一团光里。 */
+.title-wrap {
+  position: relative;
+}
+
+.title-glow {
+  position: absolute;
+  left: -110rpx;
+  right: -110rpx;
+  top: -80rpx;
+  bottom: -64rpx;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 26% 50%,
+    rgba(255, 138, 171, 0.24) 0%,
+    rgba(255, 138, 171, 0.07) 48%,
+    rgba(255, 138, 171, 0) 76%);
 }
 
 .title {
+  position: relative;
   display: block;
   font-weight: 600;
   line-height: 1.28;
@@ -213,23 +134,35 @@
 .theme-cream .num,
 .theme-cream .unit {
   color: #2D1B24;
-}
-
-.theme-rose .title {
-  color: #FFFFFF;
+  text-shadow: 0 4rpx 26rpx rgba(232, 90, 122, 0.18);
 }
 
 .name-line {
   display: flex;
   align-items: flex-end;
-  margin-top: 8rpx;
+  margin-top: 10rpx;
 }
 
 .and {
-  margin-right: 12rpx;
-  margin-bottom: 14rpx;
+  margin-right: 14rpx;
+  margin-bottom: 16rpx;
   font-size: 30rpx;
   color: #FF8FAB;
+}
+
+/* 封面上的日期小胶囊。 */
+.pill {
+  display: inline-block;
+  margin-top: 38rpx;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 138, 171, 0.16);
+  box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.75);
+}
+
+.pill-text {
+  font-size: 27rpx;
+  color: #E85A7A;
 }
 
 .body,
@@ -240,16 +173,22 @@
 }
 
 .body {
-  margin-top: 36rpx;
+  margin-top: 34rpx;
   font-size: 32rpx;
-  line-height: 1.75;
+  line-height: 1.8;
   white-space: pre-wrap;
 }
 
 .meta {
-  margin-top: 24rpx;
+  margin-top: 22rpx;
   font-size: 28rpx;
   line-height: 1.6;
+}
+
+.meta-lg {
+  margin-top: 24rpx;
+  font-size: 40rpx;
+  font-weight: 600;
 }
 
 .theme-cream .body,
@@ -259,54 +198,72 @@
   color: rgba(45, 27, 36, 0.72);
 }
 
-.theme-rose .body,
-.theme-rose .meta {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.id-cover .body {
-  margin-top: 56rpx;
-}
-
-.id-cover .meta {
-  margin-top: 12rpx;
-  font-size: 36rpx;
+.theme-cream .meta-lg {
   color: #2D1B24;
 }
 
+/* 数字页：每个数一张小卡，两行排开。 */
 .stats {
-  margin-top: 48rpx;
+  margin-top: 40rpx;
 }
 
-.stat + .stat {
-  margin-top: 40rpx;
+.stat {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+  padding: 26rpx 30rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.46);
+  box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.72);
 }
 
 .stat-line {
   display: flex;
   align-items: baseline;
+  flex: none;
 }
 
 .num {
-  font-size: 88rpx;
+  font-size: 68rpx;
   font-weight: 600;
   line-height: 1;
 }
 
 .unit {
-  margin-left: 10rpx;
-  font-size: 30rpx;
+  margin-left: 8rpx;
+  font-size: 26rpx;
 }
 
 .stat-label {
-  margin-top: 8rpx;
-  font-size: 28rpx;
+  margin-top: 0;
+  max-width: 48%;
+  text-align: right;
+  font-size: 27rpx;
 }
 
 .note {
-  margin-top: 48rpx;
+  margin-top: 36rpx;
   font-size: 28rpx;
   line-height: 1.6;
+}
+
+/* 落款。 */
+.sign {
+  margin-top: 44rpx;
+}
+
+.sign-line {
+  height: 2rpx;
+  background: linear-gradient(90deg, rgba(45, 27, 36, 0.16), rgba(45, 27, 36, 0));
+}
+
+.sign-text {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+  color: rgba(45, 27, 36, 0.42);
 }
 
 .dock {
@@ -314,19 +271,40 @@
 }
 
 .theme-cream .dock {
-  background: #FFF5F7;
+  background: rgba(255, 245, 247, 0.94);
   box-shadow: 0 -10rpx 26rpx rgba(45, 27, 36, 0.05);
-}
-
-.theme-rose .dock {
-  background: #E85A7A;
-  box-shadow: 0 -10rpx 26rpx rgba(120, 22, 48, 0.10);
 }
 
 .pager-row {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14rpx 40rpx 0;
+}
+
+/* 进度用一道道短条，不用圆点。 */
+.dots {
+  display: flex;
+  align-items: center;
+}
+
+.dot {
+  width: 18rpx;
+  height: 6rpx;
+  margin-right: 8rpx;
+  border-radius: 6rpx;
+  background: rgba(45, 27, 36, 0.14);
+  transition: width 200ms ease, background 200ms ease;
+}
+
+.dot.on {
+  width: 44rpx;
+  background: linear-gradient(90deg, #FF8FAB 0%, #B79CFF 100%);
+}
+
+.pager-right {
+  display: flex;
   align-items: baseline;
-  padding: 8rpx 40rpx 0;
 }
 
 .pager {
@@ -334,7 +312,7 @@
 }
 
 .swipe-hint {
-  margin-left: 16rpx;
+  margin-right: 16rpx;
   font-size: 26rpx;
   opacity: 0.7;
 }
@@ -352,32 +330,50 @@
   margin-left: 16rpx;
 }
 
-.theme-rose .btn-primary {
-  background: #FFFFFF;
-  color: #E85A7A;
-  box-shadow: 0 12rpx 28rpx rgba(120, 22, 48, 0.18);
+/* 分享按钮。单独一行，做成一支「邮票」的样式：
+   左边一道虚线齿孔，右边一颗小心，和上面两个导出按钮区分开。 */
+.dock-share {
+  padding: 16rpx 32rpx 0;
 }
 
-.theme-rose .btn-ghost {
-  color: #FFFFFF;
-  border-color: rgba(255, 255, 255, 0.7);
-  background: transparent;
+.btn-share {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 92rpx;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999rpx;
+  background: #2D1B24;
+  color: #FFF5F7;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 92rpx;
+  letter-spacing: 2rpx;
+  box-shadow: 0 12rpx 28rpx rgba(45, 27, 36, 0.22);
 }
 
-.mock-line {
+.btn-share::after {
+  border: none;
+}
+
+.pressedShare {
+  opacity: 0.86;
+  transform: scale(0.985);
+}
+
+/* 底部那句说明。现在不承担「点它解锁」的作用，只是说明。 */
+.dock-tip {
   padding: 14rpx 40rpx 8rpx;
   text-align: center;
-  font-size: 26rpx;
+  font-size: 24rpx;
   line-height: 1.5;
-  text-decoration: underline;
 }
 
-.theme-cream .mock-line {
-  color: rgba(45, 27, 36, 0.62);
-}
-
-.theme-rose .mock-line {
-  color: rgba(255, 255, 255, 0.92);
+.theme-cream .dock-tip {
+  color: rgba(45, 27, 36, 0.46);
 }
 
 .empty {
@@ -386,39 +382,25 @@
   overflow: hidden;
 }
 
-.glow {
-  position: absolute;
-  display: block;
-  pointer-events: none;
-}
-
-.empty-glow-1 {
-  width: 520rpx;
-  height: 520rpx;
-  right: -40rpx;
-  top: -40rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 138, 171, 0.20) 0%,
-    rgba(255, 138, 171, 0.09) 29%,
-    rgba(255, 194, 209, 0.03) 48%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
-.empty-glow-2 {
-  width: 280rpx;
-  height: 280rpx;
-  left: -30rpx;
-  bottom: 60rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 194, 209, 0.42) 0%,
-    rgba(255, 194, 209, 0.17) 33%,
-    rgba(255, 194, 209, 0) 62%);
+.amb-lower {
+  top: 46%;
+  bottom: -8%;
+  opacity: 0.7;
 }
 
 .empty-inner {
   position: relative;
   z-index: 1;
-  padding: 18vh 64rpx 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 48rpx 40rpx 64rpx;
+}
+
+/* 空状态那张卡按内容大小居中就好，不用撑满。 */
+.empty-inner .card {
+  flex: none;
+  margin: auto 0;
 }
 
 .empty-btn {
@@ -426,10 +408,18 @@
 }
 
 .empty-inner .body {
-  margin-bottom: 36rpx;
+  margin-bottom: 34rpx;
 }
 
 .poster-canvas {
+  position: fixed;
+  left: -8000px;
+  top: 0;
+  pointer-events: none;
+}
+
+/* 分享封面用的画布，同样挪出屏幕，否则会压住 dock。 */
+.share-canvas {
   position: fixed;
   left: -8000px;
   top: 0;

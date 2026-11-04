@@ -1,13 +1,20 @@
 <view class="stage theme-{{currentTheme}}" style="height: {{windowHeight}}px;">
   <view wx:if="{{empty}}" class="empty">
-    <view class="glow empty-glow-1"></view>
-    <view class="glow empty-glow-2"></view>
+    <view class="mesh mesh-1"></view>
+    <view class="mesh amb-lower"></view>
+    <view class="bloom"></view>
     <view class="empty-inner">
-      <text class="kicker">恋爱Wrapped</text>
-      <text class="title title-lg">这本纪念册还是空白的</text>
-      <text class="body">先写下两个昵称，和你们在一起的日子。其余的可以以后再补。</text>
-      <view class="btn btn-primary empty-btn" hover-class="pressed" bindtap="onGoFill">去填写</view>
-      <view class="btn btn-ghost empty-btn" hover-class="pressed" bindtap="onUseSample">用示例看一看</view>
+      <view class="card">
+        <view class="hairline"></view>
+        <view class="kicker-row">
+          <view class="kicker-bar"></view>
+          <text class="kicker">恋爱Wrapped</text>
+        </view>
+        <text class="title title-lg">这本纪念册还是空白的</text>
+        <text class="body">先写下两个昵称，和你们在一起的日子。其余的可以以后再补。</text>
+        <view class="btn btn-primary empty-btn" hover-class="pressed" bindtap="onGoFill">去填写</view>
+        <view class="btn btn-ghost empty-btn" hover-class="pressed" bindtap="onUseSample">用示例看一看</view>
+      </view>
     </view>
   </view>
 
@@ -21,42 +28,69 @@
     >
       <swiper-item wx:for="{{slides}}" wx:key="id">
         <view class="slide theme-{{item.theme}} id-{{item.id}}" style="height: {{swiperHeight}}px;">
-          <view class="shape shape-1"></view>
-          <view class="shape shape-2"></view>
+          <!-- 每一页都是奶油底，各自铺一层弥散底。 -->
+          <view class="mesh {{item.mesh}}"></view>
+          <view class="bloom"></view>
           <scroll-view scroll-y show-scrollbar="{{false}}" class="content" style="height: {{swiperHeight}}px;">
-            <view class="content-inner">
-              <block wx:if="{{item.layout === 'cover'}}">
-                <text class="kicker">{{item.kicker}}</text>
-                <text class="title title-{{item.nameSize}}">{{item.nameA}}</text>
-                <view class="name-line">
-                  <text class="and">和</text>
-                  <text class="title title-{{item.nameSize}}">{{item.nameB}}</text>
-                </view>
-                <text class="body">{{item.body}}</text>
-                <text class="meta">{{item.meta}}</text>
-              </block>
-
-              <block wx:elif="{{item.layout === 'numbers'}}">
-                <text class="kicker">{{item.kicker}}</text>
-                <text class="title title-md">{{item.title}}</text>
-                <view class="stats">
-                  <view class="stat" wx:for="{{item.stats}}" wx:for-item="stat" wx:key="label">
-                    <view class="stat-line">
-                      <text class="num">{{stat.num}}</text>
-                      <text class="unit">{{stat.unit}}</text>
-                    </view>
-                    <text class="stat-label">{{stat.label}}</text>
+            <view class="content-inner theme-cream">
+              <view class="card">
+                <view class="hairline"></view>
+                <view class="card-main">
+                  <view class="kicker-row">
+                    <view class="kicker-bar"></view>
+                    <text class="kicker">{{item.kicker}}</text>
                   </view>
-                </view>
-                <text class="note" wx:if="{{item.note}}">{{item.note}}</text>
-              </block>
 
-              <block wx:else>
-                <text class="kicker">{{item.kicker}}</text>
-                <text class="title title-{{item.titleSize}}">{{item.title}}</text>
-                <text class="body" wx:if="{{item.body}}">{{item.body}}</text>
-                <text class="meta" wx:if="{{item.meta}}">{{item.meta}}</text>
-              </block>
+                  <block wx:if="{{item.layout === 'cover'}}">
+                  <view class="title-wrap">
+                    <view class="title-glow"></view>
+                    <text class="title title-{{item.nameSize}}">{{item.nameA}}</text>
+                  </view>
+                  <view class="name-line">
+                    <text class="and">和</text>
+                    <view class="title-wrap">
+                      <view class="title-glow"></view>
+                      <text class="title title-{{item.nameSize}}">{{item.nameB}}</text>
+                    </view>
+                  </view>
+                  <view class="pill">
+                    <text class="pill-text">{{item.body}}</text>
+                  </view>
+                  <text class="meta meta-lg">{{item.meta}}</text>
+                </block>
+
+                  <block wx:elif="{{item.layout === 'numbers'}}">
+                  <view class="title-wrap">
+                    <view class="title-glow"></view>
+                    <text class="title title-md">{{item.title}}</text>
+                  </view>
+                  <view class="stats">
+                    <view class="stat" wx:for="{{item.stats}}" wx:for-item="stat" wx:key="label">
+                      <view class="stat-line">
+                        <text class="num">{{stat.num}}</text>
+                        <text class="unit">{{stat.unit}}</text>
+                      </view>
+                      <text class="stat-label">{{stat.label}}</text>
+                    </view>
+                  </view>
+                  <text class="note" wx:if="{{item.note}}">{{item.note}}</text>
+                </block>
+
+                  <block wx:else>
+                  <view class="title-wrap">
+                    <view class="title-glow"></view>
+                    <text class="title title-{{item.titleSize}}">{{item.title}}</text>
+                  </view>
+                  <text class="body" wx:if="{{item.body}}">{{item.body}}</text>
+                  <text class="meta" wx:if="{{item.meta}}">{{item.meta}}</text>
+                  </block>
+                </view>
+
+                <view class="sign">
+                  <view class="sign-line"></view>
+                  <text class="sign-text">{{item.footer}}</text>
+                </view>
+              </view>
             </view>
           </scroll-view>
         </view>
@@ -65,16 +99,27 @@
 
     <view class="dock">
       <view class="pager-row">
-        <text class="pager">{{current + 1}} / {{slides.length}}</text>
-        <text class="swipe-hint" wx:if="{{current === 0}}">向左滑</text>
+        <view class="dots">
+          <view
+            class="dot {{index === current ? 'on' : ''}}"
+            wx:for="{{slides}}"
+            wx:key="id"
+          ></view>
+        </view>
+        <view class="pager-right">
+          <text class="swipe-hint" wx:if="{{current === 0}}">向左滑</text>
+          <text class="pager">{{current + 1}} / {{slides.length}}</text>
+        </view>
       </view>
       <view class="dock-actions">
         <view class="btn btn-ghost" hover-class="pressed" bindtap="onExport">导出此页</view>
         <view class="btn btn-primary" hover-class="pressed" bindtap="onExportAll">导出整本</view>
       </view>
-      <view class="mock-line" hover-class="pressed" bindtap="onToggleWatermark">
-        <text wx:if="{{unlocked}}">已模拟去掉水印（这里没有真广告）· 点此恢复</text>
-        <text wx:else>导出的图片会带演示水印 · 点此模拟看完激励视频</text>
+      <view class="dock-share">
+        <button class="btn btn-share" hover-class="pressedShare" open-type="share">分享给 TA</button>
+      </view>
+      <view class="dock-tip">
+        <text>导出的图片是清晰的。你写下的字只留在这台设备上。</text>
       </view>
     </view>
   </block>
@@ -88,15 +133,22 @@
   style="width: {{canvasW}}px; height: {{canvasH}}px;"
 ></canvas>
 
+<!-- 分享封面用的画布。同样放在屏幕外，只用来生成转发卡片上的图。 -->
+<canvas
+  type="2d"
+  id="share"
+  class="share-canvas"
+  style="width: 750px; height: 600px;"
+></canvas>
+
 <view class="mask" wx:if="{{sheet}}" bindtap="onCloseSheet" catchtouchmove="noop">
   <view class="sheet" catchtap="noop">
-    <text class="sheet-kicker">{{sheet.watermarked ? '预览 · 含演示水印' : '预览 · 已去掉水印（演示）'}}</text>
+    <text class="sheet-kicker">预览</text>
     <text class="sheet-title">{{sheet.title}}</text>
     <scroll-view scroll-y class="sheet-scroll">
       <image class="sheet-img" src="{{sheet.path}}" mode="widthFix" show-menu-by-longpress="{{true}}" />
     </scroll-view>
-    <text class="sheet-tip" wx:if="{{sheet.watermarked}}">淡字是演示水印。关闭后点底部那一行，模拟看完激励视频，再导出就没有了。</text>
-    <text class="sheet-tip" wx:else>这是去掉水印后的演示图，只在这台设备上。</text>
+    <text class="sheet-tip">长按图片可以直接保存到手机，也可以点下面的按钮。</text>
     <view class="sheet-actions">
       <view class="btn btn-ghost" hover-class="pressed" bindtap="onPreviewImage">查看大图</view>
       <view class="btn btn-primary" hover-class="pressed" bindtap="onSaveAlbum">存到相册</view>

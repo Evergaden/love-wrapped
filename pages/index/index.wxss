@@ -1,53 +1,61 @@
+/* 填写页。
+   底是一层弥散光，正文浮在上面。整页不再是一张空白表单，
+   而是从「先认识你们」到「还有一页留给你」的四段小卡。 */
+
 .page {
+  position: relative;
   min-height: 100vh;
-  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
+  padding-bottom: 240rpx;
+}
+
+/* 弥散底。只铺在页头这一段，下面留干净的奶油底给表单。 */
+.ambient {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 780rpx;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.amb-lower {
+  top: 30%;
+  bottom: -6%;
+  opacity: 0.7;
+}
+
+/* 底边化开，让色和奶油底之间没有一条线。 */
+.amb-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 320rpx;
+  background: linear-gradient(180deg, rgba(255, 245, 247, 0) 0%, rgba(255, 245, 247, 0.92) 72%, #FFF5F7 100%);
 }
 
 .hero {
   position: relative;
-  padding: 44rpx 48rpx 20rpx;
-}
-
-/* 装饰：两团柔和色晕，都收在右上角。
-   用 radial-gradient 淡到透明，所以边缘是化开的，不是切出来的直线。
-   偏移量都留在渐变已经全透明的那一段里，不会被容器切出硬边。 */
-.glow {
-  position: absolute;
-  pointer-events: none;
-}
-
-.glow-rose {
-  width: 320rpx;
-  height: 320rpx;
-  right: -10rpx;
-  top: -40rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 138, 171, 0.20) 0%,
-    rgba(255, 138, 171, 0.09) 29%,
-    rgba(255, 194, 209, 0.03) 48%,
-    rgba(255, 194, 209, 0) 62%);
-}
-
-.glow-pink {
-  width: 180rpx;
-  height: 180rpx;
-  right: 60rpx;
-  top: 100rpx;
-  background: radial-gradient(ellipse at 50% 50%,
-    rgba(255, 194, 209, 0.55) 0%,
-    rgba(255, 194, 209, 0.22) 33%,
-    rgba(255, 194, 209, 0) 60%);
-}
-
-.eyebrow,
-.hero-title,
-.hero-sub {
-  position: relative;
   z-index: 1;
+  padding: 56rpx 48rpx 36rpx;
+}
+
+.eyebrow-row {
+  display: flex;
+  align-items: center;
+}
+
+/* 小标记用一道渐变短条，不用圆点，整体更软。 */
+.eyebrow-dot {
+  width: 34rpx;
+  height: 8rpx;
+  margin-right: 16rpx;
+  border-radius: 8rpx;
+  background: linear-gradient(90deg, #FF8FAB 0%, #D6BCFF 60%, #FFC59B 100%);
 }
 
 .eyebrow {
-  display: block;
   color: #E85A7A;
   font-size: 26rpx;
   letter-spacing: 4rpx;
@@ -55,119 +63,179 @@
 
 .hero-title {
   display: block;
-  margin-top: 14rpx;
-  font-size: 62rpx;
+  margin-top: 18rpx;
+  font-size: 66rpx;
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: 1rpx;
   color: #2D1B24;
+  text-shadow: 0 0 48rpx rgba(255, 138, 171, 0.42);
 }
 
 .hero-sub {
   display: block;
-  margin-top: 20rpx;
-  max-width: 460rpx;
+  margin-top: 22rpx;
+  max-width: 520rpx;
   font-size: 30rpx;
   line-height: 1.7;
   color: rgba(45, 27, 36, 0.72);
 }
 
-.paper {
-  position: relative;
-  z-index: 1;
-  margin: 24rpx 28rpx 0;
-  padding: 48rpx 40rpx 40rpx;
-  background: #FFFFFF;
-  border-radius: 44rpx;
-  box-shadow: 0 4rpx 16rpx rgba(45, 27, 36, 0.03), 0 24rpx 64rpx rgba(232, 90, 122, 0.10);
+/* 进度条。写了多少，看得见。 */
+.progress {
+  margin-top: 36rpx;
 }
 
-.section-title {
+.progress-track {
+  height: 10rpx;
+  border-radius: 10rpx;
+  background: rgba(255, 138, 171, 0.16);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 10rpx;
+  border-radius: 10rpx;
+  background: linear-gradient(90deg, #FF8FAB 0%, #D6BCFF 55%, #FFC59B 100%);
+  transition: width 260ms ease;
+}
+
+.progress-text {
   display: block;
-  font-size: 34rpx;
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: rgba(45, 27, 36, 0.5);
+}
+
+/* 正文那一大张磨砂纸。 */
+.sheet {
+  position: relative;
+  z-index: 1;
+  margin: 0 24rpx;
+  padding: 12rpx 36rpx 44rpx;
+  border-radius: 44rpx;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow:
+    inset 0 0 0 2rpx rgba(255, 255, 255, 0.85),
+    0 30rpx 70rpx rgba(45, 27, 36, 0.09);
+}
+
+.group {
+  padding-top: 40rpx;
+}
+
+.group + .group {
+  margin-top: 12rpx;
+  border-top: 2rpx solid rgba(255, 138, 171, 0.13);
+}
+
+.group-head {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 30rpx;
+}
+
+.group-no {
+  flex: none;
+  margin-right: 20rpx;
+  padding: 4rpx 18rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 138, 171, 0.16);
+  color: #E85A7A;
+  font-size: 24rpx;
   font-weight: 600;
-  letter-spacing: 1rpx;
+  letter-spacing: 2rpx;
+  line-height: 1.7;
+}
+
+.group-text {
+  flex: 1;
+}
+
+.group-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
   color: #2D1B24;
 }
 
-.section-gap {
-  margin-top: 12rpx;
-}
-
-.section-hint {
+.group-hint {
   display: block;
-  margin: 10rpx 0 32rpx;
-  font-size: 28rpx;
-  line-height: 1.65;
-  color: rgba(45, 27, 36, 0.62);
+  margin-top: 6rpx;
+  font-size: 25rpx;
+  line-height: 1.55;
+  color: rgba(45, 27, 36, 0.5);
 }
 
 .field-block {
-  margin-bottom: 32rpx;
+  margin-bottom: 34rpx;
 }
 
 .field-label {
   display: block;
-  margin-bottom: 12rpx;
-  font-size: 28rpx;
-  color: rgba(45, 27, 36, 0.82);
+  margin-bottom: 8rpx;
+  font-size: 26rpx;
+  color: rgba(45, 27, 36, 0.66);
 }
 
 .field-help {
   display: block;
-  margin: -4rpx 0 14rpx;
-  font-size: 26rpx;
+  margin-bottom: 14rpx;
+  font-size: 25rpx;
   line-height: 1.55;
-  color: rgba(45, 27, 36, 0.52);
+  color: rgba(45, 27, 36, 0.48);
 }
 
+/* 单行输入只用一条底线，画面轻一点，也不再是一格一格的方框。 */
 .field {
   width: 100%;
-  height: 92rpx;
-  padding: 0 24rpx;
-  background: #FFF5F7;
-  border-radius: 24rpx;
-  box-shadow: inset 0 0 0 2rpx rgba(255, 194, 209, 0.45);
-  font-size: 30rpx;
+  height: 88rpx;
+  padding: 0 4rpx;
+  background: transparent;
+  border: none;
+  box-shadow: inset 0 -2rpx 0 rgba(255, 138, 171, 0.45);
+  font-size: 32rpx;
   color: #2D1B24;
 }
 
 .field-picker {
-  line-height: 92rpx;
+  line-height: 88rpx;
 }
 
+/* 多行还是要一块地方，才放得下一段话。 */
 .textarea {
   width: 100%;
-  height: 220rpx;
+  height: 200rpx;
   padding: 20rpx 24rpx;
-  background: #FFF5F7;
+  background: rgba(255, 245, 247, 0.9);
+  border: none;
   border-radius: 24rpx;
-  box-shadow: inset 0 0 0 2rpx rgba(255, 194, 209, 0.45);
+  box-shadow: inset 0 0 0 2rpx rgba(255, 194, 209, 0.5);
   font-size: 30rpx;
   line-height: 1.6;
   color: #2D1B24;
 }
 
 .textarea-short {
-  height: 150rpx;
+  height: 160rpx;
 }
 
 .ph {
-  color: rgba(45, 27, 36, 0.38);
+  color: rgba(45, 27, 36, 0.34);
 }
 
 .counter {
   display: block;
-  margin-top: 8rpx;
+  margin-top: 10rpx;
   text-align: right;
   font-size: 24rpx;
-  color: rgba(45, 27, 36, 0.42);
+  color: rgba(45, 27, 36, 0.4);
 }
 
 .choices {
   display: flex;
   flex-wrap: wrap;
-  margin-top: 16rpx;
+  margin-top: 18rpx;
 }
 
 .choice {
@@ -175,21 +243,21 @@
   align-items: center;
   margin: 0 16rpx 16rpx 0;
   padding: 8rpx 22rpx 8rpx 12rpx;
-  border: 2rpx solid rgba(255, 194, 209, 0.55);
+  border: 2rpx solid rgba(255, 194, 209, 0.6);
   border-radius: 999rpx;
-  background: #FFF5F7;
+  background: rgba(255, 245, 247, 0.7);
   font-size: 26rpx;
   color: #2D1B24;
 }
 
 .choice.on {
-  background: #FFC2D1;
-  border-color: rgba(255, 138, 171, 0.55);
-  box-shadow: 0 6rpx 16rpx rgba(232, 90, 122, 0.12);
+  background: rgba(255, 138, 171, 0.22);
+  border-color: rgba(255, 138, 171, 0.7);
+  box-shadow: 0 6rpx 18rpx rgba(232, 90, 122, 0.12);
 }
 
 .follow {
-  margin-top: 8rpx;
+  margin-top: 10rpx;
 }
 
 .error {
@@ -204,6 +272,12 @@
   opacity: 0.55;
 }
 
+.tail {
+  margin-top: 16rpx;
+  padding-top: 36rpx;
+  border-top: 2rpx solid rgba(255, 138, 171, 0.13);
+}
+
 .count-line,
 .sample-note,
 .privacy {
@@ -214,8 +288,10 @@
 }
 
 .count-line {
-  margin: 18rpx 8rpx 30rpx;
-  text-align: center;
+  flex: 1;
+  min-width: 0;
+  font-size: 25rpx;
+  line-height: 1.45;
 }
 
 .sample-btn {
@@ -235,5 +311,26 @@
 }
 
 .privacy {
-  margin-top: 28rpx;
+  margin-top: 24rpx;
+  text-align: center;
+}
+
+/* 底部固定操作条。按钮一直在手边，不用滑到最下面找。 */
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  padding: 20rpx 32rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: rgba(255, 245, 247, 0.94);
+  box-shadow: 0 -12rpx 32rpx rgba(45, 27, 36, 0.07);
+}
+
+.action-bar .btn {
+  flex: none;
+  width: 320rpx;
+  margin-left: 24rpx;
 }
