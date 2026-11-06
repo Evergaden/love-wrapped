@@ -1,0 +1,98 @@
+/* 我的页。和填写页同一套奶油系视觉：软卡片、细描边、安静的正文。 */
+
+.page {
+  min-height: 100vh;
+  font-family: inherit;
+}
+
+.wrap {
+  padding: 64rpx 40rpx 80rpx;
+}
+
+.page-title {
+  display: block;
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #2D1B24;
+}
+
+.page-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: rgba(45, 27, 36, 0.55);
+}
+
+.card {
+  margin-top: 28rpx;
+  padding: 30rpx 32rpx;
+  border-radius: 30rpx;
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: inset 0 0 0 2rpx rgba(255, 194, 209, 0.35);
+}
+
+.card.link {
+  box-shadow: inset 0 0 0 2rpx rgba(255, 194, 209, 0.55);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #2D1B24;
+}
+
+.chev {
+  font-size: 40rpx;
+  color: rgba(45, 27, 36, 0.35);
+}
+
+.card-body {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 27rpx;
+  line-height: 1.6;
+  color: rgba(45, 27, 36, 0.6);
+}
+
+.card-body.warn {
+  color: #B4532A;
+}
+
+/* 状态胶囊。 */
+.state {
+  padding: 8rpx 22rpx;
+  border-radius: 999rpx;
+  font-size: 24rpx;
+  background: rgba(45, 27, 36, 0.08);
+  color: rgba(45, 27, 36, 0.55);
+}
+
+.state.ok {
+  background: rgba(143, 211, 168, 0.28);
+  color: #2E8B62;
+}
+
+.state.error {
+  background: rgba(232, 90, 122, 0.16);
+  color: #C04360;
+}
+
+.pressed {
+  opacity: 0.7;
+}
+
+.ghost {
+  margin-top: 20rpx;
+  padding: 16rpx 30rpx;
+  border-radius: 999rpx;
+  background: rgba(232, 90, 122, 0.1);
+  color: #C04360;
+  font-size: 26rpx;
+  text-align: center;
+}

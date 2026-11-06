@@ -2,3 +2,5 @@
 project.private.config.json
 node_modules/
 miniprogram_npm/
+.workbuddy/
+.wbapp_*.genie

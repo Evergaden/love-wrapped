@@ -1,0 +1,38 @@
+<view class="page" style="background: {{themeBg}}">
+  <view class="wrap">
+    <!-- 加载中 -->
+    <view class="empty" wx:if="{{state === 'loading'}}">
+      <text class="empty-text">正在翻云端的书架…</text>
+    </view>
+
+    <!-- 出错：给出可操作的提示 -->
+    <view class="empty" wx:elif="{{state === 'error'}}">
+      <text class="empty-text">{{error}}</text>
+    </view>
+
+    <!-- 空书架 -->
+    <view class="empty" wx:elif="{{!books.length}}">
+      <text class="empty-title">书架还是空的</text>
+      <text class="empty-text">回到填写页写完一册，点「生成纪念册」时就会自动存到这里。</text>
+    </view>
+
+    <!-- 书架 -->
+    <block wx:else>
+      <view
+        class="book"
+        wx:for="{{books}}"
+        wx:key="id"
+        hover-class="pressed"
+        bindtap="onLoadOne"
+        data-id="{{item.id}}"
+      >
+        <view class="book-main">
+          <text class="book-title">{{item.title}}</text>
+          <text class="book-meta">{{item.dateText || '日子还没选'}} · 存于 {{item.timeText}}</text>
+        </view>
+        <view class="book-del" hover-class="pressed" catchtap="onDelete" data-id="{{item.id}}" aria-role="button">删除</view>
+      </view>
+      <text class="hint">点一册载回填写页。</text>
+    </block>
+  </view>
+</view>

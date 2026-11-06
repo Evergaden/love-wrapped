@@ -10,6 +10,7 @@ const record = require('./record')
 const themes = require('./themes')
 const brand = require('./brand')
 const geo = require('./geo')
+const festivals = require('./festivals')
 
 function titleSize(text) {
   const n = record.charCount(text)
@@ -77,11 +78,23 @@ function buildSlides(raw, today, themeId) {
     stats.push({ num: String(info.days), unit: '天', label: '之后，就是这一天' })
   } else if (info) {
     stats.push({ num: String(info.days), unit: '天', label: '在一起' })
-    // 顺手预告下一个整百天或周年。
-    if (milestone) {
-      stats.push(milestone.days === 0
-        ? { num: '今天', unit: '', label: '正好' + milestone.label.replace('就', '') }
-        : { num: String(milestone.days), unit: '天', label: '之后，' + milestone.label })
+    // 第二行预告：优先说节气和传统节日——比整百天更有日子感。
+    // 今天正好是周年/整百天时，还是先说自己的纪念日。
+    if (milestone && milestone.days === 0) {
+      stats.push({ num: '今天', unit: '', label: '正好' + milestone.label.replace('就', '') })
+    } else {
+      const fest = festivals.coupleFestival(a.togetherDate, now)
+      if (fest) {
+        // 一起过的次数和要来的日子合成一句话：
+        //   「1 天后，就是你们的第 4 个立冬」「正好是你们的第 4 个立冬」
+        // 第一次赶上的说成「第一个」，不说「过 0 个」。
+        const nth = (n) => (n === 1 ? '第一个' : '第 ' + n + ' 个')
+        stats.push(fest.days === 0
+          ? { num: '今天', unit: '', label: '正好是你们的' + nth(fest.passed) + fest.name }
+          : { num: String(fest.days), unit: '天', label: '后，就是你们的' + nth(fest.passed + 1) + fest.name })
+      } else if (milestone) {
+        stats.push({ num: String(milestone.days), unit: '天', label: '之后，' + milestone.label })
+      }
     }
   }
   // 旧数据里只有城市数量：没有去过的地方，就照旧用数字占一行。
@@ -247,9 +260,8 @@ function buildSlides(raw, today, themeId) {
       journeyNum: String(autoKm),
       journeyUnit: '公里',
       journeyLabel: '从' + myCity.name + '到' + theirCity.name + '。',
-      meta: autoKm === 0
-        ? '0 公里，想见就能见到'
-        : '直线推算，差不多就好',
+      // 异地的公里数不必解释怎么算的，恋爱年报里没有人纠结这个。
+      meta: autoKm === 0 ? '0 公里，想见就能见到' : '',
       footer: footer
     }, journeyTint))
   } else if (a.distanceMode === 'ldr' && a.distanceKm) {
@@ -334,8 +346,10 @@ function buildSlides(raw, today, themeId) {
       kicker: '口头禅',
       title: a.catchphrase,
       body: '听到的时候，就会想起你。',
+      // 正文用墨色压住气泡，引号留给主题色做点缀：一句口语，要像认真写下来的话。
       bubbleStyle: 'background: ' + themes.tint(theme, 'a', 0.16),
-      bubbleTextStyle: 'color: ' + themes.pick(theme).kicker,
+      bubbleTextStyle: 'color: ' + themes.pick(theme).ink,
+      bubbleMarkStyle: 'color: ' + themes.pick(theme).kicker,
       bubbleTailStyle: 'border-bottom-color: ' + themes.tint(theme, 'a', 0.16),
       meta: '',
       footer: footer

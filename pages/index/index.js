@@ -10,8 +10,8 @@ const themes = require('../../utils/themes')
 const brand = require('../../utils/brand')
 const gift = require('../../utils/gift')
 const geo = require('../../utils/geo')
-const backup = require('../../utils/backup')
 const privacy = require('../../utils/privacy')
+const cloud = require('../../utils/cloud')
 
 // 拼图页最多放几块。
 const PLACE_CAP = 8
@@ -76,7 +76,7 @@ Page({
     privacy.checkPrivacy()
   },
 
-  // 分享卡片不放昵称。对方点开会看到空白填写页，答案仍在你的设备上。
+  // 分享卡片不放昵称。转发给好友时答案装在链接里，对方点开直接看到整册；朋友圈没有答案。
   // 分享卡片：已经写好的话，把整册装进链接带给对方；
   // 还没写完就还是一张普通的空白填写页。
   onShareAppMessage() {
@@ -216,17 +216,6 @@ Page({
     }
   },
 
-  // 备份成文字：复制到剪贴板，用户粘进收藏就是一份不会丢的存档。
-  onBackup() {
-    const text = backup.buildText(this.data.form)
-    wx.setClipboardData({
-      data: text,
-      success() {
-        wx.showToast({ title: '已复制，去微信「收藏」粘贴保存', icon: 'none' })
-      }
-    })
-  },
-
   // 后台「用户隐私保护指引」的查看入口。低版本没有这个接口就不显示交互。
   onOpenPrivacyContract() {
     if (typeof wx.openPrivacyContract !== 'function') {
@@ -292,7 +281,7 @@ Page({
     const page = this
     wx.showModal({
       title: '清空答案',
-      content: '只会删除这台设备上的填写内容，不能恢复。',
+      content: '填写页的内容会被清空，不能恢复。',
       confirmText: '清空',
       cancelText: '取消',
       confirmColor: this.data.accentColor,
@@ -303,6 +292,10 @@ Page({
         wx.pageScrollTo({ scrollTop: 0, duration: 200 })
       }
     })
+  },
+
+  goProfile() {
+    wx.navigateTo({ url: '/pages/profile/profile' })
   },
 
   onGenerate() {
@@ -322,6 +315,13 @@ Page({
       this.setData({ form })
     }
     storage.saveAnswers(form)
+    // 云端快照：开通云开发时，把这一册存一份到「历史记录」。
+    // 异步且不阻塞翻册子；没开通云开发时安静跳过。
+    cloud.saveBook(form).then((res) => {
+      if (res && res.error) {
+        console.warn('[cloud] 快照没有存上：' + res.error)
+      }
+    })
     wx.navigateTo({
       url: '/pages/wrapped/wrapped',
       complete: () => {

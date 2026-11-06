@@ -9,9 +9,12 @@
   </view>
 
   <view class="hero">
-    <view class="eyebrow-row">
-      <view class="eyebrow-dot"></view>
-      <text class="eyebrow">一个人写的纪念册</text>
+    <view class="hero-top">
+      <view class="eyebrow-row">
+        <view class="eyebrow-dot"></view>
+        <text class="eyebrow">写给你们的小册子</text>
+      </view>
+      <view class="me-entry" hover-class="pressed" bindtap="goProfile" aria-role="button">我的</view>
     </view>
     <text class="hero-title">{{appName}}</text>
     <text class="hero-sub">由你写下两个名字和一些小事。生成之后可以左右滑动，像翻一本只印了一份的小册子。</text>
@@ -370,11 +373,11 @@
 
     <view class="tail">
       <view class="btn btn-ghost sample-btn" hover-class="pressed" bindtap="onSample">填入一组示例</view>
-      <text class="sample-note">示例是虚构的小熊和阿树，一共 9 页。想从零开始，点下面的「清空」。</text>
+      <text class="sample-note">示例是虚构的小熊和阿树，一共 9 页。想从零开始，点下面的「清空重写」。</text>
 
-      <view class="quiet" wx:if="{{hasStored}}" hover-class="pressed" bindtap="onBackup" aria-role="button">把这册备份成文字</view>
-      <view class="quiet" wx:if="{{hasStored}}" hover-class="pressed" bindtap="onClear" aria-role="button">清空这台设备上的答案</view>
-      <text class="privacy">不联网，不登录。清缓存或换一台设备之后，这些字会消失。</text>
+      <view class="quiet-row" wx:if="{{hasStored}}">
+        <view class="quiet" hover-class="pressed" bindtap="onClear" aria-role="button">清空重写</view>
+      </view>
       <text class="privacy privacy-link" bindtap="onOpenPrivacyContract" aria-role="button">用户隐私保护指引</text>
     </view>
   </view>

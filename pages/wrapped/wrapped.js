@@ -192,6 +192,12 @@ Page({
     const phrase = slides.filter(s => s.id === 'phrase')[0] || null
     const ending = slides.filter(s => s.id === 'ending')[0] || null
 
+    // 邮戳印「写这一册的日子」，比如「写于 2026.11.06」。
+    const d = new Date()
+    const stamp = '写于 ' + d.getFullYear() + '.'
+      + String(d.getMonth() + 1).padStart(2, '0') + '.'
+      + String(d.getDate()).padStart(2, '0')
+
     const card = {
       nameA: cover.nameA || '',
       nameB: cover.nameB || '',
@@ -199,7 +205,7 @@ Page({
       line: phrase && phrase.title && phrase.title !== '还没写'
         ? phrase.title
         : (ending && ending.title && ending.title !== '还空着' ? ending.title : ''),
-      postmark: cover.meta || '',
+      postmark: stamp,
       theme: this.data.currentTheme
     }
 
@@ -287,7 +293,7 @@ Page({
     const page = this
     wx.showModal({
       title: '把这册留下来',
-      content: '会把这册内容存进你手机上的纪念册，覆盖你自己写的那一份。',
+      content: '会把这册存进你的纪念册，覆盖你自己写的那一份。',
       confirmText: '收下',
       cancelText: '先不',
       confirmColor: themes.THEMES[themes.resolve(this.data.currentTheme)].kicker,
@@ -295,7 +301,7 @@ Page({
         if (!res.confirm) return
         storage.saveAnswers(page.giftForm)
         page.setData({ gift: false })
-        wx.showToast({ title: '已收下，现在是你手机里的了', icon: 'none' })
+        wx.showToast({ title: '已收下，这册是你的了', icon: 'none' })
       }
     })
   },
@@ -509,6 +515,17 @@ Page({
   onSaveAlbum() {
     const sheet = this.data.sheet
     if (!sheet || !sheet.path) return
+    // 模拟器里没有系统相册，这个接口经常静默失败，按钮会显得「没反应」。
+    // 与其让人疑惑，不如直接说明：这个按钮要到手机上试。
+    try {
+      const info = typeof wx.getDeviceInfo === 'function'
+        ? wx.getDeviceInfo()
+        : wx.getSystemInfoSync()
+      if (info && info.platform === 'devtools') {
+        wx.showToast({ title: '模拟器没有相册，请用真机预览保存', icon: 'none' })
+        return
+      }
+    } catch (e) { /* 取不到设备信息就照常走原逻辑 */ }
     wx.saveImageToPhotosAlbum({
       filePath: sheet.path,
       success() {

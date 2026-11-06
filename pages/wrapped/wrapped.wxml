@@ -132,9 +132,7 @@
                   <block wx:elif="{{item.layout === 'bubble'}}">
                   <view class="bubble-wrap">
                     <view class="bubble" style="{{item.bubbleStyle}}">
-                      <text class="bubble-mark" style="{{item.bubbleTextStyle}}">「</text>
-                      <text class="bubble-text" style="{{item.bubbleTextStyle}}">{{item.title}}</text>
-                      <text class="bubble-mark" style="{{item.bubbleTextStyle}}">」</text>
+                      <text class="bubble-text" style="{{item.bubbleTextStyle}}"><text class="bubble-mark" style="{{item.bubbleMarkStyle}}">「</text>{{item.title}}<text class="bubble-mark" style="{{item.bubbleMarkStyle}}">」</text></text>
                     </view>
                     <view class="bubble-tail" style="{{item.bubbleTailStyle}}"></view>
                   </view>
@@ -223,9 +221,9 @@
       </view>
       <!-- 礼物模式：这册是转发带来的，字都装在链接里。可以收下，也可以自己写一本。 -->
       <view class="dock-tip gift-tip" wx:if="{{gift}}">
-        <text>这册纪念册是转发带来的，字都装在链接里，从一部手机直达另一部，没经过任何服务器。</text>
+        <text>这册纪念册是 TA 转发带来的。</text>
         <view class="gift-cta-row">
-          <text class="gift-cta" hover-class="pressed" bindtap="onSaveGift" aria-role="button">把这册留在我手机上</text>
+          <text class="gift-cta" hover-class="pressed" bindtap="onSaveGift" aria-role="button">把这册留下来</text>
           <text class="gift-cta gift-cta-quiet" hover-class="pressed" bindtap="onGoFill" aria-role="button">我也写一本 →</text>
         </view>
       </view>

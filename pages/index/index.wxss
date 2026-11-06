@@ -41,9 +41,25 @@
   padding: 56rpx 48rpx 36rpx;
 }
 
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .eyebrow-row {
   display: flex;
   align-items: center;
+}
+
+/* 「我的」入口：右上角一枚安静的胶囊。 */
+.me-entry {
+  padding: 10rpx 26rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 0 0 2rpx rgba(255, 194, 209, 0.55);
+  font-size: 26rpx;
+  color: rgba(45, 27, 36, 0.72);
 }
 
 /* 小标记用一道渐变短条，不用圆点，整体更软。 */
@@ -354,16 +370,27 @@
   margin: 16rpx 8rpx 8rpx;
 }
 
+.quiet-row {
+  margin-top: 20rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .quiet {
-  margin-top: 28rpx;
-  text-align: center;
   font-size: 26rpx;
   color: rgba(45, 27, 36, 0.55);
   text-decoration: underline;
 }
 
+.quiet-sep {
+  margin: 0 14rpx;
+  font-size: 26rpx;
+  color: rgba(45, 27, 36, 0.35);
+}
+
 .privacy {
-  margin-top: 24rpx;
+  margin-top: 16rpx;
   text-align: center;
 }
 
@@ -486,6 +513,7 @@
 }
 
 .theme-matcha .textarea {
+  background: rgba(243, 250, 245, 0.9);
   box-shadow: inset 0 0 0 2rpx rgba(200, 233, 210, 0.55);
 }
 
@@ -544,6 +572,7 @@
 }
 
 .theme-sky .textarea {
+  background: rgba(243, 248, 253, 0.9);
   box-shadow: inset 0 0 0 2rpx rgba(207, 226, 248, 0.55);
 }
 
@@ -602,6 +631,7 @@
 }
 
 .theme-violet .textarea {
+  background: rgba(249, 246, 253, 0.9);
   box-shadow: inset 0 0 0 2rpx rgba(228, 212, 250, 0.55);
 }
 
@@ -659,7 +689,7 @@
 }
 
 .privacy-link {
-  margin-top: -8rpx;
+  margin-top: 16rpx;
   text-decoration: underline;
   opacity: 0.75;
 }

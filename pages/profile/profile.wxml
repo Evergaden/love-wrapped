@@ -1,0 +1,43 @@
+<view class="page" style="background: {{themeBg}}">
+  <view class="wrap">
+    <text class="page-title">我的</text>
+    <text class="page-sub">{{appName}}</text>
+
+    <!-- 云同步状态 -->
+    <view class="card">
+      <view class="card-head">
+        <text class="card-title">云同步</text>
+        <view
+          class="state {{cloudState}}"
+          hover-class="{{cloudState === 'error' ? 'pressed' : ''}}"
+          bindtap="{{cloudState === 'error' ? 'onRetryCloud' : ''}}"
+        >
+          <text wx:if="{{cloudState === 'checking'}}">检查中…</text>
+          <text wx:elif="{{cloudState === 'ok'}}">已连接</text>
+          <text wx:else>点我重试</text>
+        </view>
+      </view>
+      <text class="card-body warn" wx:if="{{cloudState === 'error'}}">{{cloudError}}</text>
+      <text class="card-body" wx:elif="{{cloudState === 'checking'}}">正在确认云端的连接…</text>
+    </view>
+
+    <!-- 历史记录 -->
+    <view class="card link" hover-class="pressed" bindtap="goHistory" aria-role="button">
+      <view class="card-head">
+        <text class="card-title">历史记录</text>
+        <text class="chev">›</text>
+      </view>
+      <text class="card-body">翻看之前写过的册子，可以载回填写页，也可以删掉。</text>
+    </view>
+
+    <!-- 草稿 -->
+    <view class="card">
+      <view class="card-head">
+        <text class="card-title">草稿</text>
+      </view>
+      <text class="card-body" wx:if="{{hasDraft}}">正在写：{{draftTitle}}</text>
+      <text class="card-body" wx:else>还没有写到一半的内容。</text>
+      <view class="ghost" hover-class="pressed" bindtap="onClearDraft" wx:if="{{hasDraft}}" aria-role="button">清空草稿</view>
+    </view>
+  </view>
+</view>

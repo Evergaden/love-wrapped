@@ -426,7 +426,7 @@ function buildParts(ctx, slide, theme, maxWidth) {
   if (slide.layout === 'bubble') {
     const inner = maxWidth - 110
     const bubbleLines = limitLines(wrapText(ctx, slide.title, inner), 4)
-    const bubbleLh = 62
+    const bubbleLh = 72
     const bubbleH = bubbleLines.length * bubbleLh + 52
     parts.push({ type: 'kicker', text: slide.kicker, color: theme.kicker, h: 34, gap: 0, center: true })
     parts.push({
@@ -727,13 +727,14 @@ function drawParts(ctx, parts, x, y, theme, maxWidth) {
       roundRectPath(ctx, bx, cursor, bw, bh, 30)
       ctx.fill()
       ctx.fillStyle = rgba(theme.kicker, 0.55)
-      ctx.font = font(38, true)
+      ctx.font = font(42, true)
       ctx.textAlign = 'left'
       ctx.textBaseline = 'top'
       ctx.fillText('「', bx + 26, cursor + 14)
       ctx.fillText('」', bx + bw - 64, cursor + bh - 52)
-      ctx.fillStyle = theme.kicker
-      ctx.font = font(44, false)
+      // 正文用墨色压住气泡：口语也要一眼看到，主题色只留给引号。
+      ctx.fillStyle = theme.ink
+      ctx.font = font(50, true)
       ctx.textAlign = 'center'
       let ty = cursor + 26
       part.lines.forEach((line) => {
@@ -1004,6 +1005,9 @@ function drawSlide(ctx, w, h, slide, options) {
 // 两节之间留出的呼吸。
 const BOOK_SECTION_GAP = 96
 
+// 封底多留一行的空间：落款下面还要带一句小程序引导。
+const BOOK_END_EXTRA = 40
+
 // 第一步：先量。每一节用 buildParts 排出来、量出高度，
 // 汇总成整条长图的总高度。画布要按这个高度来建。
 function planBook(ctx, w, slides) {
@@ -1028,7 +1032,8 @@ function planBook(ctx, w, slides) {
   const totalH = Math.round(
     card.top + card.hairline + card.padTop
     + contentH
-    + SIGN_GAP + SIGN_H + card.padBottom + card.bottom
+    // 封底不再画昵称落款，只在末尾留一段呼吸和两行小字。
+    + SIGN_GAP + card.padBottom + card.bottom + BOOK_END_EXTRA
   )
   return {
     theme: theme,
@@ -1046,9 +1051,6 @@ function drawBookPlanned(ctx, w, plan, options) {
   const h = plan.totalH
   const cardX = card.side
   const cardW = w - card.side * 2
-  const footer = opts.footer
-    || (plan.sections.length && plan.sections[0].slide.footer)
-    || ''
 
   ctx.save()
   ctx.beginPath()
@@ -1098,17 +1100,16 @@ function drawBookPlanned(ctx, w, plan, options) {
     cursor += sec.h
   })
 
-  // 落款整条只出现一次，钉在最末尾。
-  const signY = h - card.bottom - card.padBottom - SIGN_H
-  drawSign(ctx, footer, cardX + card.padX, signY, plan.maxWidth, theme)
-
-  // 封底：像一本书的最后一句，居中、很轻。
-  const endY = h - card.bottom - 26
+  // 封底：像一本书的最后一句，居中、很轻；下面再带一句小程序引导。
+  // 长图不再画昵称落款——封面已经并肩写过两个名字，这里不再重复。
+  const endY = h - card.bottom - 26 - BOOK_END_EXTRA
   ctx.fillStyle = rgba(theme.ink, 0.34)
   ctx.font = font(20, false)
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillText(brand.APP_NAME + ' · ' + new Date().getFullYear() + ' · 只印了这一份', w / 2, endY)
+  ctx.fillStyle = rgba(theme.kicker, 0.62)
+  ctx.fillText('微信搜索「恋爱Wrapped」小程序，也能写一本你自己的', w / 2, endY + 30)
 
   ctx.restore()
 }
@@ -1118,22 +1119,30 @@ function drawBookPlanned(ctx, w, plan, options) {
 const SHARE_W = 750
 const SHARE_H = 600
 
-// 信纸上的一枚邮戳：两圈细线、中间一行日期。
-function drawPostmark(ctx, cx, cy, radius, text, color) {
+// 信纸右下的一枚日期戳：两道圆角细线，框住「写于 yyyy.mm.dd」。
+// 宽度按文字自适应，任何日期都正好嵌在框里。
+function drawPostmark(ctx, right, bottom, text, color) {
+  const t = String(text || '')
+  if (!t) return
   ctx.save()
+  ctx.font = font(26, true)
+  const tw = ctx.measureText(t).width
+  const padX = 30
+  const bh = 64
+  const bw = Math.round(tw + padX * 2)
+  const x0 = right - bw
+  const y0 = bottom - bh
   ctx.strokeStyle = rgba(color, 0.36)
   ctx.lineWidth = 2
-  ctx.beginPath()
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+  roundRectPath(ctx, x0, y0, bw, bh, bh / 2)
   ctx.stroke()
-  ctx.beginPath()
-  ctx.arc(cx, cy, radius - 9, 0, Math.PI * 2)
+  ctx.strokeStyle = rgba(color, 0.20)
+  roundRectPath(ctx, x0 + 5, y0 + 5, bw - 10, bh - 10, (bh - 10) / 2)
   ctx.stroke()
-  ctx.fillStyle = rgba(color, 0.62)
-  ctx.font = font(19, true)
+  ctx.fillStyle = rgba(color, 0.66)
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.fillText(String(text || ''), cx, cy)
+  ctx.fillText(t, x0 + bw / 2, y0 + bh / 2 + 1)
   ctx.restore()
 }
 
@@ -1141,7 +1150,7 @@ function drawPostmark(ctx, cx, cy, radius, text, color) {
 //   左上——很淡的小心心
 //   中上——两个名字，横排，「和」用主题主色
 //   中下——一句正文
-//   右下——邮戳
+//   右下——写册日期的戳
 // card: { nameA, nameB, title, line, meta, postmark, theme }
 function drawShareCard(ctx, w, h, card) {
   const data = card || {}
@@ -1264,9 +1273,9 @@ function drawShareCard(ctx, w, h, card) {
     )
   }
 
-  // 右下角邮戳
+  // 右下角日期戳：写这一册的日子
   if (mark) {
-    drawPostmark(ctx, x + cw - 108, y + ch - 96, 46, mark, theme.kicker)
+    drawPostmark(ctx, x + cw - 26, y + ch - 26, mark, theme.kicker)
   }
 
   ctx.restore()
