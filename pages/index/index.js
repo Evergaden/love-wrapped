@@ -76,21 +76,38 @@ Page({
     privacy.checkPrivacy()
   },
 
-  // 分享卡片不放昵称。转发给好友时答案装在链接里，对方点开直接看到整册；朋友圈没有答案。
-  // 分享卡片：已经写好的话，把整册装进链接带给对方；
-  // 还没写完就还是一张普通的空白填写页。
+  // 分享卡片不放昵称。转发给好友时链接里只有一枚云端令牌，对方点开经云函数取回整册；朋友圈没有答案。
+  // 云不可用时退回一张普通卡片（空白填写页）。令牌就绪后走同步返回，
+  // 避免 Promise 分享的 3 秒兜底超时。
   onShareAppMessage() {
     const form = record.normalize(this.data.form)
-    if (record.canGenerate(form)) {
+    if (!record.canGenerate(form)) {
       return {
-        title: gift.giftTitle(form),
-        path: gift.giftPath(form, this.data.theme)
+        title: brand.SHARE_TITLE,
+        path: '/pages/index/index'
       }
     }
-    return {
-      title: brand.SHARE_TITLE,
-      path: '/pages/index/index'
+    // 之前预热时已经拿到过令牌：直接同步返回，不等云端。
+    if (this.shareToken) {
+      return {
+        title: gift.giftTitle(form),
+        path: gift.giftPath(this.shareToken)
+      }
     }
+    return cloud.shareTokenFor(form, this.data.theme).then((res) => {
+      if (res.ok) {
+        this.shareToken = res.token
+        return {
+          title: gift.giftTitle(form),
+          path: gift.giftPath(res.token)
+        }
+      }
+      console.warn('[share] 令牌没拿到，退回普通卡片。原因：', res.error || '云端不可用')
+      return {
+        title: brand.SHARE_TITLE,
+        path: '/pages/index/index'
+      }
+    })
   },
 
   // 选中主题存进本机，导航栏、页面底色和弥散底跟着换。
@@ -321,6 +338,10 @@ Page({
       if (res && res.error) {
         console.warn('[cloud] 快照没有存上：' + res.error)
       }
+    })
+    // 分享令牌提前备好：点「分享给 TA」时链接不用等云端。
+    cloud.shareTokenFor(record.normalize(form), this.data.theme).then((res) => {
+      if (res.ok) this.shareToken = res.token
     })
     wx.navigateTo({
       url: '/pages/wrapped/wrapped',

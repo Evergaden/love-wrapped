@@ -62,6 +62,7 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
+  "cloudfunctionRoot": "cloudfunctions/",
   "libVersion": "3.5.5",
   "appid": "wx9f1ba14b847089d3",
   "projectname": "love-wrapped",

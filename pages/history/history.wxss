@@ -45,11 +45,29 @@
   min-width: 0;
 }
 
+.book-title-row {
+  display: flex;
+  align-items: center;
+}
+
 .book-title {
   display: block;
   font-size: 32rpx;
   font-weight: 700;
   color: #2D1B24;
+}
+
+.book-tag {
+  flex: none;
+  margin-left: 14rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  background: rgba(126, 156, 216, 0.16);
+}
+
+.book-tag-text {
+  font-size: 22rpx;
+  color: #5B79B5;
 }
 
 .book-meta {

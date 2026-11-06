@@ -1,0 +1,9 @@
+{
+  "name": "shareBook",
+  "version": "1.0.0",
+  "description": "创建一次分享：生成随机令牌并存答案快照",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

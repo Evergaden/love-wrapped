@@ -10,6 +10,7 @@ const slidesUtil = require('../../utils/slides')
 const themes = require('../../utils/themes')
 const brand = require('../../utils/brand')
 const gift = require('../../utils/gift')
+const cloud = require('../../utils/cloud')
 const poster = require('../../utils/poster')
 const privacy = require('../../utils/privacy')
 
@@ -50,6 +51,9 @@ Page({
   data: {
     empty: false,
     gift: false,
+    giftSaved: false,
+    giftState: '',
+    giftError: '',
     slides: [],
     current: 0,
     currentTheme: themes.DEFAULT,
@@ -69,29 +73,18 @@ Page({
 
   onLoad(options) {
     const metrics = readWindow()
-    // 礼物模式：这册是转发带来的，答案就装在链接里，不读本机的答案。
-    const giftRaw = gift.unpackGift(options)
-    const giftForm = giftRaw ? record.pickForm(giftRaw) : null
-    const isGift = !!(giftForm && record.canGenerate(giftForm))
+    // 礼物模式：链接里只有一枚令牌，答案要从云端凭令牌取回（异步）。
+    const giftToken = gift.parseGiftToken(options)
     const saved = storage.loadAnswers()
     const mineReady = !!(saved && record.canGenerate(saved))
-    const ready = isGift || mineReady
-    // 主题和答案一样都从本机读。缓存里没有或值不合法时，回到默认配色。
-    const theme = themes.resolve(isGift ? giftRaw.theme : storage.loadTheme())
-    const source = isGift ? giftForm : saved
-    const slides = ready ? slidesUtil.buildSlides(source, null, theme) : []
-    if (isGift) {
-      this.giftForm = giftForm
-      this.setData({
-        gift: true,
-        shareTitle: gift.giftTitle(giftForm)
-      })
-    }
+    // 主题和答案都从本机读。缓存里没有或值不合法时，回到默认配色。
+    const theme = themes.resolve(storage.loadTheme())
+    const slides = mineReady ? slidesUtil.buildSlides(saved, null, theme) : []
     this.setData({
       windowHeight: metrics.windowHeight,
       swiperHeight: metrics.swiperHeight,
       pixelRatio: metrics.pixelRatio,
-      empty: !ready,
+      empty: !mineReady && !giftToken,
       slides: slides,
       current: 0,
       currentTheme: theme,
@@ -100,8 +93,53 @@ Page({
     })
     this.syncChrome(theme)
     wx.showShareMenu({ menus: ['shareAppMessage'] })
+    if (giftToken) {
+      // 礼物模式：先摆出取回中的样子，答案到了再排页。
+      this.giftToken = giftToken
+      this.setData({ gift: true, giftState: 'loading' })
+      this.loadGift(giftToken)
+      return
+    }
     // 分享封面在后台先画好，点「分享给 TA」时不用等。
-    if (ready) this.prepareShareImage(slides)
+    if (mineReady) {
+      this.prepareShareImage(slides)
+      // 提前把分享令牌备好，点分享时直接可用。
+      cloud.shareTokenFor(record.normalize(saved), this.data.currentTheme).then((res) => {
+        if (res.ok) this.shareToken = res.token
+      })
+    }
+  },
+
+  // 凭令牌从云端取回这册的答案，取到后排成页面。
+  loadGift(token) {
+    const page = this
+    cloud.fetchSharedBook(token).then((res) => {
+      if (!page.data.gift) return
+      if (!res.ok) {
+        page.setData({ giftState: 'error', giftError: res.error || '这份分享打不开' })
+        return
+      }
+      const form = record.pickForm(res.answers)
+      if (!record.canGenerate(form)) {
+        page.setData({ giftState: 'error', giftError: '这册内容不完整，让 TA 重新分享一次吧' })
+        return
+      }
+      page.giftForm = form
+      // 收礼的人固定看作者选好的配色：分享记录里带了 theme 就用它。
+      const theme = res.theme ? themes.resolve(res.theme) : page.data.currentTheme
+      const slides = slidesUtil.buildSlides(form, null, theme)
+      page.setData({
+        giftState: 'ok',
+        slides: slides,
+        current: 0,
+        currentTheme: theme,
+        shareTitle: gift.giftTitle(form)
+      }, () => {
+        page.syncChrome(theme)
+        page.measureDock()
+        page.prepareShareImage(slides)
+      })
+    })
   },
 
   onShow() {
@@ -125,28 +163,49 @@ Page({
   },
 
   onShareAppMessage() {
-    // 礼物模式：把这册继续原样传给下一个人，链接里带的还是同一份答案。
-    if (this.data.gift && this.giftForm) {
-      const id = this.data.currentTheme
+    const imageUrl = this.data.sharePath || ''
+    // 礼物模式：把这册继续原样传给下一个人，用的还是同一枚令牌。
+    if (this.data.gift && this.giftToken) {
       return {
         title: this.data.shareTitle,
-        path: gift.giftPath(this.giftForm, id),
-        imageUrl: this.data.sharePath || ''
+        path: gift.giftPath(this.giftToken),
+        imageUrl: imageUrl
       }
     }
-    // 自己的纪念册：把答案装进链接，对方点开就能看到整册。
+    // 自己的纪念册：分享前云端备好令牌，链接里只有令牌。
+    // 令牌就绪后走同步返回，避免 Promise 分享的 3 秒兜底超时。
     const saved = storage.loadAnswers()
     if (saved && record.canGenerate(saved)) {
-      return {
-        title: gift.giftTitle(saved),
-        path: gift.giftPath(saved, this.data.currentTheme),
-        imageUrl: this.data.sharePath || ''
+      const form = record.normalize(saved)
+      if (this.shareToken) {
+        return {
+          title: gift.giftTitle(form),
+          path: gift.giftPath(this.shareToken),
+          imageUrl: imageUrl
+        }
       }
+      return cloud.shareTokenFor(form, this.data.currentTheme).then((res) => {
+        if (res.ok) {
+          this.shareToken = res.token
+          return {
+            title: gift.giftTitle(form),
+            path: gift.giftPath(res.token),
+            imageUrl: imageUrl
+          }
+        }
+        // 云不可用：退回一张普通卡片，不带内容。
+        console.warn('[share] 令牌没拿到，退回普通卡片。原因：', res.error || '云端不可用')
+        return {
+          title: brand.SHARE_TITLE,
+          path: '/pages/index/index',
+          imageUrl: imageUrl
+        }
+      })
     }
     return {
       title: this.data.shareTitle || brand.SHARE_TITLE,
       path: '/pages/index/index',
-      imageUrl: this.data.sharePath || ''
+      imageUrl: imageUrl
     }
   },
 
@@ -159,18 +218,13 @@ Page({
     }
   },
 
-  // 换主题：整本的每一页都换色（含内联的弥散底），分享封面也重画一张。
-  // 礼物模式下只换看的效果，不写对方设备上的任何东西。
+  // 换主题：整本的每一页都换色（含内联的弥散底、气泡和拼图块），
+  // 分享封面也重画一张。礼物模式下只换看的效果，不写对方设备上的任何东西。
   onTapTheme(e) {
     const id = themes.resolve(e.currentTarget.dataset.id)
     if (id === this.data.currentTheme) return
     if (!this.data.gift) storage.saveTheme(id)
-    const slides = this.data.slides.map((slide) => {
-      const next = Object.assign({}, slide, { theme: id })
-      next.meshStyle = themes.meshImage(id, slide.mesh)
-      next.hairStyle = themes.hairlineImage(id)
-      return next
-    })
+    const slides = this.data.slides.map((slide) => slidesUtil.restyleSlide(slide, id))
     this.setData({
       currentTheme: id,
       slides: slides,
@@ -287,21 +341,27 @@ Page({
     })
   },
 
-  // 礼物模式：把转发来的这册存进自己手机（会覆盖自己写的那份，先确认）。
+  // 礼物视角：把 TA 写的这册收进自己的历史记录（云端），不动本机自己写的那一份。
+  // 收下的册子带 gift 标记，历史页里和自己的册子区分开。
   onSaveGift() {
-    if (!this.giftForm) return
+    if (!this.giftForm || this.data.giftSaved) return
     const page = this
     wx.showModal({
-      title: '把这册留下来',
-      content: '会把这册存进你的纪念册，覆盖你自己写的那一份。',
+      title: '收进我的历史',
+      content: '会存进你自己的历史记录，随时翻看；不会动你自己写的那一份。',
       confirmText: '收下',
       cancelText: '先不',
       confirmColor: themes.THEMES[themes.resolve(this.data.currentTheme)].kicker,
       success(res) {
         if (!res.confirm) return
-        storage.saveAnswers(page.giftForm)
-        page.setData({ gift: false })
-        wx.showToast({ title: '已收下，这册是你的了', icon: 'none' })
+        cloud.saveBook(page.giftForm, { source: 'gift' }).then((r) => {
+          if (r.ok) {
+            page.setData({ giftSaved: true })
+            wx.showToast({ title: '已收进历史记录', icon: 'none' })
+          } else {
+            wx.showToast({ title: (r.error || '云端暂时连不上') + '，稍后再收一次', icon: 'none' })
+          }
+        })
       }
     })
   },
@@ -341,6 +401,22 @@ Page({
       this.prepareShareImage(slides)
     })
     wx.showToast({ title: '已放上示例', icon: 'none' })
+  },
+
+  // 导出：先选导出这一页还是整本长图。
+  onExportChoose() {
+    const page = this
+    wx.showActionSheet({
+      itemList: ['导出此页', '导出整本长图'],
+      itemColor: '#2D1B24',
+      success(res) {
+        if (res.tapIndex === 0) page.onExport()
+        if (res.tapIndex === 1) page.onExportAll()
+      },
+      fail() {
+        // 用户取消了，不用做什么。
+      }
+    })
   },
 
   onExport() {

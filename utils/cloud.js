@@ -1,8 +1,11 @@
 // 微信云开发数据层。
-// 云端只做一件事：把写好的册子存一份快照，换手机也能找回。
+// 两件事：
+//   1. 把写好的册子存一份快照，换手机也能找回（books 集合）。
+//   2. 转发的凭据：分享时云端生成随机令牌，接收方凭令牌经云函数取回答案
+//      （shares 集合 + shareBook / getSharedBook 两个云函数）。
 //
 // 身份：云开发天然按 openid 识别用户，集合权限设为「仅创建者可读写」后，
-// 每个人只能看到自己存的册子，不需要任何登录界面。
+// 每个人只能看到自己存的册子；别人的内容只能凭令牌走云函数拿。
 //
 // 边界：云环境没开通、没填环境 ID、基础库过低时，一切照旧走本地缓存——
 // 云端是「多一份不会丢的备份」，不是必须项。失败静默，不打断写册子。
@@ -64,18 +67,21 @@ function findSameBook(form) {
 }
 
 // 保存 / 更新一册快照。返回 Promise<{ ok, error }>，永不 reject。
-function saveBook(form) {
+// options.source：'mine' 自己写的（默认）；'gift' 收下的转发册，历史页据此区分。
+function saveBook(form, options) {
   return new Promise((resolve) => {
     if (!init()) {
       resolve({ ok: false, error: null, silent: true })
       return
     }
+    const source = options && options.source === 'gift' ? 'gift' : 'mine'
     const payload = {
       title: form.myNickname + ' · ' + form.theirNickname,
       togetherDate: form.togetherDate,
       myNickname: form.myNickname,
       theirNickname: form.theirNickname,
       answers: form,
+      source: source,
       updatedAt: db().serverDate()
     }
     findSameBook(form).then((res) => {
@@ -112,6 +118,7 @@ function listBooks() {
           title: row.title || '一本小册子',
           togetherDate: row.togetherDate || '',
           answers: row.answers || {},
+          source: row.source === 'gift' ? 'gift' : 'mine',
           updatedAt: row.updatedAt || row.createdAt || ''
         }))
         resolve({ list: list, error: null })
@@ -148,10 +155,72 @@ function checkConnection() {
   })
 }
 
+// ---------- 分享凭据 ----------
+// 链接里只有一枚随机令牌，答案快照存在云端 shares 集合。
+// 令牌不可猜测，30 天过期；集合权限「仅创建者可读写」，
+// 不凭令牌走云函数，谁也读不到别人的册子。
+
+// 同一份答案只创建一次凭据：按内容签名缓存。
+let shareCache = { sig: '', promise: null }
+
+function callFunction(name, data) {
+  return wx.cloud.callFunction({ name: name, data: data })
+    .then((res) => res && res.result ? res.result : { ok: false, error: '云端返回为空' })
+    .catch((err) => {
+      // 失败必须留下痕迹：开发者工具控制台里搜 [cloud] 就能看到真正的原因。
+      console.warn('[cloud] 云函数 ' + name + ' 调用失败：', err && (err.errMsg || err))
+      return { ok: false, error: '云端暂时连不上' }
+    })
+}
+
+// 取（或创建）一份答案的分享令牌。resolve { ok, token } 或 { ok:false }，永不 reject。
+// theme 是作者当前配色，随分享记录存云端，收礼的人固定看这一套。
+// 注意：只缓存成功的结果——第一次失败后（云端刚部署、网络慢），
+// 后续分享必须真的重试，而不是拿缓存的失败一直退回普通卡片。
+function shareTokenFor(form, theme) {
+  const sig = JSON.stringify(form) + '|' + (theme || '')
+  if (shareCache.sig === sig && shareCache.promise) return shareCache.promise
+  const promise = new Promise((resolve) => {
+    if (!init()) {
+      resolve({ ok: false, error: null })
+      return
+    }
+    callFunction('shareBook', { answers: form, theme: theme || '' }).then((r) => {
+      if (r.ok && r.token) {
+        resolve({ ok: true, token: r.token })
+      } else {
+        shareCache = { sig: '', promise: null }
+        resolve({ ok: false, error: r.error || null })
+      }
+    })
+  })
+  shareCache = { sig: sig, promise: promise }
+  return promise
+}
+
+// 凭令牌取回分享的答案。resolve { ok, answers, theme } 或 { ok:false, error }，永不 reject。
+function fetchSharedBook(token) {
+  return new Promise((resolve) => {
+    if (!init()) {
+      resolve({ ok: false, error: '这台设备的微信版本太低，看不了分享的册子' })
+      return
+    }
+    callFunction('getSharedBook', { token: token }).then((r) => {
+      if (r.ok && r.answers) {
+        resolve({ ok: true, answers: r.answers, theme: r.theme || '' })
+      } else {
+        resolve({ ok: false, error: r.error || '这份分享打不开' })
+      }
+    })
+  })
+}
+
 module.exports = {
   init,
   saveBook,
   listBooks,
   removeBook,
-  checkConnection
+  checkConnection,
+  shareTokenFor,
+  fetchSharedBook
 }

@@ -49,6 +49,10 @@ const CARD = {
 
 // 落款钉在卡片底部，正文在它上面居中。
 const SIGN_H = 42
+
+// 单页导出底部的封底两行（落款 + 小程序引导）预留的高度。
+// 与整本长图的封底同款，画的时候从卡片高度里让出来。
+const END_MARK_H = 62
 const SIGN_GAP = 44
 
 function font(size, bold) {
@@ -949,8 +953,10 @@ function drawSlide(ctx, w, h, slide, options) {
   let mainY = 0
   let signY = 0
   // 卡片撑满整页，外圈只留一圈窄边给弥散底。
+  // 底部额外让出封底两行的高度（落款 + 引导），和长图封底一致。
   cardY = card.top
   cardH = h - card.top - card.bottom
+  if (opts.endMark !== false) cardH -= END_MARK_H
   contentTop = cardY + card.hairline + card.padTop
   // 正文在落款上方居中，落款钉在最下面。
   const contentBottom = cardY + cardH - card.padBottom
@@ -993,6 +999,18 @@ function drawSlide(ctx, w, h, slide, options) {
   }
 
   drawFooter(ctx, w, h, slide, opts, theme)
+
+  // 封底两行：落款 + 小程序引导，居中、很轻，和整本长图的封底一致。
+  if (opts.endMark !== false) {
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillStyle = rgba(theme.ink, 0.34)
+    ctx.font = font(20, false)
+    ctx.fillText(brand.APP_NAME + ' · ' + new Date().getFullYear() + ' · 只印了这一份', w / 2, h - 56)
+    ctx.fillStyle = rgba(theme.kicker, 0.62)
+    ctx.fillText('微信搜索「' + brand.APP_NAME + '」小程序，也能写一本你自己的', w / 2, h - 26)
+  }
+
   ctx.restore()
 }
 
@@ -1109,7 +1127,7 @@ function drawBookPlanned(ctx, w, plan, options) {
   ctx.textBaseline = 'middle'
   ctx.fillText(brand.APP_NAME + ' · ' + new Date().getFullYear() + ' · 只印了这一份', w / 2, endY)
   ctx.fillStyle = rgba(theme.kicker, 0.62)
-  ctx.fillText('微信搜索「恋爱Wrapped」小程序，也能写一本你自己的', w / 2, endY + 30)
+  ctx.fillText('微信搜索「' + brand.APP_NAME + '」小程序，也能写一本你自己的', w / 2, endY + 30)
 
   ctx.restore()
 }

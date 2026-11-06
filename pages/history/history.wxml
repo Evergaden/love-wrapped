@@ -27,7 +27,10 @@
         data-id="{{item.id}}"
       >
         <view class="book-main">
-          <text class="book-title">{{item.title}}</text>
+          <view class="book-title-row">
+            <text class="book-title">{{item.title}}</text>
+            <view class="book-tag" wx:if="{{item.gift}}"><text class="book-tag-text">收下的</text></view>
+          </view>
           <text class="book-meta">{{item.dateText || '日子还没选'}} · 存于 {{item.timeText}}</text>
         </view>
         <view class="book-del" hover-class="pressed" catchtap="onDelete" data-id="{{item.id}}" aria-role="button">删除</view>

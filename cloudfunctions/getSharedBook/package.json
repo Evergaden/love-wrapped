@@ -1,0 +1,9 @@
+{
+  "name": "getSharedBook",
+  "version": "1.0.0",
+  "description": "凭令牌取回一份分享的册子",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

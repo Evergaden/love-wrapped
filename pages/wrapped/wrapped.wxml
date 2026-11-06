@@ -18,6 +18,61 @@
     </view>
   </view>
 
+  <!-- 礼物模式：凭令牌取回答案的过程与出错提示 -->
+  <view wx:elif="{{giftState === 'loading'}}" class="empty">
+    <view class="mesh mesh-1" style="background-image: {{emptyMeshStyle}}"></view>
+    <view class="mesh amb-lower" style="background-image: {{emptyLowerStyle}}"></view>
+    <view class="bloom"></view>
+    <view class="empty-inner">
+      <!-- 拆信封：翻盖打开 → 信纸升起 → 小心心飘出，循环播放，配色跟主题走 -->
+      <view class="env-stage">
+        <view class="env-hearts">
+          <text class="env-heart h1">♥</text>
+          <text class="env-heart h2">♥</text>
+          <text class="env-heart h3">♥</text>
+        </view>
+        <view class="env">
+          <view class="env-back"></view>
+          <view class="env-letter">
+            <view class="env-line env-line-1"></view>
+            <view class="env-line env-line-2"></view>
+            <text class="env-letter-heart">♥</text>
+          </view>
+          <view class="env-front"></view>
+          <view class="env-flap"></view>
+        </view>
+        <view class="env-shadow"></view>
+      </view>
+      <view class="card">
+        <view class="hairline"></view>
+        <view class="kicker-row">
+          <view class="kicker-bar"></view>
+          <text class="kicker">{{appName}}</text>
+        </view>
+        <text class="title title-lg">正在拆开这册纪念册…</text>
+        <text class="body">TA 写的字正在路上。</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{giftState === 'error'}}" class="empty">
+    <view class="mesh mesh-1" style="background-image: {{emptyMeshStyle}}"></view>
+    <view class="mesh amb-lower" style="background-image: {{emptyLowerStyle}}"></view>
+    <view class="bloom"></view>
+    <view class="empty-inner">
+      <view class="card">
+        <view class="hairline"></view>
+        <view class="kicker-row">
+          <view class="kicker-bar"></view>
+          <text class="kicker">{{appName}}</text>
+        </view>
+        <text class="title title-lg">这册打不开</text>
+        <text class="body">{{giftError}}</text>
+        <view class="btn btn-primary empty-btn" hover-class="pressed" bindtap="onGoFill">去写一本</view>
+      </view>
+    </view>
+  </view>
+
   <block wx:else>
     <swiper
       class="swiper"
@@ -197,7 +252,8 @@
           <text class="pager">{{current + 1}} / {{slides.length}}</text>
         </view>
       </view>
-      <view class="theme-row">
+      <!-- 配色只给作者用：收礼的人看 TA 选好的配色，不换。 -->
+      <view class="theme-row" wx:if="{{!gift}}">
         <text class="theme-row-label">配色</text>
         <view class="theme-dots">
           <view
@@ -212,19 +268,17 @@
           ></view>
         </view>
       </view>
-      <view class="dock-actions">
-        <view class="btn btn-ghost" hover-class="pressed" bindtap="onExport">导出此页</view>
-        <view class="btn btn-primary" hover-class="pressed" bindtap="onExportAll">导出整本</view>
-      </view>
-      <view class="dock-share">
+      <view class="dock-actions" wx:if="{{!gift}}">
+        <view class="btn btn-ghost" hover-class="pressed" bindtap="onExportChoose">导出</view>
         <button class="btn btn-share" hover-class="pressedShare" open-type="share">分享给 TA</button>
       </view>
-      <!-- 礼物模式：这册是转发带来的，字都装在链接里。可以收下，也可以自己写一本。 -->
+      <!-- 礼物视角：这册是 TA 写的。收进自己的历史，或者自己去做一本。 -->
       <view class="dock-tip gift-tip" wx:if="{{gift}}">
-        <text>这册纪念册是 TA 转发带来的。</text>
+        <text>这册纪念册是 TA 写给你的。</text>
         <view class="gift-cta-row">
-          <text class="gift-cta" hover-class="pressed" bindtap="onSaveGift" aria-role="button">把这册留下来</text>
-          <text class="gift-cta gift-cta-quiet" hover-class="pressed" bindtap="onGoFill" aria-role="button">我也写一本 →</text>
+          <text class="gift-cta" wx:if="{{!giftSaved}}" hover-class="pressed" bindtap="onSaveGift" aria-role="button">收进我的历史</text>
+          <text class="gift-cta gift-cta-done" wx:else>已收进历史 ✓</text>
+          <text class="gift-cta gift-cta-quiet" hover-class="pressed" bindtap="onGoFill" aria-role="button">我也去做一本 →</text>
         </view>
       </view>
     </view>

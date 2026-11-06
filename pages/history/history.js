@@ -54,7 +54,8 @@ Page({
           state: 'ok',
           books: (res.list || []).map((b) => Object.assign({}, b, {
             dateText: formatDateYmd(b.togetherDate),
-            timeText: formatTime(b.updatedAt)
+            timeText: formatTime(b.updatedAt),
+            gift: b.source === 'gift'
           }))
         })
       }
@@ -88,6 +89,7 @@ Page({
     const id = e.currentTarget.dataset.id
     const book = this.data.books.find((b) => b.id === id)
     if (!book) return
+    const page = this
     wx.showModal({
       title: '删除这一册',
       content: '删除「' + book.title + '」？删除后找不回来。',

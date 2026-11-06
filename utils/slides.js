@@ -495,6 +495,30 @@ function buildSlides(raw, today, themeId) {
   return slides
 }
 
+// 切主题时给某一页重算烧进字符串的内联样式。
+// buildSlides 生成时把主题色写进了 style 字段；切主题只换 theme id、
+// 不会重跑 buildSlides，所以这里按新主题把同类字段再算一遍。
+// 字段清单必须和 buildSlides 里烧样式的地方保持一致：
+//   拼图块 bgStyle（去过的地方）、口头禅气泡四件套。
+function restyleSlide(slide, themeId) {
+  const next = Object.assign({}, slide, { theme: themeId })
+  next.meshStyle = themes.meshImage(themeId, slide.mesh)
+  next.hairStyle = themes.hairlineImage(themeId)
+  if (slide.layout === 'bubble') {
+    next.bubbleStyle = 'background: ' + themes.tint(themeId, 'a', 0.16)
+    next.bubbleTextStyle = 'color: ' + themes.pick(themeId).ink
+    next.bubbleMarkStyle = 'color: ' + themes.pick(themeId).kicker
+    next.bubbleTailStyle = 'border-bottom-color: ' + themes.tint(themeId, 'a', 0.16)
+  }
+  if (slide.tiles && slide.tiles.length) {
+    next.tiles = slide.tiles.map((tile, index) => Object.assign({}, tile, {
+      bgStyle: 'background: ' + themes.tint(themeId, ['a', 'b', 'c', 'd'][index % 4], 0.18)
+    }))
+  }
+  return next
+}
+
 module.exports = {
-  buildSlides
+  buildSlides,
+  restyleSlide
 }
