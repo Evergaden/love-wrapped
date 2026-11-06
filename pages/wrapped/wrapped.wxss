@@ -99,7 +99,7 @@
   color: #E85A7A;
 }
 
-/* 标题浸在一团光里。 */
+/* 标题浸在一团光里。光色随主题走：主色 a 的三层化开。 */
 .title-wrap {
   position: relative;
 }
@@ -115,6 +115,27 @@
     rgba(255, 138, 171, 0.24) 0%,
     rgba(255, 138, 171, 0.07) 48%,
     rgba(255, 138, 171, 0) 76%);
+}
+
+.theme-matcha .title-glow {
+  background: radial-gradient(ellipse at 26% 50%,
+    rgba(143, 211, 168, 0.24) 0%,
+    rgba(143, 211, 168, 0.07) 48%,
+    rgba(143, 211, 168, 0) 76%);
+}
+
+.theme-sky .title-glow {
+  background: radial-gradient(ellipse at 26% 50%,
+    rgba(163, 196, 241, 0.24) 0%,
+    rgba(163, 196, 241, 0.07) 48%,
+    rgba(163, 196, 241, 0) 76%);
+}
+
+.theme-violet .title-glow {
+  background: radial-gradient(ellipse at 26% 50%,
+    rgba(201, 175, 242, 0.24) 0%,
+    rgba(201, 175, 242, 0.07) 48%,
+    rgba(201, 175, 242, 0) 76%);
 }
 
 .title {
@@ -364,12 +385,20 @@
   transform: scale(0.985);
 }
 
-/* 底部那句说明。现在不承担「点它解锁」的作用，只是说明。 */
+/* 底部那句说明。礼物模式下换成说明 +「我也写一本」的入口。 */
 .dock-tip {
   padding: 14rpx 40rpx 8rpx;
   text-align: center;
   font-size: 24rpx;
   line-height: 1.5;
+}
+
+.gift-tip .gift-cta {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
 }
 
 .theme-cream .dock-tip {
@@ -497,4 +526,602 @@
   text-align: center;
   font-size: 28rpx;
   color: rgba(45, 27, 36, 0.55);
+}
+
+/* —— 每页专属排版。
+   装饰的颜色（邮戳、虚线、色条、气泡）由 slides.js 按主题算好内联在节点上，
+   文字颜色沿用上面的 .theme-* 规则。 —— */
+
+/* 居中排版的 kicker。 */
+.kicker-row.centered {
+  justify-content: center;
+}
+
+.kicker-row.centered .kicker-bar {
+  display: none;
+}
+
+/* 明信片：标题在左，邮戳缩在右上角。 */
+.postcard-row {
+  display: flex;
+  align-items: flex-start;
+}
+
+.postcard-row .title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.stamp {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 132rpx;
+  height: 132rpx;
+  margin-left: 20rpx;
+  border: 2rpx dashed currentColor;
+  border-radius: 50%;
+  transform: rotate(-6deg);
+}
+
+.stamp-year {
+  font-size: 20rpx;
+  letter-spacing: 2rpx;
+}
+
+.stamp-day {
+  margin-top: 4rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+/* 旅程图：大数字压在一条虚线上。 */
+.journey {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.journey-num-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.journey-num {
+  font-size: 150rpx;
+  font-weight: 600;
+  line-height: 1.1;
+  text-shadow: 0 4rpx 26rpx rgba(45, 27, 36, 0.12);
+}
+
+.journey-unit {
+  margin-left: 12rpx;
+  font-size: 30rpx;
+}
+
+.journey-track {
+  display: flex;
+  align-items: center;
+  align-self: stretch;
+  padding: 0 44rpx;
+  margin-top: 30rpx;
+}
+
+.journey-cap {
+  flex: none;
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+}
+
+.journey-line {
+  flex: 1;
+  height: 0;
+  margin: 0 10rpx;
+  border-top: 3rpx dashed currentColor;
+  opacity: 0.85;
+}
+
+.journey-label {
+  margin-top: 30rpx;
+  font-size: 30rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.journey-meta {
+  margin-top: 10rpx;
+  text-align: center;
+}
+
+/* 气泡：口头禅装在里面，尾巴朝下。 */
+.bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bubble {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  align-self: stretch;
+  padding: 30rpx 36rpx 34rpx;
+  border-radius: 30rpx;
+}
+
+.bubble-mark {
+  flex: none;
+  font-size: 40rpx;
+  font-weight: 600;
+}
+
+.bubble-text {
+  font-size: 44rpx;
+  font-weight: 600;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.bubble-tail {
+  width: 0;
+  height: 0;
+  margin-top: -2rpx;
+  border-left: 16rpx solid transparent;
+  border-right: 16rpx solid transparent;
+  border-bottom: 18rpx solid transparent;
+}
+
+.bubble-note {
+  margin-top: 34rpx;
+  text-align: center;
+}
+
+/* 手记：左侧一道色条，正文首行缩进。 */
+.letter-block {
+  display: flex;
+  align-items: stretch;
+  margin-top: 34rpx;
+}
+
+.letter-bar {
+  flex: none;
+  width: 6rpx;
+  margin-right: 24rpx;
+  border-radius: 6rpx;
+}
+
+.letter-body {
+  flex: 1;
+  text-indent: 2em;
+}
+
+/* 终章：整页居中。 */
+.finale-title-wrap {
+  text-align: center;
+}
+
+.finale-title-wrap .title {
+  text-align: center;
+}
+
+.finale-body {
+  text-align: center;
+  letter-spacing: 2rpx;
+}
+
+.finale-meta {
+  text-align: center;
+  letter-spacing: 4rpx;
+}
+
+/* —— 拼图页：去过的地方一块一块拼起来。
+   块的底色由 slides.js 按主题内联，左右两列各自歪一点点，
+   像随手拼上去的。最远的那块右上角挂一枚「最远」。 —— */
+.tile-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 10rpx;
+}
+
+.tile {
+  position: relative;
+  width: calc(50% - 26rpx);
+  margin: 12rpx;
+  padding: 26rpx 28rpx;
+  border-radius: 30rpx;
+  box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.55);
+}
+
+.tile-lean-l {
+  transform: rotate(-1.4deg);
+}
+
+.tile-lean-r {
+  transform: rotate(1.2deg);
+}
+
+.tile-name {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.tile-dist {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  opacity: 0.72;
+}
+
+.tile-badge {
+  position: absolute;
+  right: 14rpx;
+  top: -12rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 999rpx;
+  background: #E85A7A;
+  box-shadow: 0 4rpx 12rpx rgba(232, 90, 122, 0.35);
+}
+
+.tile-badge-text {
+  font-size: 20rpx;
+  letter-spacing: 2rpx;
+  color: #FFF5F7;
+}
+
+.puzzle-meta {
+  margin-top: 26rpx;
+  text-align: center;
+}
+
+/* —— dock 上的主题切换行。圆点的颜色由 wxml 用 item.accent 内联给出。 —— */
+.theme-row {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 40rpx 0;
+}
+
+.theme-row-label {
+  margin-right: 22rpx;
+  font-size: 24rpx;
+  letter-spacing: 2rpx;
+}
+
+.theme-dots {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.theme-dot {
+  width: 44rpx;
+  height: 44rpx;
+  margin-right: 22rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 255, 255, 0.92);
+  box-sizing: border-box;
+  box-shadow: 0 4rpx 12rpx rgba(45, 27, 36, 0.14);
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.theme-dot.on {
+  transform: scale(1.18);
+  border-color: rgba(45, 27, 36, 0.55);
+}
+
+.theme-row-label {
+  color: rgba(45, 27, 36, 0.45);
+}
+
+/* —— 其余主题的覆盖规则。色值与 utils/themes.js 一致。 —— */
+
+.theme-matcha {
+  background: #F2FAF4;
+  color: #1E2B23;
+}
+
+.theme-matcha .kicker {
+  color: #2E8B62;
+}
+
+.theme-matcha .title,
+.theme-matcha .num,
+.theme-matcha .unit {
+  color: #1E2B23;
+  text-shadow: 0 4rpx 26rpx rgba(46, 139, 98, 0.18);
+}
+
+.theme-matcha .and {
+  color: #8FD3A8;
+}
+
+.theme-matcha .pill {
+  background: rgba(143, 211, 168, 0.16);
+}
+
+.theme-matcha .pill-text {
+  color: #2E8B62;
+}
+
+.theme-matcha .body,
+.theme-matcha .meta,
+.theme-matcha .note,
+.theme-matcha .stat-label {
+  color: rgba(30, 43, 35, 0.72);
+}
+
+.theme-matcha .meta-lg {
+  color: #1E2B23;
+}
+
+.theme-matcha .dot.on {
+  background: linear-gradient(90deg, #8FD3A8 0%, #8FC7B9 100%);
+}
+
+.theme-matcha .dock {
+  background: rgba(242, 250, 244, 0.94);
+  box-shadow: 0 -10rpx 26rpx rgba(30, 43, 35, 0.05);
+}
+
+.theme-matcha .theme-row-label,
+.theme-matcha .dock-tip {
+  color: rgba(30, 43, 35, 0.46);
+}
+
+.theme-matcha .btn-share {
+  background: #1E2B23;
+  color: #F2FAF4;
+  box-shadow: 0 12rpx 28rpx rgba(30, 43, 35, 0.22);
+}
+
+.theme-matcha .theme-dot {
+  box-shadow: 0 4rpx 12rpx rgba(30, 43, 35, 0.14);
+}
+
+.theme-sky {
+  background: #F1F6FD;
+  color: #1C2A3C;
+}
+
+.theme-sky .kicker {
+  color: #4A7DBF;
+}
+
+.theme-sky .title,
+.theme-sky .num,
+.theme-sky .unit {
+  color: #1C2A3C;
+  text-shadow: 0 4rpx 26rpx rgba(74, 125, 191, 0.18);
+}
+
+.theme-sky .and {
+  color: #A3C4F1;
+}
+
+.theme-sky .pill {
+  background: rgba(163, 196, 241, 0.16);
+}
+
+.theme-sky .pill-text {
+  color: #4A7DBF;
+}
+
+.theme-sky .body,
+.theme-sky .meta,
+.theme-sky .note,
+.theme-sky .stat-label {
+  color: rgba(28, 42, 60, 0.72);
+}
+
+.theme-sky .meta-lg {
+  color: #1C2A3C;
+}
+
+.theme-sky .dot.on {
+  background: linear-gradient(90deg, #A3C4F1 0%, #B9A9F0 100%);
+}
+
+.theme-sky .dock {
+  background: rgba(241, 246, 253, 0.94);
+  box-shadow: 0 -10rpx 26rpx rgba(28, 42, 60, 0.05);
+}
+
+.theme-sky .theme-row-label,
+.theme-sky .dock-tip {
+  color: rgba(28, 42, 60, 0.46);
+}
+
+.theme-sky .btn-share {
+  background: #1C2A3C;
+  color: #F1F6FD;
+  box-shadow: 0 12rpx 28rpx rgba(28, 42, 60, 0.22);
+}
+
+.theme-sky .theme-dot {
+  box-shadow: 0 4rpx 12rpx rgba(28, 42, 60, 0.14);
+}
+
+.theme-violet {
+  background: #F7F4FC;
+  color: #2B2144;
+}
+
+.theme-violet .kicker {
+  color: #7B5BC8;
+}
+
+.theme-violet .title,
+.theme-violet .num,
+.theme-violet .unit {
+  color: #2B2144;
+  text-shadow: 0 4rpx 26rpx rgba(123, 91, 200, 0.18);
+}
+
+.theme-violet .and {
+  color: #C9AFF2;
+}
+
+.theme-violet .pill {
+  background: rgba(201, 175, 242, 0.16);
+}
+
+.theme-violet .pill-text {
+  color: #7B5BC8;
+}
+
+.theme-violet .body,
+.theme-violet .meta,
+.theme-violet .note,
+.theme-violet .stat-label {
+  color: rgba(43, 33, 68, 0.72);
+}
+
+.theme-violet .meta-lg {
+  color: #2B2144;
+}
+
+.theme-violet .dot.on {
+  background: linear-gradient(90deg, #C9AFF2 0%, #E2A9E4 100%);
+}
+
+.theme-violet .dock {
+  background: rgba(247, 244, 252, 0.94);
+  box-shadow: 0 -10rpx 26rpx rgba(43, 33, 68, 0.05);
+}
+
+.theme-violet .theme-row-label,
+.theme-violet .dock-tip {
+  color: rgba(43, 33, 68, 0.46);
+}
+
+.theme-violet .btn-share {
+  background: #2B2144;
+  color: #F7F4FC;
+  box-shadow: 0 12rpx 28rpx rgba(43, 33, 68, 0.22);
+}
+
+.theme-violet .theme-dot {
+  box-shadow: 0 4rpx 12rpx rgba(43, 33, 68, 0.14);
+}
+
+/* 「我也写一本」跟主题点缀色走。 */
+.theme-cream .gift-cta,
+.theme-cream .gift-tip .gift-cta {
+  color: #E85A7A;
+}
+
+.theme-matcha .gift-cta,
+.theme-matcha .gift-tip .gift-cta {
+  color: #2E8B62;
+}
+
+.theme-sky .gift-cta,
+.theme-sky .gift-tip .gift-cta {
+  color: #4A7DBF;
+}
+
+.theme-violet .gift-cta,
+.theme-violet .gift-tip .gift-cta {
+  color: #7B5BC8;
+}
+
+/* —— 主题下此前遗漏的部件：卡口条、拼图徽标、卡片阴影、旅程数字光晕。 —— */
+.theme-cream .kicker-bar {
+  background: linear-gradient(90deg, #FF8FAB 0%, #B79CFF 100%);
+}
+
+.theme-cream .tile-badge {
+  background: #E85A7A;
+  box-shadow: 0 4rpx 12rpx rgba(45, 27, 36, 0.25);
+}
+
+.theme-cream .card {
+  box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.72), 0 26rpx 60rpx rgba(45, 27, 36, 0.12);
+}
+
+.theme-cream .journey-num {
+  text-shadow: 0 4rpx 26rpx rgba(45, 27, 36, 0.18);
+}
+
+.theme-matcha .kicker-bar {
+  background: linear-gradient(90deg, #8FD3A8 0%, #8FC7B9 100%);
+}
+
+.theme-matcha .tile-badge {
+  background: #2E8B62;
+  box-shadow: 0 4rpx 12rpx rgba(30, 43, 35, 0.25);
+}
+
+.theme-matcha .card {
+  box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.72), 0 26rpx 60rpx rgba(30, 43, 35, 0.12);
+}
+
+.theme-matcha .journey-num {
+  text-shadow: 0 4rpx 26rpx rgba(30, 43, 35, 0.18);
+}
+
+.theme-sky .kicker-bar {
+  background: linear-gradient(90deg, #A3C4F1 0%, #B9A9F0 100%);
+}
+
+.theme-sky .tile-badge {
+  background: #4A7DBF;
+  box-shadow: 0 4rpx 12rpx rgba(28, 42, 60, 0.25);
+}
+
+.theme-sky .card {
+  box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.72), 0 26rpx 60rpx rgba(28, 42, 60, 0.12);
+}
+
+.theme-sky .journey-num {
+  text-shadow: 0 4rpx 26rpx rgba(28, 42, 60, 0.18);
+}
+
+.theme-violet .kicker-bar {
+  background: linear-gradient(90deg, #C9AFF2 0%, #E2A9E4 100%);
+}
+
+.theme-violet .tile-badge {
+  background: #7B5BC8;
+  box-shadow: 0 4rpx 12rpx rgba(43, 33, 68, 0.25);
+}
+
+.theme-violet .card {
+  box-shadow: inset 0 0 0 2rpx rgba(255, 255, 255, 0.72), 0 26rpx 60rpx rgba(43, 33, 68, 0.12);
+}
+
+.theme-violet .journey-num {
+  text-shadow: 0 4rpx 26rpx rgba(43, 33, 68, 0.18);
+}
+
+/* 礼物模式的两行入口：主行动跟主题点缀色，次行动弱化。 */
+.gift-cta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10rpx;
+}
+
+.gift-cta {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.gift-cta-quiet {
+  margin-left: 32rpx;
+  font-weight: 400;
+  color: rgba(45, 27, 36, 0.5);
+}
+
+/* 导出面板里的「直接发送给朋友」。 */
+.sheet-share {
+  margin-top: 16rpx;
 }

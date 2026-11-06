@@ -5,23 +5,35 @@
 // theirNickname  TA 的昵称（必填）
 // togetherDate   在一起的日期，形如 2023-05-20（必填）
 // firstDatePlace 第一次约会的地方
-// cityCount      一起去过几座城市
-// mealCount      一起吃过多少顿饭
+// homeCity       现在住的城市。用于推算每个去过的地方离家多远
+// places         一起去过的地方，内部用顿号连起来，界面上一块一块加
+// cityCount      旧版本填的城市数量。保留只为兼容老缓存
+// myCity         异地时我所在的城市（可不填）
+// theirCity      异地时 TA 所在的城市（可不填）
+// mealMode       一起吃饭的频率：daily / often / few / lost。留空 = 不写这一项
+// mealCount      旧版本直接填的顿数。保留只为兼容老缓存
 // fightCount     吵架次数。留空 = 不写这一页；填 0 = 几乎没吵过
 // whoApologized  me / them / both。留空 = 不指定谁先道歉
 // catchphrase    口头禅
 // story          一件难忘的小事
 // distanceMode   ldr 异地 / same 同城。留空 = 不写这一页
-// distanceKm     异地时的公里数
-// meetCount      同城时一起出门的次数
-// sentence       想对 TA 说的一句话
+// distanceKm     异地时的公里数。两座城市都认得出时自动推算，这里只是兜底
+// meetMode       同城时见面的频率：daily / often / few / lost。留空 = 不写
+// meetCount      旧版本填的出门次数。保留只为兼容老缓存
+// faveFoods      双方最爱吃的东西，一句话
+// writtenAt      第一次写完这册的日期（YYYY-MM-DD）。转发时原样带走
 
 const EMPTY = {
   myNickname: '',
   theirNickname: '',
   togetherDate: '',
   firstDatePlace: '',
+  homeCity: '',
+  places: '',
   cityCount: '',
+  myCity: '',
+  theirCity: '',
+  mealMode: '',
   mealCount: '',
   fightCount: '',
   whoApologized: '',
@@ -29,8 +41,11 @@ const EMPTY = {
   story: '',
   distanceMode: '',
   distanceKm: '',
+  meetMode: '',
   meetCount: '',
-  sentence: ''
+  sentence: '',
+  faveFoods: '',
+  writtenAt: ''
 }
 
 const WHO = {
@@ -38,6 +53,16 @@ const WHO = {
   them: true,
   both: true
 }
+
+const MEAL = {
+  daily: true,
+  often: true,
+  few: true,
+  lost: true
+}
+
+// 同城见面的频率和吃饭共用一套取值。
+const MEET = MEAL
 
 function charCount(value) {
   return Array.from(String(value || '')).length
@@ -90,6 +115,38 @@ function togetherInfo(ymd, today) {
   return { future: true, days: -diff }
 }
 
+// 下一个值得等的日子：整百天或周年，取更近的那个。
+// 返回 { days, label }，days 是还差几天；今天正好就 days=0。
+// 还没在一起（未来日期）返回 null。
+function nextMilestone(ymd, today) {
+  if (!isYmd(ymd)) return null
+  const now = today || new Date()
+  const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const start = parseYmd(ymd)
+  if (todayDate < start) return null
+  const diff = Math.round((todayDate.getTime() - start.getTime()) / 86400000)
+  // 下一个整百天。今天正好满整百的话，就显示「今天」，不跳过去。
+  const nextHundred = Math.max(100, Math.ceil(diff / 100) * 100)
+  const daysToHundred = nextHundred - diff
+  // 下一个周年。当天就是周年日也算。
+  let nextAnniv = null
+  for (let y = 1; y <= 80; y++) {
+    const date = new Date(start.getFullYear() + y, start.getMonth(), start.getDate())
+    if (date >= todayDate) {
+      nextAnniv = { years: y, date: date }
+      break
+    }
+  }
+  if (!nextAnniv) {
+    return { days: daysToHundred, label: '就满 ' + nextHundred + ' 天' }
+  }
+  const daysToAnniv = Math.round((nextAnniv.date.getTime() - todayDate.getTime()) / 86400000)
+  if (daysToAnniv < daysToHundred) {
+    return { days: daysToAnniv, label: '就到 ' + nextAnniv.years + ' 周年' }
+  }
+  return { days: daysToHundred, label: '就满 ' + nextHundred + ' 天' }
+}
+
 // 只保留我们知道的字段。缓存里多出来的旧键会被丢掉。
 function pickForm(raw) {
   const source = raw || {}
@@ -107,7 +164,12 @@ function normalize(raw) {
   form.theirNickname = clip(form.theirNickname, 10)
   form.togetherDate = isYmd(form.togetherDate) ? form.togetherDate : ''
   form.firstDatePlace = clip(form.firstDatePlace, 20)
+  form.homeCity = clip(form.homeCity, 12)
+  form.places = clip(form.places, 140)
   form.cityCount = cleanNum(form.cityCount)
+  form.myCity = clip(form.myCity, 12)
+  form.theirCity = clip(form.theirCity, 12)
+  form.mealMode = MEAL[form.mealMode] ? form.mealMode : ''
   form.mealCount = cleanNum(form.mealCount)
   form.fightCount = cleanNum(form.fightCount)
   form.whoApologized = WHO[form.whoApologized] ? form.whoApologized : ''
@@ -117,8 +179,11 @@ function normalize(raw) {
     ? form.distanceMode
     : ''
   form.distanceKm = cleanNum(form.distanceKm)
+  form.meetMode = MEET[form.meetMode] ? form.meetMode : ''
   form.meetCount = cleanNum(form.meetCount)
   form.sentence = clip(form.sentence, 40)
+  form.faveFoods = clip(form.faveFoods, 24)
+  form.writtenAt = isYmd(form.writtenAt) ? form.writtenAt : ''
   return form
 }
 
@@ -137,6 +202,7 @@ module.exports = {
   isYmd,
   formatDate,
   togetherInfo,
+  nextMilestone,
   pickForm,
   normalize,
   canGenerate,

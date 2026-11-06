@@ -1,11 +1,11 @@
-<view class="page">
+<view class="page theme-{{theme}}">
   <!-- 弥散底：两摊颜色化开铺在整页上，页面往下滑它不动，
-       所以整张表单像铺在一层会流动的光里。 -->
+       所以整张表单像铺在一层会流动的光里。颜色由 themes.js 算好直接内联。 -->
   <view class="ambient">
-    <view class="mesh mesh-1"></view>
-    <view class="mesh amb-lower"></view>
+    <view class="mesh mesh-1" style="background-image: {{ambientMesh}}"></view>
+    <view class="mesh amb-lower" style="background-image: {{ambientLower}}"></view>
     <view class="bloom"></view>
-    <view class="amb-fade"></view>
+    <view class="amb-fade" style="background: {{ambientFade}}"></view>
   </view>
 
   <view class="hero">
@@ -13,7 +13,7 @@
       <view class="eyebrow-dot"></view>
       <text class="eyebrow">一个人写的纪念册</text>
     </view>
-    <text class="hero-title">恋爱Wrapped</text>
+    <text class="hero-title">{{appName}}</text>
     <text class="hero-sub">由你写下两个名字和一些小事。生成之后可以左右滑动，像翻一本只印了一份的小册子。</text>
 
     <view class="progress">
@@ -91,39 +91,75 @@
       <view class="group-head">
         <text class="group-no">02</text>
         <view class="group-text">
-          <text class="group-title">一起走过的数字</text>
-          <text class="group-hint">记不清就留空。数字页只写你真的填过的数。</text>
+          <text class="group-title">一起走过的地方</text>
+          <text class="group-hint">把名字写下来，纪念册帮你数一数、算一算。记不清就留空。</text>
         </view>
       </view>
 
       <view class="field-block">
-        <text class="field-label">一起去过几座城市</text>
+        <text class="field-label">现在住的城市</text>
         <input
           class="field"
-          type="number"
-          maxlength="5"
-          placeholder="比如：3"
+          maxlength="12"
+          placeholder="比如：杭州"
           placeholder-class="ph"
           cursor-spacing="80"
-          value="{{form.cityCount}}"
-          data-key="cityCount"
+          value="{{form.homeCity}}"
+          data-key="homeCity"
           bindinput="onInput"
         />
       </view>
 
       <view class="field-block">
-        <text class="field-label">一起吃过多少顿饭</text>
-        <input
-          class="field"
-          type="number"
-          maxlength="5"
-          placeholder="比如：128"
-          placeholder-class="ph"
-          cursor-spacing="80"
-          value="{{form.mealCount}}"
-          data-key="mealCount"
-          bindinput="onInput"
-        />
+        <text class="field-label">一起去过的地方</text>
+        <text class="field-help">一个一个加，最多放八块。认得出的城市会标出离你们家多远。</text>
+        <view class="chips-input">
+          <input
+            class="field chips-field"
+            maxlength="12"
+            placeholder="输入城市名"
+            placeholder-class="ph"
+            confirm-type="done"
+            cursor-spacing="80"
+            value="{{placeDraft}}"
+            bindinput="onPlaceDraft"
+            bindconfirm="onAddPlace"
+          />
+          <view class="chips-add" hover-class="pressed" bindtap="onAddPlace">添加</view>
+        </view>
+        <view class="chips" wx:if="{{placeList.length}}">
+          <view class="chip" wx:for="{{placeList}}" wx:key="*this">
+            <text class="chip-text">{{item}}</text>
+            <text class="chip-x" data-name="{{item}}" catchtap="onRemovePlace" aria-role="button" aria-label="删除{{item}}">×</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="field-block">
+        <text class="field-label">一起吃饭这件事</text>
+        <text class="field-help">没人记得清吃过多少顿。选个大概，纪念册会按在一起的天数帮你估。</text>
+        <radio-group class="choices" bindchange="onMeal">
+          <label class="choice {{form.mealMode === '' ? 'on' : ''}}">
+            <radio value="skip" checked="{{form.mealMode === ''}}" color="{{accentColor}}" />
+            <text>先不写</text>
+          </label>
+          <label class="choice {{form.mealMode === 'daily' ? 'on' : ''}}">
+            <radio value="daily" checked="{{form.mealMode === 'daily'}}" color="{{accentColor}}" />
+            <text>几乎每天一起吃</text>
+          </label>
+          <label class="choice {{form.mealMode === 'often' ? 'on' : ''}}">
+            <radio value="often" checked="{{form.mealMode === 'often'}}" color="{{accentColor}}" />
+            <text>一周好几顿</text>
+          </label>
+          <label class="choice {{form.mealMode === 'few' ? 'on' : ''}}">
+            <radio value="few" checked="{{form.mealMode === 'few'}}" color="{{accentColor}}" />
+            <text>想起来才一起吃</text>
+          </label>
+          <label class="choice {{form.mealMode === 'lost' ? 'on' : ''}}">
+            <radio value="lost" checked="{{form.mealMode === 'lost'}}" color="{{accentColor}}" />
+            <text>数不清啦</text>
+          </label>
+        </radio-group>
       </view>
     </view>
 
@@ -134,6 +170,20 @@
           <text class="group-title">那些记得住的事</text>
           <text class="group-hint">「吵架」和「异地 / 同城」两项都留空，就不会多出页面。</text>
         </view>
+      </view>
+
+      <view class="field-block">
+        <text class="field-label">你们最爱吃的东西</text>
+        <input
+          class="field"
+          maxlength="24"
+          placeholder="比如：小熊爱麻辣烫，阿树爱草莓"
+          placeholder-class="ph"
+          cursor-spacing="80"
+          value="{{form.faveFoods}}"
+          data-key="faveFoods"
+          bindinput="onInput"
+        />
       </view>
 
       <view class="field-block">
@@ -152,19 +202,19 @@
         />
         <radio-group class="choices" bindchange="onWho">
           <label class="choice {{form.whoApologized === '' ? 'on' : ''}}">
-            <radio value="skip" checked="{{form.whoApologized === ''}}" color="#E85A7A" />
+            <radio value="skip" checked="{{form.whoApologized === ''}}" color="{{accentColor}}" />
             <text>先不写</text>
           </label>
           <label class="choice {{form.whoApologized === 'me' ? 'on' : ''}}">
-            <radio value="me" checked="{{form.whoApologized === 'me'}}" color="#E85A7A" />
+            <radio value="me" checked="{{form.whoApologized === 'me'}}" color="{{accentColor}}" />
             <text>我先道歉</text>
           </label>
           <label class="choice {{form.whoApologized === 'them' ? 'on' : ''}}">
-            <radio value="them" checked="{{form.whoApologized === 'them'}}" color="#E85A7A" />
+            <radio value="them" checked="{{form.whoApologized === 'them'}}" color="{{accentColor}}" />
             <text>TA 先道歉</text>
           </label>
           <label class="choice {{form.whoApologized === 'both' ? 'on' : ''}}">
-            <radio value="both" checked="{{form.whoApologized === 'both'}}" color="#E85A7A" />
+            <radio value="both" checked="{{form.whoApologized === 'both'}}" color="{{accentColor}}" />
             <text>几乎同时</text>
           </label>
         </radio-group>
@@ -211,48 +261,71 @@
 
       <view class="field-block">
         <text class="field-label">异地，还是同城</text>
-        <text class="field-help">选了才会多出一页。异地填公里，同城填一起出门的次数。</text>
+        <text class="field-help">选了才会多出这一页。异地写两座城市，公里数自动算；同城选个见面频率。</text>
         <radio-group class="choices" bindchange="onDistance">
           <label class="choice {{form.distanceMode === '' ? 'on' : ''}}">
-            <radio value="skip" checked="{{form.distanceMode === ''}}" color="#E85A7A" />
+            <radio value="skip" checked="{{form.distanceMode === ''}}" color="{{accentColor}}" />
             <text>先不写</text>
           </label>
           <label class="choice {{form.distanceMode === 'ldr' ? 'on' : ''}}">
-            <radio value="ldr" checked="{{form.distanceMode === 'ldr'}}" color="#E85A7A" />
+            <radio value="ldr" checked="{{form.distanceMode === 'ldr'}}" color="{{accentColor}}" />
             <text>我们异地</text>
           </label>
           <label class="choice {{form.distanceMode === 'same' ? 'on' : ''}}">
-            <radio value="same" checked="{{form.distanceMode === 'same'}}" color="#E85A7A" />
+            <radio value="same" checked="{{form.distanceMode === 'same'}}" color="{{accentColor}}" />
             <text>同一座城</text>
           </label>
         </radio-group>
         <view wx:if="{{form.distanceMode === 'ldr'}}" class="follow">
-          <text class="field-label">大约相隔多少公里</text>
+          <text class="field-label">我在的城市</text>
           <input
             class="field"
-            type="number"
-            maxlength="5"
-            placeholder="比如：842"
+            maxlength="12"
+            placeholder="比如：杭州"
             placeholder-class="ph"
             cursor-spacing="80"
-            value="{{form.distanceKm}}"
-            data-key="distanceKm"
+            value="{{form.myCity}}"
+            data-key="myCity"
             bindinput="onInput"
           />
+          <text class="field-label">TA 在的城市</text>
+          <input
+            class="field"
+            maxlength="12"
+            placeholder="比如：成都"
+            placeholder-class="ph"
+            cursor-spacing="80"
+            value="{{form.theirCity}}"
+            data-key="theirCity"
+            bindinput="onInput"
+          />
+          <text class="field-help">两座城市都写得出来，中间隔着多少公里就自动算好了。</text>
         </view>
         <view wx:if="{{form.distanceMode === 'same'}}" class="follow">
-          <text class="field-label">一起出门大概几次</text>
-          <input
-            class="field"
-            type="number"
-            maxlength="5"
-            placeholder="比如：36"
-            placeholder-class="ph"
-            cursor-spacing="80"
-            value="{{form.meetCount}}"
-            data-key="meetCount"
-            bindinput="onInput"
-          />
+          <text class="field-label">见面这件事</text>
+          <text class="field-help">同城的人也未必天天见。选个大概，纪念册按在一起的天数帮你估。</text>
+          <radio-group class="choices" bindchange="onMeet">
+            <label class="choice {{form.meetMode === '' ? 'on' : ''}}">
+              <radio value="skip" checked="{{form.meetMode === ''}}" color="{{accentColor}}" />
+              <text>先不写</text>
+            </label>
+            <label class="choice {{form.meetMode === 'daily' ? 'on' : ''}}">
+              <radio value="daily" checked="{{form.meetMode === 'daily'}}" color="{{accentColor}}" />
+              <text>几乎天天见</text>
+            </label>
+            <label class="choice {{form.meetMode === 'often' ? 'on' : ''}}">
+              <radio value="often" checked="{{form.meetMode === 'often'}}" color="{{accentColor}}" />
+              <text>一周见好几回</text>
+            </label>
+            <label class="choice {{form.meetMode === 'few' ? 'on' : ''}}">
+              <radio value="few" checked="{{form.meetMode === 'few'}}" color="{{accentColor}}" />
+              <text>忙起来才见</text>
+            </label>
+            <label class="choice {{form.meetMode === 'lost' ? 'on' : ''}}">
+              <radio value="lost" checked="{{form.meetMode === 'lost'}}" color="{{accentColor}}" />
+              <text>没数过</text>
+            </label>
+          </radio-group>
         </view>
       </view>
 
@@ -272,17 +345,42 @@
       </view>
     </view>
 
+    <view class="group">
+      <view class="group-head">
+        <text class="group-no">05</text>
+        <view class="group-text">
+          <text class="group-title">挑一套配色</text>
+          <text class="group-hint">整本纪念册、导出的图片和转发卡片都会用这套颜色，随时可以换。</text>
+        </view>
+      </view>
+      <view class="swatches">
+        <view
+          class="swatch {{theme === item.id ? 'on' : ''}}"
+          wx:for="{{themeList}}"
+          wx:key="id"
+          data-id="{{item.id}}"
+          bindtap="onTheme"
+          hover-class="pressed"
+        >
+          <view class="swatch-dot" style="background: {{item.bg}}; border-color: {{item.accent}}"></view>
+          <text class="swatch-label">{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
     <view class="tail">
       <view class="btn btn-ghost sample-btn" hover-class="pressed" bindtap="onSample">填入一组示例</view>
-      <text class="sample-note">示例是虚构的小熊和阿树：写了吵架和异地，所以会多出两页。换成你们的故事就好。</text>
+      <text class="sample-note">示例是虚构的小熊和阿树，一共 9 页。想从零开始，点下面的「清空」。</text>
 
-      <view class="quiet" wx:if="{{hasStored}}" hover-class="pressed" bindtap="onClear">清空这台设备上的答案</view>
+      <view class="quiet" wx:if="{{hasStored}}" hover-class="pressed" bindtap="onBackup" aria-role="button">把这册备份成文字</view>
+      <view class="quiet" wx:if="{{hasStored}}" hover-class="pressed" bindtap="onClear" aria-role="button">清空这台设备上的答案</view>
       <text class="privacy">不联网，不登录。清缓存或换一台设备之后，这些字会消失。</text>
+      <text class="privacy privacy-link" bindtap="onOpenPrivacyContract" aria-role="button">用户隐私保护指引</text>
     </view>
   </view>
 
   <view class="action-bar">
-    <text class="count-line">按现在的内容，会生成 {{slideCount}} 页{{slideCount > 6 ? '，含你填了的额外页' : ''}}</text>
+    <text class="count-line">按现在的内容，会生成 {{slideCount}} 页</text>
     <view class="btn btn-primary {{canOpen ? '' : 'dim'}}" hover-class="pressed" bindtap="onGenerate">生成纪念册</view>
   </view>
 </view>

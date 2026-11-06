@@ -1,14 +1,14 @@
 <view class="stage theme-{{currentTheme}}" style="height: {{windowHeight}}px;">
   <view wx:if="{{empty}}" class="empty">
-    <view class="mesh mesh-1"></view>
-    <view class="mesh amb-lower"></view>
+    <view class="mesh mesh-1" style="background-image: {{emptyMeshStyle}}"></view>
+    <view class="mesh amb-lower" style="background-image: {{emptyLowerStyle}}"></view>
     <view class="bloom"></view>
     <view class="empty-inner">
       <view class="card">
         <view class="hairline"></view>
         <view class="kicker-row">
           <view class="kicker-bar"></view>
-          <text class="kicker">恋爱Wrapped</text>
+          <text class="kicker">{{appName}}</text>
         </view>
         <text class="title title-lg">这本纪念册还是空白的</text>
         <text class="body">先写下两个昵称，和你们在一起的日子。其余的可以以后再补。</text>
@@ -24,19 +24,20 @@
       style="height: {{swiperHeight}}px;"
       duration="320"
       easing-function="easeOutCubic"
+      current="{{current}}"
       bindchange="onSwipe"
     >
       <swiper-item wx:for="{{slides}}" wx:key="id">
         <view class="slide theme-{{item.theme}} id-{{item.id}}" style="height: {{swiperHeight}}px;">
-          <!-- 每一页都是奶油底，各自铺一层弥散底。 -->
-          <view class="mesh {{item.mesh}}"></view>
+          <!-- 每一页各自铺一层弥散底，颜色由 themes.js 算好直接内联。 -->
+          <view class="mesh {{item.mesh}}" style="background-image: {{item.meshStyle}}"></view>
           <view class="bloom"></view>
           <scroll-view scroll-y show-scrollbar="{{false}}" class="content" style="height: {{swiperHeight}}px;">
-            <view class="content-inner theme-cream">
+            <view class="content-inner theme-{{item.theme}}">
               <view class="card">
-                <view class="hairline"></view>
+                <view class="hairline" style="background: {{item.hairStyle}}"></view>
                 <view class="card-main">
-                  <view class="kicker-row">
+                  <view class="kicker-row {{item.layout === 'journey' || item.layout === 'bubble' || item.layout === 'finale' ? 'centered' : ''}}">
                     <view class="kicker-bar"></view>
                     <text class="kicker">{{item.kicker}}</text>
                   </view>
@@ -76,6 +77,93 @@
                   <text class="note" wx:if="{{item.note}}">{{item.note}}</text>
                 </block>
 
+                  <!-- 拼图：去过的地方一块一块拼起来，最远的那块挂「最远」。 -->
+                  <block wx:elif="{{item.layout === 'puzzle'}}">
+                  <view class="tile-grid">
+                    <view
+                      class="tile {{index % 2 === 0 ? 'tile-lean-l' : 'tile-lean-r'}}"
+                      wx:for="{{item.tiles}}"
+                      wx:for-item="tile"
+                      wx:key="name"
+                      style="{{tile.bgStyle}}"
+                    >
+                      <text class="tile-name">{{tile.name}}</text>
+                      <text class="tile-dist" wx:if="{{tile.dist}}">{{tile.dist}}</text>
+                      <view class="tile-badge" wx:if="{{tile.far}}"><text class="tile-badge-text">最远</text></view>
+                    </view>
+                  </view>
+                  <text class="meta puzzle-meta" wx:if="{{item.meta}}">{{item.meta}}</text>
+                </block>
+
+                  <!-- 明信片：地点在左，日期缩成右上角的邮戳。 -->
+                  <block wx:elif="{{item.layout === 'postcard'}}">
+                  <view class="postcard-row">
+                    <view class="title-wrap">
+                      <view class="title-glow"></view>
+                      <text class="title title-{{item.titleSize}}">{{item.title}}</text>
+                    </view>
+                    <view class="stamp" wx:if="{{item.stamp}}" style="{{item.stampStyle}}">
+                      <text class="stamp-year">{{item.stampTop}}</text>
+                      <text class="stamp-day">{{item.stampBottom}}</text>
+                    </view>
+                  </view>
+                  <text class="body" wx:if="{{item.body}}">{{item.body}}</text>
+                  <text class="meta" wx:if="{{item.meta}}">{{item.meta}}</text>
+                </block>
+
+                  <!-- 旅程图：大数字压在一条虚线上，虚线两端各一个点。 -->
+                  <block wx:elif="{{item.layout === 'journey'}}">
+                  <view class="journey">
+                    <view class="journey-num-row">
+                      <text class="journey-num" style="font-size: {{item.journeyNumSize}}rpx">{{item.journeyNum}}</text>
+                      <text class="journey-unit">{{item.journeyUnit}}</text>
+                    </view>
+                    <view class="journey-track">
+                      <view class="journey-cap" style="{{item.journeyDot}}"></view>
+                      <view class="journey-line" style="{{item.journeyLine}}"></view>
+                      <view class="journey-cap" style="{{item.journeyDot}}"></view>
+                    </view>
+                    <text class="journey-label">{{item.journeyLabel}}</text>
+                    <text class="meta journey-meta" wx:if="{{item.meta}}">{{item.meta}}</text>
+                  </view>
+                </block>
+
+                  <!-- 气泡：那句口头禅装在一只气泡里。 -->
+                  <block wx:elif="{{item.layout === 'bubble'}}">
+                  <view class="bubble-wrap">
+                    <view class="bubble" style="{{item.bubbleStyle}}">
+                      <text class="bubble-mark" style="{{item.bubbleTextStyle}}">「</text>
+                      <text class="bubble-text" style="{{item.bubbleTextStyle}}">{{item.title}}</text>
+                      <text class="bubble-mark" style="{{item.bubbleTextStyle}}">」</text>
+                    </view>
+                    <view class="bubble-tail" style="{{item.bubbleTailStyle}}"></view>
+                  </view>
+                  <text class="body bubble-note" wx:if="{{item.body}}">{{item.body}}</text>
+                </block>
+
+                  <!-- 手记：左侧一道色条，正文首行缩进两个字。 -->
+                  <block wx:elif="{{item.layout === 'letter'}}">
+                  <view class="title-wrap">
+                    <view class="title-glow"></view>
+                    <text class="title title-{{item.titleSize}}">{{item.title}}</text>
+                  </view>
+                  <view class="letter-block">
+                    <view class="letter-bar" style="{{item.letterBar}}"></view>
+                    <text class="body letter-body">{{item.body}}</text>
+                  </view>
+                  <text class="meta" wx:if="{{item.meta}}">{{item.meta}}</text>
+                </block>
+
+                  <!-- 终章：整页居中，像扉页的题字。 -->
+                  <block wx:elif="{{item.layout === 'finale'}}">
+                  <view class="title-wrap finale-title-wrap">
+                    <view class="title-glow"></view>
+                    <text class="title title-{{item.titleSize}}">{{item.title}}</text>
+                  </view>
+                  <text class="body finale-body" wx:if="{{item.body}}">{{item.body}}</text>
+                  <text class="meta finale-meta" wx:if="{{item.meta}}">{{item.meta}}</text>
+                </block>
+
                   <block wx:else>
                   <view class="title-wrap">
                     <view class="title-glow"></view>
@@ -111,6 +199,21 @@
           <text class="pager">{{current + 1}} / {{slides.length}}</text>
         </view>
       </view>
+      <view class="theme-row">
+        <text class="theme-row-label">配色</text>
+        <view class="theme-dots">
+          <view
+            class="theme-dot {{currentTheme === item.id ? 'on' : ''}}"
+            wx:for="{{themeList}}"
+            wx:key="id"
+            data-id="{{item.id}}"
+            bindtap="onTapTheme"
+            style="background: {{item.accent}}"
+            aria-role="button"
+            aria-label="{{item.label}}配色"
+          ></view>
+        </view>
+      </view>
       <view class="dock-actions">
         <view class="btn btn-ghost" hover-class="pressed" bindtap="onExport">导出此页</view>
         <view class="btn btn-primary" hover-class="pressed" bindtap="onExportAll">导出整本</view>
@@ -118,8 +221,13 @@
       <view class="dock-share">
         <button class="btn btn-share" hover-class="pressedShare" open-type="share">分享给 TA</button>
       </view>
-      <view class="dock-tip">
-        <text>导出的图片是清晰的。你写下的字只留在这台设备上。</text>
+      <!-- 礼物模式：这册是转发带来的，字都装在链接里。可以收下，也可以自己写一本。 -->
+      <view class="dock-tip gift-tip" wx:if="{{gift}}">
+        <text>这册纪念册是转发带来的，字都装在链接里，从一部手机直达另一部，没经过任何服务器。</text>
+        <view class="gift-cta-row">
+          <text class="gift-cta" hover-class="pressed" bindtap="onSaveGift" aria-role="button">把这册留在我手机上</text>
+          <text class="gift-cta gift-cta-quiet" hover-class="pressed" bindtap="onGoFill" aria-role="button">我也写一本 →</text>
+        </view>
       </view>
     </view>
   </block>
@@ -152,6 +260,9 @@
     <view class="sheet-actions">
       <view class="btn btn-ghost" hover-class="pressed" bindtap="onPreviewImage">查看大图</view>
       <view class="btn btn-primary" hover-class="pressed" bindtap="onSaveAlbum">存到相册</view>
+    </view>
+    <view class="sheet-share" wx:if="{{canShareImage}}">
+      <view class="btn btn-ghost" hover-class="pressed" bindtap="onShareImage" aria-role="button">直接发送给朋友</view>
     </view>
     <view class="sheet-close" hover-class="pressed" bindtap="onCloseSheet">关闭</view>
   </view>

@@ -1,5 +1,5 @@
 {
-  "description": "恋爱Wrapped：写一本一个人的纪念册",
+  "description": "Wrapped 纪念册：写一本一个人的纪念册",
   "packOptions": {
     "ignore": [
       {
@@ -9,6 +9,10 @@
       {
         "type": "file",
         "value": "README.md"
+      },
+      {
+        "type": "file",
+        "value": "上架清单.md"
       },
       {
         "type": "file",

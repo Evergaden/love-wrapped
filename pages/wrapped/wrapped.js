@@ -7,13 +7,28 @@ const record = require('../../utils/record')
 const sample = require('../../utils/sample')
 const storage = require('../../utils/storage')
 const slidesUtil = require('../../utils/slides')
+const themes = require('../../utils/themes')
+const brand = require('../../utils/brand')
+const gift = require('../../utils/gift')
 const poster = require('../../utils/poster')
 const privacy = require('../../utils/privacy')
 
 function readWindow() {
   let info = { windowWidth: 375, windowHeight: 667, screenHeight: 667, pixelRatio: 2 }
   try {
-    info = wx.getSystemInfoSync() || info
+    // 新基础库拆成了几个接口，老基础库仍然只有 getSystemInfoSync。
+    if (typeof wx.getWindowInfo === 'function') {
+      const w = wx.getWindowInfo() || {}
+      info = {
+        windowWidth: w.windowWidth,
+        windowHeight: w.windowHeight,
+        screenHeight: w.screenHeight,
+        pixelRatio: w.pixelRatio,
+        safeArea: w.safeArea
+      }
+    } else {
+      info = wx.getSystemInfoSync() || info
+    }
   } catch (err) {
     console.warn(err)
   }
@@ -22,8 +37,8 @@ function readWindow() {
   const safe = info.safeArea && info.screenHeight
     ? Math.max(0, info.screenHeight - info.safeArea.bottom)
     : 0
-  // 底部操作区大约 250rpx，再加一点安全区。真正高度会在 onReady 里量一次。
-  const dock = 250 * (width / 750) + safe
+  // 底部操作区大约 330rpx（含主题切换行），再加一点安全区。真正高度会在 onReady 里量一次。
+  const dock = 330 * (width / 750) + safe
   return {
     windowHeight: height,
     swiperHeight: Math.max(240, height - dock),
@@ -34,9 +49,11 @@ function readWindow() {
 Page({
   data: {
     empty: false,
+    gift: false,
     slides: [],
     current: 0,
-    currentTheme: 'cream',
+    currentTheme: themes.DEFAULT,
+    themeList: themes.pickerList(),
     windowHeight: 667,
     swiperHeight: 500,
     pixelRatio: 2,
@@ -45,14 +62,31 @@ Page({
     canvasW: 10,
     canvasH: 10,
     sharePath: '',
-    shareTitle: '恋爱Wrapped · 只属于我们的纪念册'
+    canShareImage: typeof wx.showShareImageMenu === 'function',
+    shareTitle: brand.SHARE_TITLE,
+    appName: brand.APP_NAME
   },
 
-  onLoad() {
+  onLoad(options) {
     const metrics = readWindow()
+    // 礼物模式：这册是转发带来的，答案就装在链接里，不读本机的答案。
+    const giftRaw = gift.unpackGift(options)
+    const giftForm = giftRaw ? record.pickForm(giftRaw) : null
+    const isGift = !!(giftForm && record.canGenerate(giftForm))
     const saved = storage.loadAnswers()
-    const ready = !!(saved && record.canGenerate(saved))
-    const slides = ready ? slidesUtil.buildSlides(saved) : []
+    const mineReady = !!(saved && record.canGenerate(saved))
+    const ready = isGift || mineReady
+    // 主题和答案一样都从本机读。缓存里没有或值不合法时，回到默认配色。
+    const theme = themes.resolve(isGift ? giftRaw.theme : storage.loadTheme())
+    const source = isGift ? giftForm : saved
+    const slides = ready ? slidesUtil.buildSlides(source, null, theme) : []
+    if (isGift) {
+      this.giftForm = giftForm
+      this.setData({
+        gift: true,
+        shareTitle: gift.giftTitle(giftForm)
+      })
+    }
     this.setData({
       windowHeight: metrics.windowHeight,
       swiperHeight: metrics.swiperHeight,
@@ -60,9 +94,11 @@ Page({
       empty: !ready,
       slides: slides,
       current: 0,
-      currentTheme: slides.length ? slides[0].theme : 'cream'
+      currentTheme: theme,
+      emptyMeshStyle: themes.meshImage(theme, 'mesh-1'),
+      emptyLowerStyle: themes.ambLowerImage(theme)
     })
-    this.syncChrome(slides[0])
+    this.syncChrome(theme)
     wx.showShareMenu({ menus: ['shareAppMessage'] })
     // 分享封面在后台先画好，点「分享给 TA」时不用等。
     if (ready) this.prepareShareImage(slides)
@@ -89,22 +125,61 @@ Page({
   },
 
   onShareAppMessage() {
-    const title = this.data.shareTitle || '恋爱Wrapped · 只属于我们的纪念册'
-    const imageUrl = this.data.sharePath || ''
+    // 礼物模式：把这册继续原样传给下一个人，链接里带的还是同一份答案。
+    if (this.data.gift && this.giftForm) {
+      const id = this.data.currentTheme
+      return {
+        title: this.data.shareTitle,
+        path: gift.giftPath(this.giftForm, id),
+        imageUrl: this.data.sharePath || ''
+      }
+    }
+    // 自己的纪念册：把答案装进链接，对方点开就能看到整册。
+    const saved = storage.loadAnswers()
+    if (saved && record.canGenerate(saved)) {
+      return {
+        title: gift.giftTitle(saved),
+        path: gift.giftPath(saved, this.data.currentTheme),
+        imageUrl: this.data.sharePath || ''
+      }
+    }
     return {
-      title: title,
+      title: this.data.shareTitle || brand.SHARE_TITLE,
       path: '/pages/index/index',
-      imageUrl: imageUrl
+      imageUrl: this.data.sharePath || ''
     }
   },
 
   // 朋友圈没有专门接口，标题由 onShareTimeline 返回。
   onShareTimeline() {
     return {
-      title: '我也写了一本《恋爱Wrapped》，只印了一份',
+      title: brand.TIMELINE_TITLE,
       query: '',
       imageUrl: this.data.sharePath || ''
     }
+  },
+
+  // 换主题：整本的每一页都换色（含内联的弥散底），分享封面也重画一张。
+  // 礼物模式下只换看的效果，不写对方设备上的任何东西。
+  onTapTheme(e) {
+    const id = themes.resolve(e.currentTarget.dataset.id)
+    if (id === this.data.currentTheme) return
+    if (!this.data.gift) storage.saveTheme(id)
+    const slides = this.data.slides.map((slide) => {
+      const next = Object.assign({}, slide, { theme: id })
+      next.meshStyle = themes.meshImage(id, slide.mesh)
+      next.hairStyle = themes.hairlineImage(id)
+      return next
+    })
+    this.setData({
+      currentTheme: id,
+      slides: slides,
+      emptyMeshStyle: themes.meshImage(id, 'mesh-1'),
+      emptyLowerStyle: themes.ambLowerImage(id)
+    }, () => {
+      this.syncChrome(id)
+      if (!this.data.empty) this.prepareShareImage(slides)
+    })
   },
 
   // 把分享封面画成图片，存在 data.sharePath 里。
@@ -120,11 +195,12 @@ Page({
     const card = {
       nameA: cover.nameA || '',
       nameB: cover.nameB || '',
-      title: '恋爱Wrapped',
+      title: brand.APP_NAME,
       line: phrase && phrase.title && phrase.title !== '还没写'
         ? phrase.title
         : (ending && ending.title && ending.title !== '还空着' ? ending.title : ''),
-      postmark: cover.meta || ''
+      postmark: cover.meta || '',
+      theme: this.data.currentTheme
     }
 
     this.createSelectorQuery()
@@ -184,12 +260,14 @@ Page({
       .exec()
   },
 
-  // 每一页都是奶油底，导航栏不用再跟着换色。
-  syncChrome() {
+  // 导航栏底色跟主题走。
+  syncChrome(themeId) {
+    const t = themes.THEMES[themes.resolve(themeId)]
     wx.setNavigationBarColor({
       frontColor: '#000000',
-      backgroundColor: '#FFF5F7',
-      animation: { duration: 180, timingFunc: 'easeIn' }
+      backgroundColor: t.bg,
+      animation: { duration: 180, timingFunc: 'easeIn' },
+      fail() {}
     })
   },
 
@@ -199,9 +277,39 @@ Page({
     if (!slide) return
     this.setData({
       current: current,
-      currentTheme: slide.theme
+      currentTheme: this.data.currentTheme
     })
-    this.syncChrome(slide)
+  },
+
+  // 礼物模式：把转发来的这册存进自己手机（会覆盖自己写的那份，先确认）。
+  onSaveGift() {
+    if (!this.giftForm) return
+    const page = this
+    wx.showModal({
+      title: '把这册留下来',
+      content: '会把这册内容存进你手机上的纪念册，覆盖你自己写的那一份。',
+      confirmText: '收下',
+      cancelText: '先不',
+      confirmColor: themes.THEMES[themes.resolve(this.data.currentTheme)].kicker,
+      success(res) {
+        if (!res.confirm) return
+        storage.saveAnswers(page.giftForm)
+        page.setData({ gift: false })
+        wx.showToast({ title: '已收下，现在是你手机里的了', icon: 'none' })
+      }
+    })
+  },
+
+  // 导出的图片直接发进聊天，不用先存相册再去找图。
+  onShareImage() {
+    const sheet = this.data.sheet
+    if (!sheet || !sheet.path) return
+    wx.showShareImageMenu({
+      path: sheet.path,
+      fail() {
+        // 用户取消或者版本不支持，静默即可。
+      }
+    })
   },
 
   onGoFill() {
@@ -216,15 +324,15 @@ Page({
   onUseSample() {
     const form = record.normalize(sample.SAMPLE)
     storage.saveAnswers(form)
-    const slides = slidesUtil.buildSlides(form)
+    const slides = slidesUtil.buildSlides(form, null, this.data.currentTheme)
     this.setData({
       empty: false,
       slides: slides,
-      current: 0,
-      currentTheme: slides[0].theme
+      current: 0
     }, () => {
-      this.syncChrome(slides[0])
+      this.syncChrome(this.data.currentTheme)
       this.measureDock()
+      this.prepareShareImage(slides)
     })
     wx.showToast({ title: '已放上示例', icon: 'none' })
   },
@@ -237,7 +345,7 @@ Page({
   },
 
   onExportAll() {
-    this.exportSlides(this.data.slides, '整本', '')
+    this.exportBook(this.data.slides)
   },
 
   // async 表示这个函数会停下来等画布画完，再继续。
@@ -249,7 +357,7 @@ Page({
     try {
       const width = poster.POSTER_W
       const height = poster.POSTER_H * list.length
-      const dpr = this.posterScale(list.length)
+      const dpr = this.posterScaleForHeight(height)
       const drawn = await this.prepareCanvas(width, height, dpr)
       // 先确认隐私授权。没做过授权的设备，这里会弹一次微信自带的说明。
       await privacy.requirePrivacy()
@@ -258,7 +366,8 @@ Page({
           pageLabel: pageLabel
         })
       } else {
-        poster.drawBook(drawn.ctx, width, poster.POSTER_H, list, {})
+        const plan = poster.planBook(drawn.ctx, width, list)
+        poster.drawBookPlanned(drawn.ctx, width, plan, {})
       }
       const path = await this.canvasToImage(drawn.node, width, height, drawn.destW, drawn.destH)
       wx.hideLoading()
@@ -275,22 +384,60 @@ Page({
       this.setData({ exporting: false })
       wx.showModal({
         title: '没能生成图片',
-        content: '请打开右上角「详情 → 本地设置」，把调试基础库调到 3.0 以上，然后再导出一次。',
+        content: '再试一次通常就好了；还是不行的话，把微信更新到最新版。',
         showCancel: false,
         confirmText: '知道了',
-        confirmColor: '#E85A7A'
+        confirmColor: themes.THEMES[this.data.currentTheme].kicker
       })
     }
   },
 
-  // 单页可以画得清楚。整本长图要落在画布边长限制里，所以会自动缩小。
-  posterScale(pageCount) {
-    const cap = pageCount >= 6 ? 1 : (pageCount >= 4 ? 1.5 : 2)
-    let dpr = Math.min(this.data.pixelRatio || 2, cap)
+  // 整本导出成一张连贯的长图。分两步：
+  //   1) 先用一块临时画布把每一节排出来、量出整条要多高
+  //   2) 再按量出的高度建正式画布，从头画到尾
+  async exportBook(list) {
+    if (this.data.exporting) return
+    if (!list || !list.length) return
+    this.setData({ exporting: true })
+    wx.showLoading({ title: '正在绘制', mask: true })
+    try {
+      const width = poster.POSTER_W
+      // 先量：画布大小随便，只借它量字。
+      const probe = await this.prepareCanvas(width, poster.POSTER_H, 1)
+      const plan = poster.planBook(probe.ctx, width, list)
+      // 再画：按量出的总高度建正式画布。
+      const dpr = this.posterScaleForHeight(plan.totalH)
+      const drawn = await this.prepareCanvas(width, plan.totalH, dpr)
+      await privacy.requirePrivacy()
+      poster.drawBookPlanned(drawn.ctx, width, plan, {})
+      const path = await this.canvasToImage(drawn.node, width, plan.totalH, drawn.destW, drawn.destH)
+      wx.hideLoading()
+      this.setData({
+        exporting: false,
+        sheet: {
+          path: path,
+          title: '整本'
+        }
+      })
+    } catch (err) {
+      console.warn(err)
+      wx.hideLoading()
+      this.setData({ exporting: false })
+      wx.showModal({
+        title: '没能生成图片',
+        content: '再试一次通常就好了；还是不行的话，把微信更新到最新版。',
+        showCancel: false,
+        confirmText: '知道了',
+        confirmColor: themes.THEMES[this.data.currentTheme].kicker
+      })
+    }
+  },
+
+  // 单页按屏幕清晰度画；长图要落在画布边长限制里，自动缩小。
+  posterScaleForHeight(height) {
     const maxSide = 4096
-    const heightLimit = maxSide / (poster.POSTER_H * pageCount)
-    const widthLimit = maxSide / poster.POSTER_W
-    const limit = Math.min(heightLimit, widthLimit)
+    let dpr = Math.min(this.data.pixelRatio || 2, 2)
+    const limit = Math.min(maxSide / (height || 1), maxSide / poster.POSTER_W)
     if (dpr > limit) dpr = limit
     return dpr > 0 ? dpr : 1
   },
@@ -372,10 +519,10 @@ Page({
         if (msg.indexOf('auth') >= 0 || msg.indexOf('deny') >= 0 || msg.indexOf('authorize') >= 0) {
           wx.showModal({
             title: '需要相册权限',
-            content: '允许保存到相册后才能写入。开发者工具里经常存不了，用手机预览更可靠。你也可以先查看大图。',
+            content: '在设置里允许「保存到相册」后就能写入。你也可以先查看大图，长按保存。',
             confirmText: '去设置',
             cancelText: '知道了',
-            confirmColor: '#E85A7A',
+            confirmColor: themes.THEMES[this.data.currentTheme].kicker,
             success(res) {
               if (res.confirm) wx.openSetting({})
             }
@@ -384,10 +531,10 @@ Page({
         }
         wx.showModal({
           title: '没能写入相册',
-          content: '模拟器里这很常见。请用开发者工具上方的「预览」，用手机微信扫码后再保存。图片本身已经画好了，可以先查看大图。',
+          content: '图片已经生成好了，可以先查看大图，长按保存。',
           showCancel: false,
           confirmText: '知道了',
-          confirmColor: '#E85A7A'
+          confirmColor: themes.THEMES[this.data.currentTheme].kicker
         })
       }
     })

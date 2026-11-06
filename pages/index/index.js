@@ -6,18 +6,24 @@ const record = require('../../utils/record')
 const sample = require('../../utils/sample')
 const storage = require('../../utils/storage')
 const slides = require('../../utils/slides')
+const themes = require('../../utils/themes')
+const brand = require('../../utils/brand')
+const gift = require('../../utils/gift')
+const geo = require('../../utils/geo')
+const backup = require('../../utils/backup')
 const privacy = require('../../utils/privacy')
+
+// 拼图页最多放几块。
+const PLACE_CAP = 8
 
 const NUMERIC = {
   cityCount: true,
-  mealCount: true,
   fightCount: true,
-  distanceKm: true,
   meetCount: true
 }
 
 // 一共十一件事。吵架算一件（次数或谁先道歉，任意一个算），
-// 距离算一件（选了异地或同城就算）。
+// 距离算一件（选了异地或同城就算），吃饭频率算一件。
 const TOTAL = 11
 
 function countFilled(form) {
@@ -26,8 +32,8 @@ function countFilled(form) {
     form.theirNickname,
     form.togetherDate,
     form.firstDatePlace,
-    form.cityCount,
-    form.mealCount,
+    form.homeCity || form.places || form.cityCount,
+    form.mealMode || form.mealCount,
     form.catchphrase,
     form.story,
     form.sentence
@@ -49,7 +55,13 @@ Page({
     storyCount: 0,
     sentenceCount: 0,
     hasStored: false,
-    errorHint: ''
+    errorHint: '',
+    placeDraft: '',
+    placeList: [],
+    appName: brand.APP_NAME,
+    theme: themes.DEFAULT,
+    themeList: themes.pickerList(),
+    accentColor: themes.THEMES[themes.DEFAULT].kicker
   },
 
   onShow() {
@@ -57,17 +69,60 @@ Page({
     const saved = storage.loadAnswers()
     const form = saved ? record.normalize(saved) : record.blankForm()
     this.applyForm(form, { hasStored: !!saved, errorHint: '' })
+    // 主题和答案分开存：换配色不用动写过的字。
+    this.applyTheme(storage.loadTheme() || themes.DEFAULT, { silent: true })
     wx.showShareMenu({ menus: ['shareAppMessage'] })
     // 填写会把内容写进本机缓存。首次进页问一次隐私授权，用户已同意过则直接通过。
     privacy.checkPrivacy()
   },
 
   // 分享卡片不放昵称。对方点开会看到空白填写页，答案仍在你的设备上。
+  // 分享卡片：已经写好的话，把整册装进链接带给对方；
+  // 还没写完就还是一张普通的空白填写页。
   onShareAppMessage() {
+    const form = record.normalize(this.data.form)
+    if (record.canGenerate(form)) {
+      return {
+        title: gift.giftTitle(form),
+        path: gift.giftPath(form, this.data.theme)
+      }
+    }
     return {
-      title: '恋爱Wrapped · 只属于我们的纪念册',
+      title: brand.SHARE_TITLE,
       path: '/pages/index/index'
     }
+  },
+
+  // 选中主题存进本机，导航栏、页面底色和弥散底跟着换。
+  // silent 表示进页时的静默恢复，不重复弹导航栏动画。
+  applyTheme(themeId, options) {
+    const id = themes.resolve(themeId)
+    const t = themes.THEMES[id]
+    this.setData({
+      theme: id,
+      accentColor: t.kicker,
+      ambientMesh: themes.meshImage(id, 'mesh-1'),
+      ambientLower: themes.ambLowerImage(id),
+      ambientFade: themes.ambFade(id)
+    })
+    if (!(options && options.silent)) {
+      storage.saveTheme(id)
+    }
+    wx.setNavigationBarColor({
+      frontColor: '#000000',
+      backgroundColor: t.bg,
+      fail() {}
+    })
+    try {
+      wx.setBackgroundColor({ backgroundColor: t.bg, fail() {} })
+    } catch (err) {
+      // 基础库过低没有这个接口时，页面底色保持原样即可。
+    }
+  },
+
+  onTheme(e) {
+    const id = themes.resolve(e.currentTarget.dataset.id)
+    this.applyTheme(id)
   },
 
   applyForm(form, extra) {
@@ -83,6 +138,7 @@ Page({
       filledPercent: Math.round(countFilled(copy) / TOTAL * 100),
       storyCount: copy.story.length,
       sentenceCount: copy.sentence.length,
+      placeList: geo.splitPlaces(copy.places),
       hasStored: !!(extra && extra.hasStored),
       errorHint: (extra && extra.errorHint) || ''
     })
@@ -104,6 +160,7 @@ Page({
         filledPercent: Math.round(filled / TOTAL * 100),
         storyCount: String(form.story || '').length,
         sentenceCount: String(form.sentence || '').length,
+        placeList: geo.splitPlaces(String(form.places || '')),
         hasStored: true,
         errorHint: ''
       })
@@ -124,6 +181,73 @@ Page({
     this.remember(form)
   },
 
+  // —— 一起去过的地方：一个一个加，加一块存一次 ——
+  onPlaceDraft(e) {
+    this.setData({ placeDraft: e.detail.value })
+  },
+
+  onAddPlace() {
+    // 支持一次粘「杭州、大理」：拆开逐个收，装不下就停在上限。
+    const wanted = geo.splitPlaces(this.data.placeDraft)
+    if (!wanted.length) {
+      wx.showToast({ title: '先写一个城市名', icon: 'none' })
+      return
+    }
+    const list = geo.splitPlaces(this.data.form.places)
+    const added = []
+    wanted.forEach((name) => {
+      if (list.indexOf(name) >= 0 || list.length + added.length >= PLACE_CAP) return
+      added.push(name)
+      list.push(name)
+    })
+    if (!added.length) {
+      const full = list.length >= PLACE_CAP
+      wx.showToast({ title: full ? '一页最多放 ' + PLACE_CAP + ' 块' : '已经放过了', icon: 'none' })
+      this.setData({ placeDraft: '' })
+      return
+    }
+    const form = this.data.form
+    form.places = list.join('、')
+    this.setData({ placeDraft: '' })
+    this.remember(form)
+    if (added.length < wanted.length) {
+      const dropped = wanted.length - added.length
+      wx.showToast({ title: '已添加 ' + added.length + ' 个' + (dropped ? '，放不下的 ' + dropped + ' 个没加' : ''), icon: 'none' })
+    }
+  },
+
+  // 备份成文字：复制到剪贴板，用户粘进收藏就是一份不会丢的存档。
+  onBackup() {
+    const text = backup.buildText(this.data.form)
+    wx.setClipboardData({
+      data: text,
+      success() {
+        wx.showToast({ title: '已复制，去微信「收藏」粘贴保存', icon: 'none' })
+      }
+    })
+  },
+
+  // 后台「用户隐私保护指引」的查看入口。低版本没有这个接口就不显示交互。
+  onOpenPrivacyContract() {
+    if (typeof wx.openPrivacyContract !== 'function') {
+      wx.showToast({ title: '当前微信版本暂不支持', icon: 'none' })
+      return
+    }
+    wx.openPrivacyContract({
+      fail() {
+        wx.showToast({ title: '暂时打不开，请稍后再试', icon: 'none' })
+      }
+    })
+  },
+
+  onRemovePlace(e) {
+    const name = e.currentTarget.dataset.name
+    const list = geo.splitPlaces(this.data.form.places).filter((n) => n !== name)
+    const form = this.data.form
+    form.places = list.join('、')
+    this.remember(form)
+  },
+
   onDate(e) {
     const form = this.data.form
     form.togetherDate = e.detail.value
@@ -134,6 +258,14 @@ Page({
 
   onWho(e) {
     this.setChoice('whoApologized', e.detail.value)
+  },
+
+  onMeal(e) {
+    this.setChoice('mealMode', e.detail.value)
+  },
+
+  onMeet(e) {
+    this.setChoice('meetMode', e.detail.value)
   },
 
   onDistance(e) {
@@ -163,7 +295,7 @@ Page({
       content: '只会删除这台设备上的填写内容，不能恢复。',
       confirmText: '清空',
       cancelText: '取消',
-      confirmColor: '#E85A7A',
+      confirmColor: this.data.accentColor,
       success(res) {
         if (!res.confirm) return
         storage.clearAnswers()
@@ -181,7 +313,15 @@ Page({
     }
     if (this.opening) return
     this.opening = true
-    storage.saveAnswers(this.data.form)
+    // 第一次写完的日子记下来，结尾页和长图封底都用它；转发也原样带走。
+    const form = this.data.form
+    if (!form.writtenAt) {
+      const t = new Date()
+      const pad = (n) => (n < 10 ? '0' + n : '' + n)
+      form.writtenAt = t.getFullYear() + '-' + pad(t.getMonth() + 1) + '-' + pad(t.getDate())
+      this.setData({ form })
+    }
+    storage.saveAnswers(form)
     wx.navigateTo({
       url: '/pages/wrapped/wrapped',
       complete: () => {

@@ -1,11 +1,9 @@
 /* 全局只有底色、字色和按钮。
-   奶油底 #FFF5F7，粉色 #FF8FAB / #FFC2D1，字 #2D1B24。
-   口头禅那一页的深玫瑰 #E85A7A 写在 pages/wrapped/wrapped.wxss。
-   导出图片的同色写在 utils/poster.js，改颜色时三处一起改。
-
-   弥散底新增两支色：蜜桃 #FFB583、薰衣草 #B79CFF。
-   它们只出现在 .mesh-* 和 pages/wrapped/wrapped.wxss 的卡面上，
-   导出图片的同色在 utils/poster.js 里，三处一起改。 */
+   配色的唯一出处是 utils/themes.js：奶油（默认）、抹茶、晴蓝、雾紫四套。
+   弥散底和卡口细线的颜色由 themes.js 算好以后内联在节点上
+   （开发者工具里 swiper 内容对样式表的多级选择器级联不稳定，内联最可靠），
+   这里只保留布局和按钮；其余主题差异写在两个页面的 wxss 里。
+   导出图片的同色在 utils/poster.js，也从 themes.js 取。 */
 
 page {
   background: #FFF5F7;
@@ -60,8 +58,7 @@ swiper-item {
 
 /* 弥散底。
    几摊颜色各自化开，摊在一起互相渗透，铺满整页。
-   看上去是一层会流动的光，而不是几个能数出来的圆形。
-   每一层都用百分比写坐标和大小，所以页面尺寸变了也不会切出硬边。 */
+   这里只管铺法（铺满、不重复），background-image 由 themes.js 生成后内联。 */
 .mesh {
   position: absolute;
   left: 0;
@@ -72,54 +69,6 @@ swiper-item {
   background-repeat: no-repeat;
   background-size: 100% 100%;
 }
-
-.mesh-1 {
-  background-image:
-    radial-gradient(62% 46% at 14% 2%, rgba(255, 138, 171, 0.88), rgba(255, 138, 171, 0) 76%),
-    radial-gradient(56% 42% at 96% 16%, rgba(183, 156, 255, 0.78), rgba(183, 156, 255, 0) 76%),
-    radial-gradient(74% 50% at 88% 102%, rgba(255, 181, 131, 0.74), rgba(255, 181, 131, 0) 74%),
-    radial-gradient(52% 44% at 0% 88%, rgba(255, 194, 209, 0.82), rgba(255, 194, 209, 0) 78%),
-    radial-gradient(72% 54% at 44% 46%, rgba(255, 181, 131, 0.62), rgba(255, 181, 131, 0) 78%);
-}
-
-.mesh-2 {
-  background-image:
-    radial-gradient(58% 44% at 92% 0%, rgba(255, 181, 131, 0.80), rgba(255, 181, 131, 0) 76%),
-    radial-gradient(60% 46% at 6% 14%, rgba(255, 138, 171, 0.76), rgba(255, 138, 171, 0) 76%),
-    radial-gradient(56% 42% at 96% 74%, rgba(183, 156, 255, 0.70), rgba(183, 156, 255, 0) 76%),
-    radial-gradient(64% 46% at 12% 100%, rgba(255, 194, 209, 0.82), rgba(255, 194, 209, 0) 78%),
-    radial-gradient(70% 52% at 46% 44%, rgba(183, 156, 255, 0.56), rgba(183, 156, 255, 0) 78%);
-}
-
-.mesh-3 {
-  background-image:
-    radial-gradient(66% 48% at 50% -6%, rgba(255, 138, 171, 0.84), rgba(255, 138, 171, 0) 74%),
-    radial-gradient(52% 40% at 2% 42%, rgba(183, 156, 255, 0.68), rgba(183, 156, 255, 0) 76%),
-    radial-gradient(52% 40% at 98% 56%, rgba(255, 181, 131, 0.70), rgba(255, 181, 131, 0) 76%),
-    radial-gradient(78% 46% at 50% 106%, rgba(255, 194, 209, 0.88), rgba(255, 194, 209, 0) 76%),
-    radial-gradient(68% 50% at 48% 40%, rgba(255, 138, 171, 0.58), rgba(255, 138, 171, 0) 78%);
-}
-
-.mesh-4 {
-  background-image:
-    radial-gradient(60% 44% at 8% 6%, rgba(183, 156, 255, 0.78), rgba(183, 156, 255, 0) 76%),
-    radial-gradient(58% 44% at 100% 30%, rgba(255, 138, 171, 0.74), rgba(255, 138, 171, 0) 76%),
-    radial-gradient(70% 48% at 76% 104%, rgba(255, 194, 209, 0.86), rgba(255, 194, 209, 0) 76%),
-    radial-gradient(48% 38% at 18% 74%, rgba(255, 181, 131, 0.68), rgba(255, 181, 131, 0) 76%),
-    radial-gradient(72% 54% at 44% 44%, rgba(255, 194, 209, 0.62), rgba(255, 194, 209, 0) 78%);
-}
-
-.mesh-5 {
-  background-image:
-    radial-gradient(56% 42% at 20% 8%, rgba(255, 181, 131, 0.78), rgba(255, 181, 131, 0) 76%),
-    radial-gradient(62% 46% at 84% 8%, rgba(255, 138, 171, 0.80), rgba(255, 138, 171, 0) 76%),
-    radial-gradient(54% 40% at 94% 66%, rgba(183, 156, 255, 0.68), rgba(183, 156, 255, 0) 76%),
-    radial-gradient(66% 44% at 26% 98%, rgba(255, 194, 209, 0.86), rgba(255, 194, 209, 0) 78%),
-    radial-gradient(70% 52% at 46% 42%, rgba(255, 181, 131, 0.58), rgba(255, 181, 131, 0) 78%);
-}
-
-/* 深玫瑰那一页（口头禅）不用弥散底，保持原来的纯色底 + 右下角一团白光，
-   那团白光写在 pages/wrapped/wrapped.wxss 的 .rose-glow。 */
 
 /* 顶部那层白光。让页面像蒙了一层柔光，字更清楚。 */
 .bloom {
@@ -132,22 +81,43 @@ swiper-item {
   background-image: radial-gradient(72% 100% at 50% 0%, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 72%);
 }
 
-/* 叠在弥散底上的第二层。
-   每一摊的中心都往下压，所以上沿是透明的，不会切出一条硬边。 */
-.amb-lower {
-  background-image:
-    radial-gradient(58% 40% at 90% 34%, rgba(255, 181, 131, 0.80), rgba(255, 181, 131, 0) 78%),
-    radial-gradient(62% 44% at 8% 62%, rgba(255, 138, 171, 0.72), rgba(255, 138, 171, 0) 78%),
-    radial-gradient(54% 38% at 74% 96%, rgba(255, 194, 209, 0.80), rgba(255, 194, 209, 0) 78%);
-}
-
-/* 卡面上那条渐变细线。 */
+/* 卡面上那条渐变细线。颜色由 themes.js 生成后内联。 */
 .hairline {
   height: 6rpx;
   border-radius: 6rpx;
-  background: linear-gradient(90deg,
-    rgba(255, 138, 171, 0) 0%,
-    rgba(255, 138, 171, 0.90) 26%,
-    rgba(183, 156, 255, 0.90) 58%,
-    rgba(255, 181, 131, 0) 100%);
+}
+
+/* —— 其余主题的按钮覆盖。弥散底已内联，不需要这里的规则。 —— */
+
+.theme-matcha .btn-primary {
+  background: #7FC79B;
+  color: #1E2B23;
+  box-shadow: 0 12rpx 28rpx rgba(127, 199, 155, 0.30);
+}
+
+.theme-matcha .btn-ghost {
+  color: rgba(30, 43, 35, 0.82);
+  border-color: #C8E9D2;
+}
+
+.theme-sky .btn-primary {
+  background: #8FB6E8;
+  color: #1C2A3C;
+  box-shadow: 0 12rpx 28rpx rgba(143, 182, 232, 0.30);
+}
+
+.theme-sky .btn-ghost {
+  color: rgba(28, 42, 60, 0.82);
+  border-color: #CFE2F8;
+}
+
+.theme-violet .btn-primary {
+  background: #B49AEC;
+  color: #2B2144;
+  box-shadow: 0 12rpx 28rpx rgba(180, 154, 236, 0.30);
+}
+
+.theme-violet .btn-ghost {
+  color: rgba(43, 33, 68, 0.82);
+  border-color: #E4D4FA;
 }
