@@ -215,6 +215,58 @@ function fetchSharedBook(token) {
   })
 }
 
+// ---------- 周年提醒 ----------
+// 订阅消息模板 ID：在 mp 后台「功能 → 订阅消息」申请后填进来。
+// 推荐模板字段：thing1 昵称们、date2 纪念日、thing3 寄语（类别选「日程提醒」）。
+// 留空时，提醒询问只记下意愿，云端计划会标记为未订阅，定时函数不会下发。
+const REMINDER_TMPL_ID = ''
+
+const REMINDERS_COLLECTION = 'reminders'
+
+function reminderTemplateId() {
+  return REMINDER_TMPL_ID
+}
+
+// 把提醒计划存进 reminders 集合。同一周年只留一份，重复开启走更新。
+// 集合权限「仅创建者可读写」：_openid 由微信自动写入，定时云函数以管理员身份
+// 读取全部计划并下发订阅消息。resolve { ok, error }，永不 reject。
+function saveReminderPlan(plan) {
+  return new Promise((resolve) => {
+    if (!init()) {
+      resolve({ ok: false, error: null, silent: true })
+      return
+    }
+    const payload = {
+      anniversary: plan.anniversary,
+      years: plan.years,
+      togetherDate: plan.togetherDate,
+      nicknames: String(plan.nicknames || '').slice(0, 40),
+      enabled: !!plan.enabled,
+      subscribed: !!plan.subscribed,
+      updatedAt: db().serverDate()
+    }
+    db().collection(REMINDERS_COLLECTION)
+      .where({ anniversary: plan.anniversary })
+      .limit(1)
+      .get()
+      .then((res) => {
+        const old = res.data && res.data[0]
+        if (old && old._id) {
+          db().collection(REMINDERS_COLLECTION).doc(old._id).update({
+            data: payload
+          }).then(() => resolve({ ok: true, error: null }))
+            .catch((err) => resolve({ ok: false, error: explainError(err) }))
+        } else {
+          db().collection(REMINDERS_COLLECTION).add({
+            data: Object.assign({ createdAt: db().serverDate() }, payload)
+          }).then(() => resolve({ ok: true, error: null }))
+            .catch((err) => resolve({ ok: false, error: explainError(err) }))
+        }
+      })
+      .catch((err) => resolve({ ok: false, error: explainError(err) }))
+  })
+}
+
 module.exports = {
   init,
   saveBook,
@@ -222,5 +274,7 @@ module.exports = {
   removeBook,
   checkConnection,
   shareTokenFor,
-  fetchSharedBook
+  fetchSharedBook,
+  reminderTemplateId,
+  saveReminderPlan
 }

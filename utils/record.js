@@ -1,3 +1,6 @@
+// 一起去过的地方要按名字数，找 geo 借个拆分器。
+const geo = require('./geo')
+
 // 一份「答案」长什么样，以及怎么把脏数据收拾干净。
 // 页面和画册都从这里拿同一套字段，避免各写各的。
 
@@ -196,6 +199,39 @@ function blankForm() {
   return pickForm({})
 }
 
+// 下一个周年纪念日（当天也算）。返回 { date, years, days } 或 null。
+function nextAnniversary(ymd, today) {
+  if (!isYmd(ymd)) return null
+  const now = today || new Date()
+  const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const start = parseYmd(ymd)
+  if (todayDate < start) return null
+  for (let y = 1; y <= 80; y++) {
+    const date = new Date(start.getFullYear() + y, start.getMonth(), start.getDate())
+    if (date >= todayDate) {
+      const pad = (n) => (n < 10 ? '0' + n : '' + n)
+      return {
+        date: date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()),
+        years: y,
+        days: Math.round((date.getTime() - todayDate.getTime()) / 86400000)
+      }
+    }
+  }
+  return null
+}
+
+// 根据内容给这册一个「搭子称号」。规则从具体到通用，命中第一个就停。
+function partnerTitle(a) {
+  const places = geo.splitPlaces(a.places)
+  if (a.distanceMode === 'ldr') return '双城搭子'
+  if (places.length >= 5) return '旅行搭子'
+  if (a.mealMode === 'daily') return '饭搭子'
+  if (a.meetMode === 'daily') return '形影搭子'
+  if (a.fightCount === '0') return '和平搭子'
+  if (a.mealMode === 'often' && a.meetMode === 'often') return '合拍搭子'
+  return '默契搭子'
+}
+
 module.exports = {
   EMPTY,
   charCount,
@@ -203,6 +239,8 @@ module.exports = {
   formatDate,
   togetherInfo,
   nextMilestone,
+  nextAnniversary,
+  partnerTitle,
   pickForm,
   normalize,
   canGenerate,

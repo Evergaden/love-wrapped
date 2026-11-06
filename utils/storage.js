@@ -5,6 +5,7 @@
 
 const ANSWERS_KEY = 'loveWrapped.answers.v1'
 const THEME_KEY = 'loveWrapped.theme.v1'
+const REMINDER_KEY = 'loveWrapped.reminder.v1'
 
 const record = require('./record')
 
@@ -60,10 +61,35 @@ function saveTheme(themeId) {
   }
 }
 
+// 周年提醒的本机记录：问过没有、开没开、针对哪个周年。
+// 只存意愿，真正的计划在云端 reminders 集合里。
+function loadReminder() {
+  try {
+    const value = wx.getStorageSync(REMINDER_KEY)
+    if (!value || typeof value !== 'object') return null
+    return value
+  } catch (err) {
+    console.warn('读取提醒记录失败', err)
+    return null
+  }
+}
+
+function saveReminder(reminder) {
+  try {
+    wx.setStorageSync(REMINDER_KEY, reminder)
+    return true
+  } catch (err) {
+    console.warn('保存提醒记录失败', err)
+    return false
+  }
+}
+
 module.exports = {
   loadAnswers,
   saveAnswers,
   clearAnswers,
   loadTheme,
-  saveTheme
+  saveTheme,
+  loadReminder,
+  saveReminder
 }

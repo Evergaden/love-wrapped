@@ -343,10 +343,61 @@ Page({
     cloud.shareTokenFor(record.normalize(form), this.data.theme).then((res) => {
       if (res.ok) this.shareToken = res.token
     })
-    wx.navigateTo({
-      url: '/pages/wrapped/wrapped',
-      complete: () => {
-        this.opening = false
+    // 周年提醒：一年问一次，同一个周年不重复打扰。
+    this.maybeAskReminder(form, () => {
+      wx.navigateTo({
+        url: '/pages/wrapped/wrapped',
+        complete: () => {
+          this.opening = false
+        }
+      })
+    })
+  },
+
+  // 生成纪念册时，轻轻问一句：下个周年纪念日前 7 天，要不要微信提醒？
+  // 每个周年只问一次；用户拒绝过也不再弹。真正的下发在云函数 reminderSend。
+  maybeAskReminder(form, done) {
+    const ann = record.nextAnniversary(form.togetherDate)
+    if (!ann) return done()
+    const rec = storage.loadReminder()
+    // 同一个周年已经处理过（无论开没开），就不再问。
+    if (rec && rec.anniversary === ann.date) return done()
+    const tmpl = cloud.reminderTemplateId()
+    wx.showModal({
+      title: '周年提醒',
+      content: '下个周年（' + ann.date.replace(/-/g, '.') + '）前 7 天，想在微信里收到提醒吗？',
+      confirmText: '好呀',
+      cancelText: '先不',
+      success(res) {
+        if (!res.confirm) {
+          storage.saveReminder({ anniversary: ann.date, years: ann.years, enabled: false, askedAt: Date.now() })
+          wx.showToast({ title: '好的，想开随时回来', icon: 'none' })
+          return done()
+        }
+        if (!tmpl) {
+          // 模板还没申请：先记下意愿，等接入后下次生成会再问一次授权。
+          storage.saveReminder({ anniversary: ann.date, years: ann.years, enabled: true, subscribed: false, askedAt: Date.now() })
+          cloud.saveReminderPlan({ anniversary: ann.date, years: ann.years, togetherDate: form.togetherDate, nicknames: form.myNickname + ' 和 ' + form.theirNickname, enabled: true, subscribed: false })
+          wx.showToast({ title: '已记下这个日子', icon: 'none' })
+          return done()
+        }
+        wx.requestSubscribeMessage({
+          tmplIds: [tmpl],
+          success(sub) {
+            const accepted = sub[tmpl] === 'accept'
+            storage.saveReminder({ anniversary: ann.date, years: ann.years, enabled: accepted, subscribed: accepted, askedAt: Date.now() })
+            cloud.saveReminderPlan({ anniversary: ann.date, years: ann.years, togetherDate: form.togetherDate, nicknames: form.myNickname + ' 和 ' + form.theirNickname, enabled: accepted, subscribed: accepted })
+            wx.showToast({ title: accepted ? '提醒已开启' : '好的，随时可以再开', icon: 'none' })
+            done()
+          },
+          fail() {
+            // 用户关掉了授权面板：当次不记「拒绝」，下次生成再问。
+            done()
+          }
+        })
+      },
+      fail() {
+        done()
       }
     })
   }

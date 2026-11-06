@@ -72,8 +72,9 @@ function buildSlides(raw, today, themeId) {
     footer: footer
   })
 
-  // 2. 数字。只放天数和饭；去过的地方单独一页拼图。
+  // 2. 数字。开头先给这册一个搭子称号，后面才是一天天数出来的数。
   const stats = []
+  stats.push({ num: record.partnerTitle(a), unit: '', label: '系统认证 · 你们的搭子称号' })
   if (info && info.future) {
     stats.push({ num: String(info.days), unit: '天', label: '之后，就是这一天' })
   } else if (info) {
