@@ -177,8 +177,8 @@ function callFunction(name, data) {
 // theme 是作者当前配色，随分享记录存云端，收礼的人固定看这一套。
 // 注意：只缓存成功的结果——第一次失败后（云端刚部署、网络慢），
 // 后续分享必须真的重试，而不是拿缓存的失败一直退回普通卡片。
-function shareTokenFor(form, theme) {
-  const sig = JSON.stringify(form) + '|' + (theme || '')
+function shareTokenFor(form, theme, title) {
+  const sig = JSON.stringify(form) + '|' + (theme || '') + '|' + (title || '')
   if (shareCache.sig === sig && shareCache.promise) return shareCache.promise
   const promise = new Promise((resolve) => {
     if (!init()) {

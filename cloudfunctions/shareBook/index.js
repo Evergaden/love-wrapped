@@ -28,6 +28,8 @@ exports.main = async (event) => {
   // 配色跟着这册走：收下的人看到的就是作者选的那套。
   const THEME_RE = /^(cream|matcha|sky|violet)$/
   const theme = THEME_RE.test(event && event.theme) ? event.theme : 'cream'
+  // 拆封页的大标题：分享者可以自己起，比如「一周年快乐」。
+  const title = Array.from(String((event && event.title) || '').trim()).slice(0, 24).join('')
   await ensureSharesCollection()
   const token = crypto.randomBytes(24).toString('hex')
   await db.collection('shares').add({
@@ -36,6 +38,7 @@ exports.main = async (event) => {
       ownerOpenid: OPENID,
       answers: a,
       theme: theme,
+      title: title,
       createdAt: db.serverDate(),
       expireAt: db.serverDate({ offset: TTL_MS }),
       enabled: true

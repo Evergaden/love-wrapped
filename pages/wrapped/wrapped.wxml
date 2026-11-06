@@ -55,6 +55,31 @@
     </view>
   </view>
 
+  <!-- 拆封前的全屏封面：标题是分享者起的，点「立即开启」才拆。 -->
+  <view wx:elif="{{giftState === 'splash'}}" class="gift-splash">
+    <view class="mesh mesh-1" style="background-image: {{emptyMeshStyle}}"></view>
+    <view class="mesh amb-lower" style="background-image: {{emptyLowerStyle}}"></view>
+    <view class="bloom"></view>
+    <view class="splash-hearts">
+      <text class="splash-heart h1">♥</text>
+      <text class="splash-heart h2">♥</text>
+      <text class="splash-heart h3">♥</text>
+    </view>
+    <view class="splash-inner">
+      <view class="kicker-row centered">
+        <view class="kicker-bar"></view>
+        <text class="kicker">{{appName}}</text>
+      </view>
+      <text class="splash-title">{{giftSplashTitle}}</text>
+      <text class="splash-sub">来自 {{giftFrom}} 的一册纪念册</text>
+      <text class="splash-date" wx:if="{{giftDateText}}">{{giftDateText}}</text>
+    </view>
+    <view class="splash-cta" hover-class="splash-cta-press" bindtap="onOpenGift" aria-role="button">
+      <text class="splash-cta-text">立即开启</text>
+    </view>
+    <text class="splash-foot">字都装在链接里 · 没经过任何服务器</text>
+  </view>
+
   <view wx:elif="{{giftState === 'error'}}" class="empty">
     <view class="mesh mesh-1" style="background-image: {{emptyMeshStyle}}"></view>
     <view class="mesh amb-lower" style="background-image: {{emptyLowerStyle}}"></view>
@@ -270,7 +295,7 @@
       </view>
       <view class="dock-actions" wx:if="{{!gift}}">
         <view class="btn btn-ghost" hover-class="pressed" bindtap="onExportChoose">导出</view>
-        <button class="btn btn-share" hover-class="pressedShare" open-type="share">分享给 TA</button>
+        <button class="btn btn-share" hover-class="pressedShare" bindtap="onOpenShareSheet" aria-role="button">分享给 TA</button>
       </view>
       <!-- 礼物视角：这册是 TA 写的。收进自己的历史，或者自己去做一本。 -->
       <view class="dock-tip gift-tip" wx:if="{{gift}}">
@@ -317,5 +342,32 @@
       <view class="btn btn-ghost" hover-class="pressed" bindtap="onShareImage" aria-role="button">直接发送给朋友</view>
     </view>
     <view class="sheet-close" hover-class="pressed" bindtap="onCloseSheet">关闭</view>
+  </view>
+</view>
+
+<!-- 分享面板：起个标题再发出去，对方拆封时就会看到这句话。 -->
+<view class="share-mask" wx:if="{{shareSheetOpen}}" bindtap="onCloseShareSheet">
+  <view class="share-sheet" catchtap="noop">
+    <text class="share-sheet-title">给这份礼物起个标题</text>
+    <input
+      class="share-sheet-input"
+      maxlength="24"
+      placeholder="比如：一周年快乐"
+      placeholder-class="ph"
+      value="{{shareTitleInput}}"
+      bindinput="onShareTitleInput"
+    />
+    <view class="share-chips">
+      <view
+        class="share-chip {{shareTitleInput === chip ? 'share-chip-on' : ''}}"
+        wx:for="{{shareChips}}"
+        wx:for-item="chip"
+        wx:key="*this"
+        bindtap="onShareChip"
+        data-title="{{chip}}"
+      >{{chip}}</view>
+    </view>
+    <button class="share-go" open-type="share">发给 TA</button>
+    <view class="share-cancel" bindtap="onCloseShareSheet" aria-role="button">取消</view>
   </view>
 </view>

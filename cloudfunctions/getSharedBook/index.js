@@ -24,5 +24,5 @@ exports.main = async (event) => {
   if (doc.expireAt && new Date(doc.expireAt).getTime() < Date.now()) {
     return { ok: false, error: '这份分享已过期，让 TA 重新分享一次吧' }
   }
-  return { ok: true, answers: doc.answers, theme: doc.theme || '' }
+  return { ok: true, answers: doc.answers, theme: doc.theme || '', title: doc.title || '' }
 }

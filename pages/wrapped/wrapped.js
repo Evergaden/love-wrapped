@@ -54,6 +54,12 @@ Page({
     giftSaved: false,
     giftState: '',
     giftError: '',
+    giftSplashTitle: '',
+    giftFrom: '',
+    giftDateText: '',
+    shareSheetOpen: false,
+    shareTitleInput: '',
+    shareChips: ['生日快乐', '一周年快乐', '纪念日快乐', '年度报告', '有一册想给你'],
     slides: [],
     current: 0,
     currentTheme: themes.DEFAULT,
@@ -104,7 +110,7 @@ Page({
     if (mineReady) {
       this.prepareShareImage(slides)
       // 提前把分享令牌备好，点分享时直接可用。
-      cloud.shareTokenFor(record.normalize(saved), this.data.currentTheme).then((res) => {
+      cloud.shareTokenFor(record.normalize(saved), this.data.currentTheme, '').then((res) => {
         if (res.ok) this.shareToken = res.token
       })
     }
@@ -128,15 +134,18 @@ Page({
       // 收礼的人固定看作者选好的配色：分享记录里带了 theme 就用它。
       const theme = res.theme ? themes.resolve(res.theme) : page.data.currentTheme
       const slides = slidesUtil.buildSlides(form, null, theme)
+      page.pendingGiftOk = { slides: slides, theme: theme }
       page.setData({
-        giftState: 'ok',
+        giftState: 'splash',
+        giftSplashTitle: (res.title || '').slice(0, 24) || gift.giftTitle(form),
+        giftFrom: form.myNickname || 'TA',
+        giftDateText: record.formatDate(form.togetherDate),
         slides: slides,
         current: 0,
         currentTheme: theme,
         shareTitle: gift.giftTitle(form)
       }, () => {
         page.syncChrome(theme)
-        page.measureDock()
         page.prepareShareImage(slides)
       })
     })
@@ -145,6 +154,55 @@ Page({
   onShow() {
     // 首次进页顺带确认一次隐私授权状态。declined 也能看，只是导出前会再拦一次。
     privacy.checkPrivacy()
+  },
+
+  // 封面上的「立即开启」：先让拆信封动画演一下，再落进册子。
+  onOpenGift() {
+    if (this.data.giftState !== 'splash' || !this.pendingGiftOk) return
+    const page = this
+    const ok = this.pendingGiftOk
+    this.setData({ giftState: 'loading' })
+    setTimeout(() => {
+      page.setData({
+        slides: ok.slides,
+        currentTheme: ok.theme,
+        giftState: 'ok'
+      }, () => {
+        page.syncChrome(ok.theme)
+        page.measureDock()
+      })
+    }, 1000)
+  },
+
+  // 分享面板：让分享者给这册起个标题，比如「一周年快乐」。
+  onOpenShareSheet() {
+    this.setData({ shareSheetOpen: true, shareTitleInput: this.data.shareTitleInput || '' })
+    this.warmShareToken()
+  },
+
+  onCloseShareSheet() {
+    this.setData({ shareSheetOpen: false })
+  },
+
+  onShareTitleInput(e) {
+    this.setData({ shareTitleInput: e.detail.value })
+    this.warmShareToken()
+  },
+
+  onShareChip(e) {
+    const title = String((e.currentTarget.dataset && e.currentTarget.dataset.title) || '')
+    this.setData({ shareTitleInput: title })
+    this.warmShareToken()
+  },
+
+  warmShareToken() {
+    const form = record.normalize(storage.loadAnswers())
+    if (!record.canGenerate(form)) return
+    const title = String(this.data.shareTitleInput || '').trim()
+    const page = this
+    cloud.shareTokenFor(form, this.data.currentTheme, title).then((res) => {
+      if (res.ok) page.shareToken = res.token
+    })
   },
 
   onReady() {
@@ -173,22 +231,23 @@ Page({
       }
     }
     // 自己的纪念册：分享前云端备好令牌，链接里只有令牌。
-    // 令牌就绪后走同步返回，避免 Promise 分享的 3 秒兜底超时。
+    // 分享者在面板里起的标题优先生效。
     const saved = storage.loadAnswers()
     if (saved && record.canGenerate(saved)) {
       const form = record.normalize(saved)
+      const myTitle = String(this.data.shareTitleInput || '').trim() || gift.giftTitle(form)
       if (this.shareToken) {
         return {
-          title: gift.giftTitle(form),
+          title: myTitle,
           path: gift.giftPath(this.shareToken),
           imageUrl: imageUrl
         }
       }
-      return cloud.shareTokenFor(form, this.data.currentTheme).then((res) => {
+      return cloud.shareTokenFor(form, this.data.currentTheme, myTitle).then((res) => {
         if (res.ok) {
           this.shareToken = res.token
           return {
-            title: gift.giftTitle(form),
+            title: myTitle,
             path: gift.giftPath(res.token),
             imageUrl: imageUrl
           }
