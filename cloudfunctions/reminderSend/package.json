@@ -1,0 +1,9 @@
+{
+  "name": "reminderSend",
+  "version": "1.0.0",
+  "description": "每天 9 点检查周年提醒：提前 7 天经订阅消息下发",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}
