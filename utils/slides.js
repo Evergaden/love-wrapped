@@ -72,9 +72,8 @@ function buildSlides(raw, today, themeId) {
     footer: footer
   })
 
-  // 2. 数字。开头先给这册一个搭子称号，后面才是一天天数出来的数。
+  // 2. 数字。只放天数和饭；称号单独一页，去过的地方单独一页。
   const stats = []
-  stats.push({ num: record.partnerTitle(a), unit: '', label: '系统认证 · 你们的搭子称号' })
   if (info && info.future) {
     stats.push({ num: String(info.days), unit: '天', label: '之后，就是这一天' })
   } else if (info) {
@@ -443,6 +442,22 @@ function buildSlides(raw, today, themeId) {
       footer: footer
     })
   }
+
+  // 5.5 倒数第二页：获得的评价。像游戏成就，按 S/A/B 颁发。
+  const award = record.awardTitle(a, info)
+  slides.push({
+    id: 'award',
+    mesh: 'mesh-5',
+    layout: 'award',
+    theme: theme,
+    kicker: '获得的评价',
+    tierLabel: award.tierLabel,
+    tierColor: award.tierColor,
+    title: award.title,
+    titleSize: 'xl',
+    reason: award.reason,
+    footer: footer
+  })
 
   // 6. 结尾。写了那句就是「终章」：整页居中，像扉页的题字。
   // 「写于」记的是第一次写完这册的日子，还带上当天的第 N 天。

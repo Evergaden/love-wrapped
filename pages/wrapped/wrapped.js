@@ -182,6 +182,8 @@ Page({
 
   onCloseShareSheet() {
     this.setData({ shareSheetOpen: false })
+    // 标题可能刚改过：重画分享卡，下次转发就是新标题。
+    if (this.data.slides.length) this.prepareShareImage(this.data.slides)
   },
 
   onShareTitleInput(e) {
@@ -314,6 +316,7 @@ Page({
     const card = {
       nameA: cover.nameA || '',
       nameB: cover.nameB || '',
+      headline: this.data.gift ? String(this.giftHeadline || '') : String(this.data.shareTitleInput || '').trim(),
       title: brand.APP_NAME,
       line: phrase && phrase.title && phrase.title !== '还没写'
         ? phrase.title

@@ -220,16 +220,80 @@ function nextAnniversary(ymd, today) {
   return null
 }
 
-// 根据内容给这册一个「搭子称号」。规则从具体到通用，命中第一个就停。
-function partnerTitle(a) {
-  const places = geo.splitPlaces(a.places)
-  if (a.distanceMode === 'ldr') return '双城搭子'
-  if (places.length >= 5) return '旅行搭子'
-  if (a.mealMode === 'daily') return '饭搭子'
-  if (a.meetMode === 'daily') return '形影搭子'
-  if (a.fightCount === '0') return '和平搭子'
-  if (a.mealMode === 'often' && a.meetMode === 'often') return '合拍搭子'
-  return '默契搭子'
+// 称号：像游戏成就，按等级颁发。返回 { title, tierLabel, tierColor, reason }。
+// 口径：sweet 八项 = 约会地点/现居/去过的地方/最爱吃/口头禅/小事/那句话/吃饭频率；
+// fightNum 是填了数字的吵架次数；days 是在一起的天数（日子没到时为 null）。
+const TIER = {
+  S: { label: 'S级 · 稀有称号', color: '#E85A7A' },
+  A: { label: 'A级 · 优秀称号', color: '#D9A441' },
+  B: { label: 'B级 · 真实可爱', color: '#8A97AD' }
+}
+
+function awardTitle(a, info) {
+  const norm = normalize(a)
+  const sweet = [
+    norm.firstDatePlace, norm.homeCity, norm.places, norm.faveFoods,
+    norm.catchphrase, norm.story, norm.sentence, norm.mealMode
+  ]
+  const sweetCount = sweet.filter((v) => String(v || '').trim() !== '').length
+  const sweetRatio = Math.round((sweetCount / sweet.length) * 100)
+  const places = geo.splitPlaces(norm.places).length
+  const fightNum = norm.fightCount === '' ? null : Number(norm.fightCount)
+  const days = info && !info.future ? info.days : null
+  const year1 = days !== null && days >= 365
+  const year2 = days !== null && days >= 730
+  const fightSweet = fightNum !== null && fightNum <= 2
+  const fightLow = fightNum !== null && fightNum < 3
+  const fightFew = fightNum !== null && fightNum <= 4
+  const has = (v) => String(v || '').trim() !== ''
+  const award = (title, tier, reason) => ({ title: title, tier: tier, tierLabel: TIER[tier].label, tierColor: TIER[tier].color, reason: reason })
+
+  // S 级：稀有，值得炫耀
+  if (sweetCount >= 7 && (fightNum === null || fightSweet) && year1) {
+    return award('天作之合', 'S', '每一条都很甜，没有雷点')
+  }
+  if (has(norm.story) && charCount(norm.story) >= 30 && places >= 3 && has(norm.faveFoods) && has(norm.catchphrase)) {
+    return award('灵魂伴侣', 'S', '连爱吃的东西都长在了一起')
+  }
+  if (year2 && fightFew) {
+    return award('恋爱天花板', 'S', days + ' 天了，还是舍不得重话')
+  }
+  if (year1 && fightLow) {
+    return award('神仙情侣', 'S', days + ' 天里只吵了 ' + fightNum + ' 次')
+  }
+  // A 级：优秀
+  if (sweetRatio >= 80) {
+    return award('甜蜜超标', 'A', '甜度 ' + sweetRatio + '%，超标了')
+  }
+  if (norm.mealMode === 'daily' && (norm.meetMode === 'daily' || norm.distanceMode === 'same')) {
+    return award('黏黏糊糊', 'A', '天天都黏在一起')
+  }
+  if (sweetCount >= 5) {
+    return award('仪式感达人', 'A', '把日子过得很有仪式感')
+  }
+  if (fightFew && has(norm.sentence)) {
+    return award('模范情侣', 'A', '重要的话，都写在了心上')
+  }
+  // B 级：真实可爱的搭子们
+  if (norm.distanceMode === 'ldr') {
+    return award('双城搭子', 'B', '隔着公里数，隔不开心事')
+  }
+  if (places >= 3) {
+    return award('旅行搭子', 'B', '一起去过 ' + places + ' 个地方')
+  }
+  if (norm.mealMode === 'daily' || norm.mealMode === 'often') {
+    return award('饭搭子', 'B', '口味都对得上')
+  }
+  if (norm.meetMode === 'daily') {
+    return award('形影搭子', 'B', '走到哪儿都一起')
+  }
+  if (fightNum === 0) {
+    return award('和平搭子', 'B', '一次都没红过脸')
+  }
+  if (norm.mealMode === 'often' && norm.meetMode === 'often') {
+    return award('合拍搭子', 'B', '节奏刚刚好')
+  }
+  return award('默契搭子', 'B', '有些话不用说出口')
 }
 
 module.exports = {
@@ -240,7 +304,7 @@ module.exports = {
   togetherInfo,
   nextMilestone,
   nextAnniversary,
-  partnerTitle,
+  awardTitle,
   pickForm,
   normalize,
   canGenerate,

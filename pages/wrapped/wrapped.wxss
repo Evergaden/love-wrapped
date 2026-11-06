@@ -1599,3 +1599,32 @@
   font-size: 28rpx;
   color: rgba(45, 27, 36, 0.5);
 }
+
+/* —— 获得的评价：徽章 + 大称号 + 依据，居中像领奖台。 —— */
+.award-badge {
+  align-self: center;
+  padding: 8rpx 28rpx;
+  border-radius: 999rpx;
+  box-shadow: 0 6rpx 18rpx rgba(45, 27, 36, 0.18);
+}
+
+.award-badge-text {
+  font-size: 24rpx;
+  font-weight: 600;
+  letter-spacing: 2rpx;
+  color: #FFFFFF;
+}
+
+.award-title-wrap {
+  margin-top: 34rpx;
+  text-align: center;
+}
+
+.award-title-wrap .title {
+  text-align: center;
+}
+
+.award-reason {
+  margin-top: 30rpx;
+  text-align: center;
+}

@@ -492,6 +492,21 @@ function buildParts(ctx, slide, theme, maxWidth) {
     return parts
   }
 
+  // 获得的评价：徽章 + 大称号 + 依据，居中像领奖台。
+  if (slide.layout === 'award') {
+    parts.push({ type: 'kicker', text: slide.kicker, color: theme.kicker, h: 34, gap: 0, center: true })
+    parts.push({ type: 'tierBadge', text: slide.tierLabel, color: slide.tierColor, h: 64, gap: 36 })
+    const titleSize = fitLine(ctx, slide.title, maxWidth, 80, 40, true)
+    const titleLines = limitLines(wrapText(ctx, slide.title, maxWidth), 2)
+    parts.push({ type: 'title', lines: titleLines, size: titleSize, color: theme.ink, h: Math.round(titleLines.length * titleSize * 1.28), gap: 34, center: true })
+    if (slide.reason) {
+      const reasonLines = limitLines(wrapText(ctx, slide.reason, maxWidth), 3)
+      parts.push({ type: 'paragraph', lines: reasonLines, size: 30, color: theme.muted, h: Math.round(reasonLines.length * 30 * 1.7), gap: 32, center: true })
+    }
+    parts.push({ type: 'sign', text: slide.footer, h: 42, gap: 44 })
+    return parts
+  }
+
   // 手记：正文带左侧色条，首行缩进两个字。
   if (slide.layout === 'letter') {
     const maxSize = 68
@@ -819,6 +834,25 @@ function drawParts(ctx, parts, x, y, theme, maxWidth) {
         }
         ctx.restore()
       })
+      cursor += part.h
+      return
+    }
+    if (part.type === 'tierBadge') {
+      const label = part.text
+      ctx.font = font(26, false)
+      const badgeW = ctx.measureText(label).width + 72
+      const badgeH = part.h - 16
+      const x0 = x + (maxWidth - badgeW) / 2
+      ctx.strokeStyle = part.color
+      ctx.lineWidth = 2.5
+      roundRectPath(ctx, x0, cursor, badgeW, badgeH, badgeH / 2)
+      ctx.stroke()
+      ctx.fillStyle = part.color
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(label, x0 + badgeW / 2, cursor + badgeH / 2)
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'top'
       cursor += part.h
       return
     }
@@ -1238,10 +1272,22 @@ function drawShareCard(ctx, w, h, card) {
   ctx.textBaseline = 'top'
   ctx.restore()
 
+  // 分享者起的标题（比如「一周年快乐」）压在名字上方，居中。
+  const headline = Array.from(String(data.headline || '').trim()).slice(0, 24).join('')
+  const nameY = y + (headline ? 150 : 96)
+
+  if (headline) {
+    const hSize = fitLine(ctx, headline, cw - 120, 44, 24, true)
+    ctx.fillStyle = theme.kicker
+    ctx.font = font(hSize, true)
+    ctx.textAlign = 'center'
+    ctx.fillText(headline, x + cw / 2, y + 70)
+    ctx.textAlign = 'left'
+  }
+
   // 两个名字。「和」字号更小，颜色是粉的。
   const textX = x + 66
   const maxTextW = cw - 132
-  const nameY = y + 96
   const andGap = 26
 
   let size = 72

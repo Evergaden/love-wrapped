@@ -117,7 +117,7 @@
               <view class="card">
                 <view class="hairline" style="background: {{item.hairStyle}}"></view>
                 <view class="card-main">
-                  <view class="kicker-row {{item.layout === 'journey' || item.layout === 'bubble' || item.layout === 'finale' ? 'centered' : ''}}">
+                  <view class="kicker-row {{item.layout === 'journey' || item.layout === 'bubble' || item.layout === 'award' || item.layout === 'finale' ? 'centered' : ''}}">
                     <view class="kicker-bar"></view>
                     <text class="kicker">{{item.kicker}}</text>
                   </view>
@@ -230,6 +230,18 @@
                     <text class="body letter-body">{{item.body}}</text>
                   </view>
                   <text class="meta" wx:if="{{item.meta}}">{{item.meta}}</text>
+                </block>
+
+                  <!-- 获得的评价：像游戏成就，按 S/A/B 颁发，倒数第二页。 -->
+                  <block wx:elif="{{item.layout === 'award'}}">
+                  <view class="award-badge" style="background: {{item.tierColor}}">
+                    <text class="award-badge-text">{{item.tierLabel}}</text>
+                  </view>
+                  <view class="title-wrap award-title-wrap">
+                    <view class="title-glow"></view>
+                    <text class="title title-xl">{{item.title}}</text>
+                  </view>
+                  <text class="body award-reason">{{item.reason}}</text>
                 </block>
 
                   <!-- 终章：整页居中，像扉页的题字。 -->

@@ -14,7 +14,8 @@
         <view class="eyebrow-dot"></view>
         <text class="eyebrow">写给你们的小册子</text>
       </view>
-      <view class="me-entry" hover-class="pressed" bindtap="goProfile" aria-role="button">我的</view>
+      <!-- 图标：Material Icons 的 account_circle，用 mask 上色，跟主题墨色走。 -->
+      <view class="me-entry" hover-class="pressed" bindtap="goProfile" aria-role="button" aria-label="我的"></view>
     </view>
     <text class="hero-title">{{appName}}</text>
     <text class="hero-sub">由你写下两个名字和一些小事。生成之后可以左右滑动，像翻一本只印了一份的小册子。</text>
