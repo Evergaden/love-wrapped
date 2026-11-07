@@ -745,6 +745,60 @@ function drawParts(ctx, parts, x, y, theme, maxWidth) {
       const centerX = x + maxWidth / 2
       const numSize = 100
       const unitSize = 30
+      // 先画空白处的手绘装饰（垫在数字下面）：右侧一道短航迹收进纸飞机，
+      // 两道动势线，左边一颗星；都在数字与虚线之间的留白带里。
+      ctx.save()
+      ctx.strokeStyle = theme.roles.a
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+      ctx.globalAlpha = 0.5
+      ctx.lineWidth = 4
+      ctx.setLineDash([2, 20])
+      ctx.beginPath()
+      ctx.moveTo(x + maxWidth * 0.66, cursor + 132)
+      ctx.bezierCurveTo(x + maxWidth * 0.72, cursor + 124, x + maxWidth * 0.78, cursor + 114, x + maxWidth * 0.84, cursor + 106)
+      ctx.stroke()
+      ctx.setLineDash([])
+      ctx.globalAlpha = 0.85
+      ctx.lineWidth = 5
+      const px = x + maxWidth * 0.9
+      const py = cursor + 118
+      ctx.beginPath()
+      ctx.moveTo(px + 20, py - 20)
+      ctx.lineTo(px + 6, py + 20)
+      ctx.lineTo(px - 2, py + 2)
+      ctx.lineTo(px - 20, py - 6)
+      ctx.closePath()
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(px + 20, py - 20)
+      ctx.lineTo(px - 2, py + 2)
+      ctx.stroke()
+      ctx.globalAlpha = 0.38
+      ctx.lineWidth = 4
+      ctx.beginPath()
+      ctx.moveTo(px - 34, py + 12)
+      ctx.quadraticCurveTo(px - 46, py + 18, px - 58, py + 19)
+      ctx.stroke()
+      ctx.globalAlpha = 0.3
+      ctx.beginPath()
+      ctx.moveTo(px - 28, py + 22)
+      ctx.quadraticCurveTo(px - 38, py + 27, px - 48, py + 28)
+      ctx.stroke()
+      const sx = x + maxWidth * 0.13
+      const sy = cursor + 124
+      ctx.globalAlpha = 0.32
+      ctx.beginPath()
+      ctx.moveTo(sx, sy - 13)
+      ctx.lineTo(sx, sy + 13)
+      ctx.moveTo(sx - 13, sy)
+      ctx.lineTo(sx + 13, sy)
+      ctx.moveTo(sx - 9, sy - 9)
+      ctx.lineTo(sx + 9, sy + 9)
+      ctx.moveTo(sx + 9, sy - 9)
+      ctx.lineTo(sx - 9, sy + 9)
+      ctx.stroke()
+      ctx.restore()
       ctx.font = font(numSize, true)
       const numW = ctx.measureText(part.num).width
       ctx.font = font(unitSize, false)

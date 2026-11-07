@@ -611,11 +611,24 @@
   letter-spacing: 1rpx;
 }
 
-/* 旅程图：大数字压在一条虚线上。 */
+/* 旅程图：大数字压在一条虚线上，右上角一架手绘纸飞机。 */
 .journey {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.journey-doodle {
+  position: absolute;
+  top: -14rpx;
+  right: -4rpx;
+  width: 310rpx;
+  height: 190rpx;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: top right;
+  pointer-events: none;
 }
 
 .journey-num-row {

@@ -201,6 +201,7 @@
                   <!-- 旅程图：大数字压在一条虚线上，虚线两端各一个点。 -->
                   <block wx:elif="{{item.layout === 'journey'}}">
                   <view class="journey">
+                    <view class="journey-doodle" style="{{item.doodleStyle}}"></view>
                     <view class="journey-num-row">
                       <text class="journey-num" style="font-size: {{item.journeyNumSize}}rpx">{{item.journeyNum}}</text>
                       <text class="journey-unit">{{item.journeyUnit}}</text>

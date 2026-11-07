@@ -234,9 +234,21 @@ function buildSlides(raw, today, themeId) {
 
   // 距离：选填。两座城市都认得出就按直线推算；
   // 推不出来用填的公里兜底；同城把 0 公里说得温柔一点。
+  // 空白处的手绘装饰：一条虚线航迹收进一架纸飞机，两道动势线，一颗星。
+  // data-URI 的 SVG 挂在内联 style 上，颜色跟主题走（工具与真机都确定生效）。
+  const doodleColor = String(themes.THEMES[themes.resolve(theme)].roles.a).replace('#', '%23')
+  const doodleSvg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 360 220' fill='none'>"
+    + "<path d='M40 168 C 104 158 152 130 196 96 C 236 66 282 36 330 24' stroke='" + doodleColor + "' stroke-width='5' stroke-linecap='round' stroke-dasharray='2 20' opacity='0.5'/>"
+    + "<g stroke='" + doodleColor + "' stroke-width='6' stroke-linecap='round' stroke-linejoin='round' opacity='0.85'>"
+    + "<path d='M349 16 L332 64 L322 42 L301 33 Z'/><path d='M349 16 L322 42'/></g>"
+    + "<path d='M262 88 q -18 12 -34 14' stroke='" + doodleColor + "' stroke-width='5' stroke-linecap='round' opacity='0.38'/>"
+    + "<path d='M252 110 q -14 9 -26 10' stroke='" + doodleColor + "' stroke-width='5' stroke-linecap='round' opacity='0.3'/>"
+    + "<path d='M56 100 L56 130 M41 115 L71 115 M46 105 L66 125 M66 105 L46 125' stroke='" + doodleColor + "' stroke-width='4' stroke-linecap='round' opacity='0.32'/>"
+    + '</svg>'
   const journeyTint = {
     journeyLine: 'border-color: ' + themes.tint(theme, 'a', 0.5),
-    journeyDot: 'background: ' + themes.tint(theme, 'a', 0.9)
+    journeyDot: 'background: ' + themes.tint(theme, 'a', 0.9),
+    doodleStyle: 'background-image: url("data:image/svg+xml,' + encodeURIComponent(doodleSvg) + '");'
   }
   let myCity = null
   let theirCity = null

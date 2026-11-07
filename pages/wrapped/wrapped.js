@@ -317,20 +317,28 @@ Page({
   // 失败不打断用户：没有图就退回默认封面，卡片还是能发出去。
   prepareShareImage(list) {
     const page = this
-    font.ensureFont().then(() => {
+    // 绘制串行化：正在画就记一个脏标记，画完补画最新一版。
     if (this._shareDrawing) { this._shareDirty = true; return }
     this._shareDrawing = true
-    const done = () => {
-      this._shareDrawing = false
-      if (this._shareDirty) {
-        this._shareDirty = false
-        this.prepareShareImage(this.data.slides)
+    const finish = () => {
+      page._shareDrawing = false
+      if (page._shareDirty) {
+        page._shareDirty = false
+        page.prepareShareImage(page.data.slides)
       }
     }
     const slides = list || this.data.slides
     if (!slides || !slides.length) {
       this._shareDrawing = false
       return
+    }
+    // 手写字体多半还在后台下载：先用系统字体画一版保底，字体就绪后再重画一次。
+    // 不等字体：9MB 的首次下载会让人在空窗期分享出去一张页面截图。
+    if (!this._fontWatched) {
+      this._fontWatched = true
+      font.ensureFont().then((ok) => {
+        if (ok && page.data.slides && page.data.slides.length) page.prepareShareImage(page.data.slides)
+      })
     }
     const cover = slides[0]
     const phrase = slides.filter(s => s.id === 'phrase')[0] || null
@@ -359,7 +367,17 @@ Page({
       .fields({ node: true, size: true })
       .exec(async (res) => {
         const node = res && res[0] && res[0].node
-        if (!node || !node.getContext) return
+        if (!node || !node.getContext) {
+          // 页面还没渲染好（onLoad 一进来就查会落空）：放行守卫，稍后自动补画。
+          finish()
+          if ((page._shareRetries || 0) < 5) {
+            page._shareRetries = (page._shareRetries || 0) + 1
+            setTimeout(() => {
+              if (page.data.slides && page.data.slides.length) page.prepareShareImage(page.data.slides)
+            }, 400)
+          }
+          return
+        }
         try {
           const ctx = node.getContext('2d')
           const dpr = Math.min(this.data.pixelRatio || 2, 3)
@@ -369,18 +387,13 @@ Page({
           poster.drawShareCard(ctx, poster.SHARE_W, poster.SHARE_H, card)
           const path = await this.shareCanvasToImage(node, dpr)
           page.setData({ sharePath: path })
+          page._shareRetries = 0
         } catch (err) {
           console.warn('分享封面没画出来', err)
-        } finally {
-          // 绘制结束：清守卫，期间有新请求（标题又改了）就补画最新一版。
-          page._shareDrawing = false
-          if (page._shareDirty) {
-            page._shareDirty = false
-            page.prepareShareImage(page.data.slides)
-          }
         }
+        // 绘制结束：清守卫，期间有新请求（标题又改了）就补画最新一版。
+        finish()
       })
-    })
   },
 
   shareCanvasToImage(canvas, dpr) {
