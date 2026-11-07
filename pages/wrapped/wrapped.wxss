@@ -1849,3 +1849,95 @@
 .slide.page-in .fave-meta {
   animation: pgUp 0.5s ease 0.3s both;
 }
+
+/* —— 封面一行式名字：光晕居中（默认 26% 是为单名堆叠设计的）。 —— */
+.cover-oneline .title-glow {
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(255, 138, 171, 0.24) 0%,
+    rgba(255, 138, 171, 0.07) 48%,
+    rgba(255, 138, 171, 0) 76%);
+}
+
+.cover-oneline.theme-matcha .title-glow {
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(143, 211, 168, 0.24) 0%,
+    rgba(143, 211, 168, 0.07) 48%,
+    rgba(143, 211, 168, 0) 76%);
+}
+
+.cover-oneline.theme-sky .title-glow {
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(163, 196, 241, 0.24) 0%,
+    rgba(163, 196, 241, 0.07) 48%,
+    rgba(163, 196, 241, 0) 76%);
+}
+
+.cover-oneline.theme-violet .title-glow {
+  background: radial-gradient(ellipse at 50% 50%,
+    rgba(201, 175, 242, 0.24) 0%,
+    rgba(201, 175, 242, 0.07) 48%,
+    rgba(201, 175, 242, 0) 76%);
+}
+
+/* —— 距离页（旅程图）入场：数字滚动、虚线生长、端点弹出。 —— */
+.slide.page-in .journey-num-row {
+  animation: pgUp 0.5s ease 0.06s both;
+}
+
+.slide.page-in .journey-num {
+  animation: numRoll 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: 0.15s;
+}
+
+.slide.page-in .journey-line {
+  animation: lineGrow 0.55s ease 0.3s both;
+  transform-origin: left center;
+}
+
+@keyframes lineGrow {
+  from { transform: scaleX(0); opacity: 0; }
+}
+
+.slide.page-in .journey-cap {
+  animation: pgPop 0.35s ease 0.5s both;
+}
+
+.slide.page-in .journey-label {
+  animation: pgUp 0.5s ease 0.45s both;
+}
+
+.slide.page-in .journey-meta {
+  animation: pgUp 0.5s ease 0.55s both;
+}
+
+/* —— 拆信封邮票弹出。 —— */
+.slide.page-in .stamp {
+  animation: pgPop 0.45s ease 0.2s both;
+}
+
+/* —— 气泡弹出。 —— */
+.slide.page-in .bubble-wrap {
+  animation: pgUp 0.5s ease 0.15s both;
+}
+
+/* —— 手记色条生长。 —— */
+.slide.page-in .letter-bar {
+  animation: barGrow 0.5s ease 0.15s both;
+  transform-origin: top center;
+}
+
+@keyframes barGrow {
+  from { transform: scaleY(0); opacity: 0; }
+}
+
+/* —— 称号徽章 / 爱吃卡 / 吵架胶囊错峰入场。 —— */
+.slide.page-in .award-badge { animation: pgPop 0.45s ease 0.08s both; }
+.slide.page-in .award-title-wrap { animation: pgUp 0.5s ease 0.16s both; }
+.slide.page-in .award-reason { animation: pgUp 0.5s ease 0.24s both; }
+.slide.page-in .fave-cards .fave-card { animation: pgPop 0.4s ease both; }
+.slide.page-in .fave-cards .fave-card:nth-child(1) { animation-delay: 0.1s; }
+.slide.page-in .fave-cards .fave-card:nth-child(2) { animation-delay: 0.2s; }
+.slide.page-in .fave-meta { animation: pgUp 0.5s ease 0.3s both; }
+.slide.page-in .fight-chips .fight-chip { animation: pgPop 0.4s ease both; }
+.slide.page-in .fight-chips .fight-chip:nth-child(1) { animation-delay: 0.12s; }
+.slide.page-in .fight-chips .fight-chip:nth-child(2) { animation-delay: 0.2s; }

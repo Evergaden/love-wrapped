@@ -536,6 +536,22 @@ function buildParts(ctx, slide, theme, maxWidth) {
     return parts
   }
 
+  // 吵架页：居中大字 + 依据胶囊一行 + 温柔 meta。
+  if (slide.layout === 'fight') {
+    parts.push({ type: 'kicker', text: slide.kicker, color: theme.kicker, h: 34, gap: 0, center: true })
+    const titleSize = fitLine(ctx, slide.title, maxWidth, 80, 40, true)
+    const titleLines = limitLines(wrapText(ctx, slide.title, maxWidth), 2)
+    parts.push({ type: 'title', lines: titleLines, size: titleSize, color: theme.ink, h: Math.round(titleLines.length * titleSize * 1.28), gap: 30, center: true })
+    if ((slide.chips || []).length) {
+      parts.push({ type: 'chips', chips: slide.chips, h: 72, gap: 34 })
+    }
+    if (slide.meta) {
+      parts.push({ type: 'paragraph', lines: [slide.meta], size: 28, color: theme.muted, h: 44, gap: 26, center: true })
+    }
+    parts.push({ type: 'sign', text: slide.footer, h: 42, gap: 44 })
+    return parts
+  }
+
   // 手记：正文带左侧色条，首行缩进两个字。
   if (slide.layout === 'letter') {
     const maxSize = 68
@@ -880,6 +896,27 @@ function drawParts(ctx, parts, x, y, theme, maxWidth) {
       ctx.fillStyle = theme.ink
       ctx.font = font(34, true)
       ctx.fillText(clipText(part.text, 14), x0 + 30, cursor + 58)
+      cursor += part.h
+      return
+    }
+    if (part.type === 'chips') {
+      // 一行居中的胶囊组。
+      ctx.font = font(26, false)
+      const widths = part.chips.map((chip) => ctx.measureText(chip.text).width + 56)
+      const totalW = widths.reduce((sum, w) => sum + w, 0) + 20 * (part.chips.length - 1)
+      let cx = x + (maxWidth - totalW) / 2
+      part.chips.forEach((chip, index) => {
+        ctx.fillStyle = rgba(theme.roles[['a', 'b', 'c'][index % 3]], 0.16)
+        roundRectPath(ctx, cx, cursor, widths[index], 60, 30)
+        ctx.fill()
+        ctx.fillStyle = theme.ink
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(chip.text, cx + widths[index] / 2, cursor + 30)
+        cx += widths[index] + 20
+      })
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'top'
       cursor += part.h
       return
     }
