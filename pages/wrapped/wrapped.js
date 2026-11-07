@@ -11,6 +11,7 @@ const themes = require('../../utils/themes')
 const brand = require('../../utils/brand')
 const gift = require('../../utils/gift')
 const cloud = require('../../utils/cloud')
+const font = require('../../utils/font')
 const poster = require('../../utils/poster')
 const privacy = require('../../utils/privacy')
 
@@ -316,6 +317,7 @@ Page({
   // 失败不打断用户：没有图就退回默认封面，卡片还是能发出去。
   prepareShareImage(list) {
     const page = this
+    font.ensureFont().then(() => {
     if (this._shareDrawing) { this._shareDirty = true; return }
     this._shareDrawing = true
     const done = () => {
@@ -378,6 +380,7 @@ Page({
           }
         }
       })
+    })
   },
 
   shareCanvasToImage(canvas, dpr) {
@@ -561,6 +564,7 @@ Page({
       const width = poster.POSTER_W
       const height = poster.POSTER_H * list.length
       const dpr = this.posterScaleForHeight(height)
+      await font.ensureFont()
       const drawn = await this.prepareCanvas(width, height, dpr)
       // 先确认隐私授权。没做过授权的设备，这里会弹一次微信自带的说明。
       await privacy.requirePrivacy()
@@ -605,6 +609,7 @@ Page({
     wx.showLoading({ title: '正在绘制', mask: true })
     try {
       const width = poster.POSTER_W
+      await font.ensureFont()
       // 先量：画布大小随便，只借它量字。
       const probe = await this.prepareCanvas(width, poster.POSTER_H, 1)
       const plan = poster.planBook(probe.ctx, width, list)

@@ -6,7 +6,7 @@
 
 const POSTER_W = 750
 const POSTER_H = 1080
-const FONT = '"Smiley Sans", sans-serif'
+const FONT = '"LXGW WenKai", "Smiley Sans", sans-serif'
 
 const themes = require('./themes')
 const brand = require('./brand')
