@@ -73,6 +73,7 @@ Page({
     capsulePad: 96,
     heroWrapBg: '#FFF5F7',
     heroContentOpacity: 1,
+    heroWrapOpacity: 1,
     appName: brand.APP_NAME,
     theme: themes.DEFAULT,
     themeList: themes.pickerList(),
@@ -182,14 +183,15 @@ Page({
     this.setData({
       heroShift: Math.round(st * 0.5),
       heroScale: pull ? Number((1 + pull / 900).toFixed(3)) : 1,
-      heroDim: Number((p * 0.32).toFixed(2)),
+      heroDim: Number((p * 0.2).toFixed(2)),
+      heroWrapOpacity: Number(Math.max(0, 1 - p * 1.35).toFixed(2)),
       heroTitleOpacity: Number(Math.max(0, 1 - p * 1.15).toFixed(2)),
       heroTitleScale: Number((1 - p * 0.35).toFixed(3)),
       heroSubOpacity: Number(Math.max(0, 1 - p * 1.5).toFixed(2)),
       heroProgressOpacity: Number(Math.max(0, 1 - p * 1.6).toFixed(2)),
       navTitleOpacity: Number(p.toFixed(2)),
       navProgressOpacity: Number(Math.max(0, (p - 0.35) / 0.65).toFixed(2)),
-      heroContentOpacity: Number(Math.max(0, 1 - p * 1.25).toFixed(2)),
+      heroContentOpacity: Number(Math.max(0, 1 - p * 1.6).toFixed(2)),
       collapsed: p > 0.55
     })
   },
