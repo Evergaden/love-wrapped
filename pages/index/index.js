@@ -60,6 +60,7 @@ Page({
     placeList: [],
     statusBarH: 44,
     navInnerH: 44,
+    navTotalH: 88,
     heroShift: 0,
     heroScale: 1,
     heroDim: 0,
