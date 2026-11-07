@@ -130,8 +130,8 @@ utils/festivals.js`）
 导出的图片都会用它；加载完成前显示系统字体，失败也不影响功能。
 字体文件约 9MB，走 jsdelivr CDN，微信首次加载后缓存。
 
-更稳的做法：把  上传到自己的云存储，
-把  顶部的 URL 换成云存储下载地址（国内直连更快）。
+更稳的做法：把字体文件 `fonts/TTF/LXGWWenKaiLite-Regular.ttf` 上传到自己的云存储，
+把 `utils/font.js` 顶部的 URL 换成云存储下载地址（国内直连更快）。
 
 ## 数据存在哪里
 
