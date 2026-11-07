@@ -28,3 +28,4 @@ const SAMPLE = {
 module.exports = {
   SAMPLE
 }
+

@@ -175,7 +175,12 @@
 .cover-names {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   flex-wrap: wrap;
+}
+
+.cover-names.cover-oneline {
+  justify-content: center;
 }
 
 .cover-names .and {

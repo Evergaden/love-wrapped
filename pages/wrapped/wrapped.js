@@ -411,6 +411,30 @@ Page({
       current: current,
       currentTheme: this.data.currentTheme
     })
+    // 距离页的大数字：从 1 滚到目标值（12345 式计数）。
+    if (slide.journeyNum) this.runCountUp(current)
+  },
+
+  // 数字滚动：easeOutCubic 从 1 滚到目标，900ms；结束后精确落位。
+  runCountUp(slideIndex) {
+    const slide = this.data.slides[slideIndex]
+    if (!slide || !slide.journeyNum) return
+    const target = parseInt(slide.journeyNum, 10)
+    if (isNaN(target) || target <= 1) return
+    if (this._countTimer) clearInterval(this._countTimer)
+    const duration = 900
+    const start = Date.now()
+    this._countTimer = setInterval(() => {
+      const t = Math.min(1, (Date.now() - start) / duration)
+      const eased = 1 - Math.pow(1 - t, 3)
+      const value = Math.max(1, Math.round(target * eased))
+      this.setData({ ['slides[' + slideIndex + '].journeyNum']: String(value) })
+      if (t >= 1) {
+        clearInterval(this._countTimer)
+        this._countTimer = null
+        this.setData({ ['slides[' + slideIndex + '].journeyNum']: String(target) })
+      }
+    }, 32)
   },
 
   // 礼物视角：把 TA 写的这册收进自己的历史记录（云端），不动本机自己写的那一份。
@@ -715,4 +739,5 @@ Page({
 
   noop() {}
 })
+
 

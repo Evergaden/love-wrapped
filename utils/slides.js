@@ -1,3 +1,4 @@
+const BISECT = ;
 // 把一份答案变成纪念册的每一页。
 //
 // 固定 6 页：封面、数字、起点、口头禅、故事、结尾。
@@ -565,3 +566,4 @@ module.exports = {
   buildSlides,
   restyleSlide
 }
+
