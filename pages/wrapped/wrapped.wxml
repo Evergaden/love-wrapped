@@ -421,4 +421,4 @@
     <view class="share-cancel" bindtap="onCloseShareSheet" aria-role="button">取消</view>
   </view>
 </view>
-
+</view>
