@@ -144,7 +144,7 @@ Page({
     this._lastScrollT = now
     // 节流：滚动位置变化小于 2px 不重绘。
     // 节流：滚动位置变化小于 12px 不重绘（避免 setData 风暴）。
-    if (Math.abs(st - (this._appliedSt || 0)) < 12 && st >= 0 && st > 0) return
+    if (Math.abs(st - (this._appliedSt || 0)) < 6 && st >= 0 && st > 0) return
     this._appliedSt = st
     this.applyHero(st)
     if (this._snapTimer) clearTimeout(this._snapTimer)

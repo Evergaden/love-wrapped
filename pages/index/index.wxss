@@ -81,9 +81,10 @@
 }
 
 .nav-title {
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 600;
   color: #2D1B24;
+  transition: opacity 0.1s linear;
 }
 
 .nav-progress {
@@ -93,10 +94,11 @@
   margin-left: 26rpx;
   min-width: 0;
   overflow: hidden;
+  transition: opacity 0.1s linear;
 }
 
 .nav-track {
-  width: 140rpx;
+  width: 110rpx;
   height: 10rpx;
   border-radius: 10rpx;
   background: rgba(255, 138, 171, 0.2);
@@ -123,8 +125,9 @@
 .hero-wrap {
   position: relative;
   overflow: hidden;
-  will-change: transform;
+  will-change: transform, opacity;
   transform-origin: top center;
+  transition: transform 0.1s linear, opacity 0.1s linear;
 }
 
 .hero-dim {

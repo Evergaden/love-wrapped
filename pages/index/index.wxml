@@ -7,7 +7,7 @@
         <view class="nav-track">
           <view class="nav-fill" style="width: {{filledPercent}}%"></view>
         </view>
-        <text class="nav-count">已经写下 {{filledCount}} / {{totalCount}} 项</text>
+        <text class="nav-count">{{filledCount}} / {{totalCount}}</text>
       </view>
     </view>
   </view>
