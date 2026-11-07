@@ -66,7 +66,10 @@ function buildSlides(raw, today, themeId) {
     kicker: brand.APP_NAME,
     nameA: me,
     nameB: them,
-    nameSize: coverSize(me, them),
+    coverOneLine: record.charCount(me) + record.charCount(them) <= 6,
+    nameSize: record.charCount(me) + record.charCount(them) <= 4
+      ? 'xl'
+      : (record.charCount(me) + record.charCount(them) <= 6 ? 'lg' : coverSize(me, them)),
     body: coverBody,
     meta: coverMeta,
     footer: footer
@@ -370,28 +373,32 @@ function buildSlides(raw, today, themeId) {
   }
 
   // 吵架：选填。次数或「谁先道歉」写了任意一项才出现。
+  // 排版补全：先道歉/平均频率/和好速度做成胶囊，页面不再空。
   if (a.fightCount !== '' || a.whoApologized) {
-    const whoLine = {
-      me: '先道歉的是我。',
-      them: '先道歉的是 TA。',
-      both: '几乎是一起道歉的。'
-    }[a.whoApologized] || ''
-    let fightTitle = '吵过的那些天'
-    if (a.fightCount === '0') fightTitle = '几乎没吵过'
-    else if (a.fightCount !== '') fightTitle = a.fightCount + ' 次'
-    let fightBody = whoLine
-    if (!fightBody) {
-      fightBody = a.fightCount === '0' ? '能这样，也很好。' : '谁先开口，这页先留白。'
+    const fightN = a.fightCount === '' ? null : Number(a.fightCount)
+    const fightDays = info && !info.future ? info.days : null
+    const whoText = { me: '我', them: 'TA', both: '我们同时' }[a.whoApologized] || ''
+    const chips = []
+    if (whoText) chips.push({ text: '先道歉：' + whoText, role: 'a' })
+    if (fightN !== null && fightN >= 1 && fightDays && fightDays / fightN >= 2) {
+      chips.push({ text: '平均每 ' + Math.round(fightDays / fightN) + ' 天一次', role: 'b' })
     }
+    if (fightN === 0) chips.push({ text: '和好速度：瞬间', role: 'c' })
+    const fightTitle = fightN === 0 ? '一次都没红过脸' : (fightN !== null ? fightN + ' 次' : '吵过的那些天')
+    const useFightLayout = fightN === 0 || chips.length > 0
+    chips.forEach((chip, index) => {
+      chip.bgStyle = 'background: ' + themes.tint(theme, ['a', 'b', 'c'][index % 3], 0.16)
+    })
     slides.push({
       id: 'fight',
       mesh: 'mesh-5',
-      layout: 'essay',
+      layout: useFightLayout ? 'fight' : 'essay',
       theme: theme,
       kicker: '吵架',
       title: fightTitle,
       titleSize: titleSize(fightTitle),
-      body: fightBody,
+      body: useFightLayout ? '' : '谁先开口，这页先留白。',
+      chips: chips,
       meta: '吵完，还是想把好吃的留给你。',
       footer: footer
     })

@@ -1274,7 +1274,7 @@ function drawShareCard(ctx, w, h, card) {
 
   // 分享者起的标题（比如「一周年快乐」）压在名字上方，居中。
   const headline = Array.from(String(data.headline || '').trim()).slice(0, 24).join('')
-  const nameY = y + (headline ? 150 : 96)
+  const nameY = y + (headline ? 138 : 96)
 
   if (headline) {
     const hSize = fitLine(ctx, headline, cw - 120, 44, 24, true)

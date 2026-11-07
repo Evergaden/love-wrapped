@@ -171,6 +171,34 @@
   color: #FF8FAB;
 }
 
+/* 封面名字：短名一行居中（和 字小一号、主题色），长名两行堆叠。 */
+.cover-names {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.cover-names .and {
+  margin: 0 14rpx;
+}
+
+.id-cover .card-main {
+  align-items: center;
+  text-align: center;
+}
+
+.id-cover .title-wrap {
+  width: 100%;
+}
+
+.id-cover .pill {
+  align-self: center;
+}
+
+.id-cover .meta {
+  text-align: center;
+}
+
 /* 封面上的日期小胶囊。 */
 .pill {
   display: inline-block;
@@ -1600,6 +1628,30 @@
   color: rgba(45, 27, 36, 0.5);
 }
 
+/* —— 吵架页：依据胶囊居中一行。 —— */
+.fight-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 34rpx;
+}
+
+.fight-chip {
+  margin: 0 12rpx 16rpx;
+  padding: 12rpx 28rpx;
+  border-radius: 999rpx;
+}
+
+.fight-chip-text {
+  font-size: 27rpx;
+  color: rgba(45, 27, 36, 0.78);
+}
+
+.fight-meta {
+  margin-top: 32rpx;
+  text-align: center;
+}
+
 /* —— 获得的评价：徽章 + 大称号 + 依据，居中像领奖台。 —— */
 .award-badge {
   align-self: center;
@@ -1629,3 +1681,120 @@
   text-align: center;
 }
 
+
+/* —— 翻页入场动效：当前页挂 page-in，元素依次浮现。 —— */
+.slide.page-in .kicker-row {
+  animation: pgFade 0.4s ease both;
+}
+
+.slide.page-in .title-wrap {
+  animation: pgUp 0.5s ease 0.06s both;
+}
+
+.slide.page-in .body {
+  animation: pgUp 0.5s ease 0.14s both;
+}
+
+.slide.page-in .meta {
+  animation: pgUp 0.5s ease 0.2s both;
+}
+
+.slide.page-in .pill {
+  animation: pgPop 0.45s ease 0.18s both;
+}
+
+.slide.page-in .stats .stat {
+  animation: pgUp 0.45s ease both;
+}
+
+.slide.page-in .stats .stat:nth-child(1) { animation-delay: 0.08s; }
+.slide.page-in .stats .stat:nth-child(2) { animation-delay: 0.16s; }
+.slide.page-in .stats .stat:nth-child(3) { animation-delay: 0.24s; }
+.slide.page-in .stats .stat:nth-child(4) { animation-delay: 0.32s; }
+
+.slide.page-in .stats .num {
+  animation: numRoll 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  animation-delay: 0.12s;
+}
+
+.slide.page-in .tile-grid .tile {
+  animation: pgPop 0.4s ease both;
+}
+
+.slide.page-in .tile-grid .tile:nth-child(1) { animation-delay: 0.05s; }
+.slide.page-in .tile-grid .tile:nth-child(2) { animation-delay: 0.12s; }
+.slide.page-in .tile-grid .tile:nth-child(3) { animation-delay: 0.19s; }
+.slide.page-in .tile-grid .tile:nth-child(4) { animation-delay: 0.26s; }
+.slide.page-in .tile-grid .tile:nth-child(5) { animation-delay: 0.33s; }
+.slide.page-in .tile-grid .tile:nth-child(6) { animation-delay: 0.4s; }
+.slide.page-in .tile-grid .tile:nth-child(7) { animation-delay: 0.47s; }
+.slide.page-in .tile-grid .tile:nth-child(8) { animation-delay: 0.54s; }
+
+.slide.page-in .award-badge {
+  animation: pgPop 0.45s ease 0.08s both;
+}
+
+.slide.page-in .award-title-wrap {
+  animation: pgUp 0.5s ease 0.16s both;
+}
+
+.slide.page-in .award-reason {
+  animation: pgUp 0.5s ease 0.24s both;
+}
+
+.slide.page-in .fight-chips .fight-chip {
+  animation: pgPop 0.4s ease both;
+}
+
+.slide.page-in .fight-chips .fight-chip:nth-child(1) { animation-delay: 0.12s; }
+.slide.page-in .fight-chips .fight-chip:nth-child(2) { animation-delay: 0.2s; }
+
+@keyframes pgFade {
+  from { opacity: 0; }
+}
+
+@keyframes pgUp {
+  from { opacity: 0; transform: translateY(26rpx); }
+}
+
+@keyframes pgPop {
+  from { opacity: 0; transform: scale(0.9); }
+}
+
+@keyframes numRoll {
+  from { opacity: 0; transform: translateY(0.45em); filter: blur(4px); }
+}
+
+/* —— 分享面板与拆封封面跟主题色。 —— */
+.theme-matcha .share-sheet { background: #F2FAF4; }
+.theme-matcha .share-sheet-title { color: #1E2B23; }
+.theme-matcha .share-sheet-input { color: #1E2B23; box-shadow: inset 0 -2rpx 0 rgba(143, 211, 168, 0.5); }
+.theme-matcha .share-chip { border-color: rgba(143, 211, 168, 0.6); background: rgba(143, 211, 168, 0.12); color: #1E2B23; }
+.theme-matcha .share-chip-on { background: rgba(143, 211, 168, 0.22); border-color: rgba(46, 139, 98, 0.7); color: #2E8B62; }
+.theme-matcha .share-cancel { color: rgba(30, 43, 35, 0.5); }
+.theme-matcha .splash-title { color: #1E2B23; }
+.theme-matcha .splash-sub { color: rgba(30, 43, 35, 0.72); }
+.theme-matcha .splash-date { color: rgba(30, 43, 35, 0.5); }
+.theme-matcha .splash-foot { color: rgba(30, 43, 35, 0.4); }
+
+.theme-sky .share-sheet { background: #F1F6FD; }
+.theme-sky .share-sheet-title { color: #1C2A3C; }
+.theme-sky .share-sheet-input { color: #1C2A3C; box-shadow: inset 0 -2rpx 0 rgba(163, 196, 241, 0.5); }
+.theme-sky .share-chip { border-color: rgba(163, 196, 241, 0.6); background: rgba(163, 196, 241, 0.12); color: #1C2A3C; }
+.theme-sky .share-chip-on { background: rgba(163, 196, 241, 0.22); border-color: rgba(74, 125, 191, 0.7); color: #4A7DBF; }
+.theme-sky .share-cancel { color: rgba(28, 42, 60, 0.5); }
+.theme-sky .splash-title { color: #1C2A3C; }
+.theme-sky .splash-sub { color: rgba(28, 42, 60, 0.72); }
+.theme-sky .splash-date { color: rgba(28, 42, 60, 0.5); }
+.theme-sky .splash-foot { color: rgba(28, 42, 60, 0.4); }
+
+.theme-violet .share-sheet { background: #F7F4FC; }
+.theme-violet .share-sheet-title { color: #2B2144; }
+.theme-violet .share-sheet-input { color: #2B2144; box-shadow: inset 0 -2rpx 0 rgba(201, 175, 242, 0.5); }
+.theme-violet .share-chip { border-color: rgba(201, 175, 242, 0.6); background: rgba(201, 175, 242, 0.12); color: #2B2144; }
+.theme-violet .share-chip-on { background: rgba(201, 175, 242, 0.22); border-color: rgba(123, 91, 200, 0.7); color: #7B5BC8; }
+.theme-violet .share-cancel { color: rgba(43, 33, 68, 0.5); }
+.theme-violet .splash-title { color: #2B2144; }
+.theme-violet .splash-sub { color: rgba(43, 33, 68, 0.72); }
+.theme-violet .splash-date { color: rgba(43, 33, 68, 0.5); }
+.theme-violet .splash-foot { color: rgba(43, 33, 68, 0.4); }

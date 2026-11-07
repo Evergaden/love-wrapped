@@ -62,6 +62,7 @@ Page({
     shareChips: ['生日快乐', '一周年快乐', '纪念日快乐', '年度报告', '有一册想给你'],
     slides: [],
     current: 0,
+    pageIn: 0,
     currentTheme: themes.DEFAULT,
     themeList: themes.pickerList(),
     windowHeight: 667,
@@ -165,6 +166,8 @@ Page({
     setTimeout(() => {
       page.setData({
         slides: ok.slides,
+        current: 0,
+        pageIn: 0,
         currentTheme: ok.theme,
         giftState: 'ok'
       }, () => {
@@ -401,6 +404,7 @@ Page({
 
   onSwipe(e) {
     const current = e.detail.current
+    this.setData({ pageIn: current })
     const slide = this.data.slides[current]
     if (!slide) return
     this.setData({

@@ -108,7 +108,7 @@
       bindchange="onSwipe"
     >
       <swiper-item wx:for="{{slides}}" wx:key="id">
-        <view class="slide theme-{{item.theme}} id-{{item.id}}" style="height: {{swiperHeight}}px;">
+        <view class="slide theme-{{item.theme}} id-{{item.id}} {{pageIn === index ? 'page-in' : ''}}" style="height: {{swiperHeight}}px;">
           <!-- 每一页各自铺一层弥散底，颜色由 themes.js 算好直接内联。 -->
           <view class="mesh {{item.mesh}}" style="background-image: {{item.meshStyle}}"></view>
           <view class="bloom"></view>
@@ -125,12 +125,9 @@
                   <block wx:if="{{item.layout === 'cover'}}">
                   <view class="title-wrap">
                     <view class="title-glow"></view>
-                    <text class="title title-{{item.nameSize}}">{{item.nameA}}</text>
-                  </view>
-                  <view class="name-line">
-                    <text class="and">和</text>
-                    <view class="title-wrap">
-                      <view class="title-glow"></view>
+                    <view class="cover-names {{item.coverOneLine ? 'cover-oneline' : ''}}">
+                      <text class="title title-{{item.nameSize}}">{{item.nameA}}</text>
+                      <text class="and">和</text>
                       <text class="title title-{{item.nameSize}}">{{item.nameB}}</text>
                     </view>
                   </view>
@@ -254,6 +251,19 @@
                   <text class="meta finale-meta" wx:if="{{item.meta}}">{{item.meta}}</text>
                 </block>
 
+                  <block wx:elif="{{item.layout === 'fight'}}">
+                  <view class="title-wrap">
+                    <view class="title-glow"></view>
+                    <text class="title title-{{item.titleSize}}">{{item.title}}</text>
+                  </view>
+                  <view class="fight-chips">
+                    <view class="fight-chip" wx:for="{{item.chips}}" wx:for-item="chip" wx:key="text" style="{{chip.bgStyle}}">
+                      <text class="fight-chip-text">{{chip.text}}</text>
+                    </view>
+                  </view>
+                  <text class="body fight-meta">{{item.meta}}</text>
+                </block>
+
                   <block wx:else>
                   <view class="title-wrap">
                     <view class="title-glow"></view>
@@ -358,7 +368,7 @@
 </view>
 
 <!-- 分享面板：起个标题再发出去，对方拆封时就会看到这句话。 -->
-<view class="share-mask" wx:if="{{shareSheetOpen}}" bindtap="onCloseShareSheet">
+<view class="share-mask theme-{{currentTheme}}" wx:if="{{shareSheetOpen}}" bindtap="onCloseShareSheet">
   <view class="share-sheet" catchtap="noop">
     <text class="share-sheet-title">给这份礼物起个标题</text>
     <input
