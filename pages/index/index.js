@@ -70,6 +70,9 @@ Page({
     navTitleOpacity: 0,
     navProgressOpacity: 0,
     collapsed: false,
+    capsulePad: 96,
+    heroWrapBg: '#FFF5F7',
+    heroContentOpacity: 1,
     appName: brand.APP_NAME,
     theme: themes.DEFAULT,
     themeList: themes.pickerList(),
@@ -90,10 +93,28 @@ Page({
       console.warn('导航度量失败，用默认值', err)
     }
     this.navTotalH = statusBarH + navInnerH
-    this.setData({ statusBarH: statusBarH, navInnerH: navInnerH })
+    // 胶囊在右上角：导航内容右侧留出它的宽度，避免被遮挡。
+    let capsulePad = 96
+    try {
+      const win = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+      const menu = wx.getMenuButtonBoundingClientRect()
+      if (win && menu && menu.left) capsulePad = win.windowWidth - menu.left + 8
+    } catch (err) {
+      console.warn('胶囊度量失败，用默认让位', err)
+    }
+    this.setData({
+      statusBarH: statusBarH,
+      navInnerH: navInnerH,
+      capsulePad: capsulePad,
+      heroWrapBg: themes.pick(themes.resolve(storage.loadTheme())).bg
+    })
   },
 
   onReady() {
+    this.measureHero()
+  },
+
+  onResize() {
     this.measureHero()
   },
 
@@ -168,6 +189,7 @@ Page({
       heroProgressOpacity: Number(Math.max(0, 1 - p * 1.6).toFixed(2)),
       navTitleOpacity: Number(p.toFixed(2)),
       navProgressOpacity: Number(Math.max(0, (p - 0.35) / 0.65).toFixed(2)),
+      heroContentOpacity: Number(Math.max(0, 1 - p * 1.25).toFixed(2)),
       collapsed: p > 0.55
     })
   },
@@ -226,6 +248,7 @@ Page({
     this.setData({
       theme: id,
       accentColor: t.kicker,
+      heroWrapBg: t.bg,
       ambientMesh: themes.meshImage(id, 'mesh-1'),
       ambientLower: themes.ambLowerImage(id),
       ambientFade: themes.ambFade(id)

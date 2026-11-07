@@ -1,7 +1,7 @@
 <view class="page theme-{{theme}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
   <!-- 自定义导航栏：顶部透明，下滑渐变成毛玻璃，吸顶显示已写进度。 -->
   <view class="nav {{collapsed ? 'nav-solid' : ''}}" style="padding-top: {{statusBarH}}px">
-    <view class="nav-row" style="height: {{navInnerH}}px">
+    <view class="nav-row" style="height: {{navInnerH}}px; padding-right: {{capsulePad}}px">
       <text class="nav-title" style="opacity: {{navTitleOpacity}}">{{appName}}</text>
       <view class="nav-progress" style="opacity: {{navProgressOpacity}}">
         <view class="nav-track">
@@ -14,7 +14,7 @@
 
   <!-- 弥散底：两摊颜色化开铺在整页上，页面往下滑它不动，
        所以整张表单像铺在一层会流动的光里。颜色由 themes.js 算好直接内联。 -->
-  <view class="hero-wrap" style="transform: translateY({{heroShift}}px) scale({{heroScale}})">
+  <view class="hero-wrap" style="transform: translateY({{heroShift}}px) scale({{heroScale}}); padding-top: {{navTotalH}}px; overflow: hidden; background: {{heroWrapBg}}; transform-origin: top center">
   <view class="ambient">
     <view class="mesh mesh-1" style="background-image: {{ambientMesh}}"></view>
     <view class="mesh amb-lower" style="background-image: {{ambientLower}}"></view>
@@ -23,7 +23,7 @@
   </view>
   <view class="hero-dim" style="opacity: {{heroDim}}"></view>
 
-  <view class="hero">
+  <view class="hero" style="opacity: {{heroContentOpacity}}">
     <view class="hero-top">
       <view class="eyebrow-row">
         <view class="eyebrow-dot"></view>

@@ -41,6 +41,11 @@
   padding: 24rpx 48rpx 36rpx;
 }
 
+.hero,
+.hero-dim {
+  will-change: opacity;
+}
+
 .hero-top {
   display: flex;
   align-items: center;
@@ -87,6 +92,7 @@
   align-items: center;
   margin-left: 26rpx;
   min-width: 0;
+  overflow: hidden;
 }
 
 .nav-track {
@@ -111,10 +117,14 @@
   white-space: nowrap;
 }
 
-/* 头图：视差 + 压暗都作用在这一层。 */
+/* 头图：视差 + 压暗都作用在这一层。
+   overflow hidden 裁掉视差下移时漏出底部的部分；
+   padding-top 在内联里（让出导航高度，避开刘海）。 */
 .hero-wrap {
   position: relative;
+  overflow: hidden;
   will-change: transform;
+  transform-origin: top center;
 }
 
 .hero-dim {
