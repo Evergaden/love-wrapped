@@ -364,7 +364,7 @@
     <input
       class="share-sheet-input"
       maxlength="24"
-      placeholder="比如：一周年快乐"
+      placeholder="会印在卡片上，比如：一周年快乐"
       placeholder-class="ph"
       value="{{shareTitleInput}}"
       bindinput="onShareTitleInput"
@@ -383,3 +383,4 @@
     <view class="share-cancel" bindtap="onCloseShareSheet" aria-role="button">取消</view>
   </view>
 </view>
+

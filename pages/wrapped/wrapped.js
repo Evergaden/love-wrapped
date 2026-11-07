@@ -205,6 +205,11 @@ Page({
     cloud.shareTokenFor(form, this.data.currentTheme, title).then((res) => {
       if (res.ok) page.shareToken = res.token
     })
+    // 标题要印进卡片图：防抖重画，发送时图里已经是新标题。
+    if (this.redrawTimer) clearTimeout(this.redrawTimer)
+    this.redrawTimer = setTimeout(() => {
+      if (this.data.slides.length) this.prepareShareImage(this.data.slides)
+    }, 600)
   },
 
   onReady() {
@@ -225,9 +230,10 @@ Page({
   onShareAppMessage() {
     const imageUrl = this.data.sharePath || ''
     // 礼物模式：把这册继续原样传给下一个人，用的还是同一枚令牌。
+    // 标题行保持品牌句；分享者起的标题印在卡片图里。
     if (this.data.gift && this.giftToken) {
       return {
-        title: this.data.shareTitle,
+        title: gift.giftTitle(this.giftForm || {}),
         path: gift.giftPath(this.giftToken),
         imageUrl: imageUrl
       }
@@ -237,19 +243,19 @@ Page({
     const saved = storage.loadAnswers()
     if (saved && record.canGenerate(saved)) {
       const form = record.normalize(saved)
-      const myTitle = String(this.data.shareTitleInput || '').trim() || gift.giftTitle(form)
+      // 自定义标题印在卡片图里；标题行保持品牌句。
       if (this.shareToken) {
         return {
-          title: myTitle,
+          title: gift.giftTitle(form),
           path: gift.giftPath(this.shareToken),
           imageUrl: imageUrl
         }
       }
-      return cloud.shareTokenFor(form, this.data.currentTheme, myTitle).then((res) => {
+      return cloud.shareTokenFor(form, this.data.currentTheme, String(this.data.shareTitleInput || '').trim()).then((res) => {
         if (res.ok) {
           this.shareToken = res.token
           return {
-            title: myTitle,
+            title: gift.giftTitle(form),
             path: gift.giftPath(res.token),
             imageUrl: imageUrl
           }
@@ -705,3 +711,4 @@ Page({
 
   noop() {}
 })
+
