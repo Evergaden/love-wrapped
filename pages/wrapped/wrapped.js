@@ -101,9 +101,10 @@ Page({
     this.syncChrome(theme)
     wx.showShareMenu({ menus: ['shareAppMessage'] })
     if (giftToken) {
-      // 礼物模式：先摆出取回中的样子，答案到了再排页。
+      // 礼物模式：先落全屏封面（标题取到后填入），点「立即开启」才演拆信封。
       this.giftToken = giftToken
-      this.setData({ gift: true, giftState: 'loading' })
+      this.giftFetching = true
+      this.setData({ gift: true, giftState: 'splash', giftSplashTitle: '', giftFrom: '', giftDateText: '', giftFetching: true })
       this.loadGift(giftToken)
       return
     }
@@ -123,7 +124,7 @@ Page({
     cloud.fetchSharedBook(token).then((res) => {
       if (!page.data.gift) return
       if (!res.ok) {
-        page.setData({ giftState: 'error', giftError: res.error || '这份分享打不开' })
+        page.setData({ giftState: 'error', giftError: res.error || '这份分享打不开', giftFetching: false })
         return
       }
       const form = record.pickForm(res.answers)
@@ -136,13 +137,16 @@ Page({
       const theme = res.theme ? themes.resolve(res.theme) : page.data.currentTheme
       const slides = slidesUtil.buildSlides(form, null, theme)
       page.pendingGiftOk = { slides: slides, theme: theme }
+      page.giftHeadline = res.title || ''
       page.setData({
         giftState: 'splash',
-        giftSplashTitle: (res.title || '').slice(0, 24) || gift.giftTitle(form),
+        giftFetching: false,
+        giftSplashTitle: (res.title || '').slice(0, 24) || '有一册想给你',
         giftFrom: form.myNickname || 'TA',
         giftDateText: record.formatDate(form.togetherDate),
         slides: slides,
         current: 0,
+        pageIn: 0,
         currentTheme: theme,
         shareTitle: gift.giftTitle(form)
       }, () => {
@@ -192,6 +196,8 @@ Page({
   onShareTitleInput(e) {
     this.setData({ shareTitleInput: e.detail.value })
     this.warmShareToken()
+    // 标题要印进卡片图：串行重画（绘制中先记脏标记，画完补最新一版）。
+    this.prepareShareImage(this.data.slides)
   },
 
   onShareChip(e) {
@@ -310,8 +316,20 @@ Page({
   // 失败不打断用户：没有图就退回默认封面，卡片还是能发出去。
   prepareShareImage(list) {
     const page = this
+    if (this._shareDrawing) { this._shareDirty = true; return }
+    this._shareDrawing = true
+    const done = () => {
+      this._shareDrawing = false
+      if (this._shareDirty) {
+        this._shareDirty = false
+        this.prepareShareImage(this.data.slides)
+      }
+    }
     const slides = list || this.data.slides
-    if (!slides || !slides.length) return
+    if (!slides || !slides.length) {
+      this._shareDrawing = false
+      return
+    }
     const cover = slides[0]
     const phrase = slides.filter(s => s.id === 'phrase')[0] || null
     const ending = slides.filter(s => s.id === 'ending')[0] || null
@@ -351,6 +369,13 @@ Page({
           page.setData({ sharePath: path })
         } catch (err) {
           console.warn('分享封面没画出来', err)
+        } finally {
+          // 绘制结束：清守卫，期间有新请求（标题又改了）就补画最新一版。
+          page._shareDrawing = false
+          if (page._shareDirty) {
+            page._shareDirty = false
+            page.prepareShareImage(page.data.slides)
+          }
         }
       })
   },
