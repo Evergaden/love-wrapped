@@ -119,9 +119,7 @@ function buildSlides(raw, today, themeId) {
     // 旧缓存里直接填过的顿数，照旧显示。
     stats.push({ num: a.mealCount, unit: '顿', label: '一起吃过的饭' })
   }
-  if (a.faveFoods) {
-    stats.push({ num: '永远', unit: '', label: '爱吃' + a.faveFoods })
-  }
+
   const mealEstimated = a.mealMode === 'daily' || a.mealMode === 'often' || a.mealMode === 'few'
   let note = ''
   if (!info) {
@@ -400,6 +398,28 @@ function buildSlides(raw, today, themeId) {
       body: useFightLayout ? '' : '谁先开口，这页先留白。',
       chips: chips,
       meta: '吵完，还是想把好吃的留给你。',
+      footer: footer
+    })
+  }
+
+  // 4.5 爱吃的东西：两张小卡，一人一张。紧跟着吵架页那句「好吃的留给你」。
+  const norm = record.normalize(a)
+  const myFood = norm.myFave || (norm.faveFoods ? norm.faveFoods.split(/[、，,]/)[0] || '' : '')
+  const theirFood = norm.theirFave || (norm.faveFoods ? norm.faveFoods.split(/[、，,]/)[1] || '' : '')
+  if (myFood || theirFood) {
+    slides.push({
+      id: 'fave',
+      mesh: 'mesh-4',
+      layout: 'fave',
+      theme: theme,
+      kicker: '口味',
+      title: '最爱吃的东西',
+      titleSize: 'lg',
+      cards: [
+        { cap: '我的', text: myFood || '还没写', empty: !myFood, bgStyle: 'background: ' + themes.tint(theme, 'a', 0.16) },
+        { cap: 'TA 的', text: theirFood || '还没写', empty: !theirFood, bgStyle: 'background: ' + themes.tint(theme, 'b', 0.16) }
+      ],
+      meta: '口味这种事，不用一样。',
       footer: footer
     })
   }

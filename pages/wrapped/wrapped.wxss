@@ -1798,3 +1798,54 @@
 .theme-violet .splash-sub { color: rgba(43, 33, 68, 0.72); }
 .theme-violet .splash-date { color: rgba(43, 33, 68, 0.5); }
 .theme-violet .splash-foot { color: rgba(43, 33, 68, 0.4); }
+
+/* —— 爱吃的东西：一人一张小卡。 —— */
+.fave-cards {
+  display: flex;
+  flex-direction: column;
+  margin-top: 34rpx;
+}
+
+.fave-card {
+  padding: 26rpx 30rpx;
+  border-radius: 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.fave-card-cap {
+  display: block;
+  font-size: 22rpx;
+  letter-spacing: 2rpx;
+  color: rgba(45, 27, 36, 0.5);
+}
+
+.fave-card-text {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #2D1B24;
+}
+
+.fave-card-empty {
+  font-weight: 400;
+  color: rgba(45, 27, 36, 0.4);
+}
+
+.fave-meta {
+  margin-top: 30rpx;
+  text-align: center;
+}
+
+/* 翻页入场动效：爱吃卡也依次浮现。 */
+.slide.page-in .fave-cards .fave-card {
+  animation: pgPop 0.4s ease both;
+}
+
+.slide.page-in .fave-cards .fave-card:nth-child(1) { animation-delay: 0.1s; }
+.slide.page-in .fave-cards .fave-card:nth-child(2) { animation-delay: 0.2s; }
+
+.slide.page-in .fave-meta {
+  animation: pgUp 0.5s ease 0.3s both;
+}

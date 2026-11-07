@@ -260,6 +260,11 @@ function drawLines(ctx, lines, x, y, size, color, bold, lineHeight, align) {
 }
 
 // 首行缩进的换行。给手记页用：第一行让出两个字宽。
+function clipText(text, max) {
+  const chars = Array.from(String(text || ''))
+  return chars.length > max ? chars.slice(0, max - 1).join('') + '…' : chars.join('')
+}
+
 function wrapIndented(ctx, text, maxWidth, indent) {
   const out = []
   String(text || '').split('\n').forEach((para) => {
@@ -487,6 +492,30 @@ function buildParts(ctx, slide, theme, maxWidth) {
         gap: 20,
         center: true
       })
+    }
+    parts.push({ type: 'sign', text: slide.footer, h: 42, gap: 44 })
+    return parts
+  }
+
+  // 爱吃的东西：两张小卡，一人一张，居中排。
+  if (slide.layout === 'fave') {
+    const cards = slide.cards || []
+    parts.push({ type: 'kicker', text: slide.kicker, color: theme.kicker, h: 34, gap: 0, center: true })
+    const titleSize = fitLine(ctx, slide.title, maxWidth, 60, 40, true)
+    const titleLines = limitLines(wrapText(ctx, slide.title, maxWidth), 2)
+    parts.push({ type: 'title', lines: titleLines, size: titleSize, color: theme.ink, h: Math.round(titleLines.length * titleSize * 1.28), gap: 34, center: true })
+    cards.forEach((card, index) => {
+      parts.push({
+        type: 'faveCard',
+        cap: card.cap,
+        text: card.text,
+        role: index === 0 ? 'a' : 'b',
+        h: 150,
+        gap: 26
+      })
+    })
+    if (slide.meta) {
+      parts.push({ type: 'paragraph', lines: [slide.meta], size: 28, color: theme.muted, h: 44, gap: 26, center: true })
     }
     parts.push({ type: 'sign', text: slide.footer, h: 42, gap: 44 })
     return parts
@@ -834,6 +863,23 @@ function drawParts(ctx, parts, x, y, theme, maxWidth) {
         }
         ctx.restore()
       })
+      cursor += part.h
+      return
+    }
+    if (part.type === 'faveCard') {
+      const cardW = maxWidth - 40
+      const x0 = x + 20
+      ctx.fillStyle = rgba(theme.roles[part.role] || theme.roles.a, 0.16)
+      roundRectPath(ctx, x0, cursor, cardW, part.h - 20, 28)
+      ctx.fill()
+      ctx.textAlign = 'left'
+      ctx.textBaseline = 'top'
+      ctx.fillStyle = theme.muted
+      ctx.font = font(22, false)
+      ctx.fillText(part.cap, x0 + 30, cursor + 24)
+      ctx.fillStyle = theme.ink
+      ctx.font = font(34, true)
+      ctx.fillText(clipText(part.text, 14), x0 + 30, cursor + 58)
       cursor += part.h
       return
     }

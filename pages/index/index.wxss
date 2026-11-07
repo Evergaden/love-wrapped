@@ -37,8 +37,8 @@
 
 .hero {
   position: relative;
-  z-index: 1;
-  padding: 56rpx 48rpx 36rpx;
+  z-index: 2;
+  padding: 24rpx 48rpx 36rpx;
 }
 
 .hero-top {
@@ -52,20 +52,134 @@
   align-items: center;
 }
 
-/* 「我的」入口：右上角一枚笑脸图标（Lucide 的 smile，ISC 开源图标库），
-   描边风更年轻。用 mask 上色，图标颜色跟着墨色走。 */
-.me-entry {
-  width: 66rpx;
-  height: 66rpx;
+/* 自定义导航栏：顶部透明，收起后毛玻璃 + 吸顶进度。 */
+.nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 60;
+  transition: background 0.2s ease;
+}
+
+.nav-solid {
+  background: rgba(255, 245, 247, 0.82);
+  -webkit-backdrop-filter: blur(24rpx) saturate(1.4);
+  backdrop-filter: blur(24rpx) saturate(1.4);
+  box-shadow: 0 2rpx 0 rgba(255, 194, 209, 0.35);
+}
+
+.nav-row {
+  display: flex;
+  align-items: center;
+  padding: 0 32rpx;
+}
+
+.nav-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #2D1B24;
+}
+
+.nav-progress {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin-left: 26rpx;
+  min-width: 0;
+}
+
+.nav-track {
+  width: 140rpx;
+  height: 10rpx;
+  border-radius: 10rpx;
+  background: rgba(255, 138, 171, 0.2);
+  overflow: hidden;
+  flex: none;
+}
+
+.nav-fill {
+  height: 100%;
+  border-radius: 10rpx;
+  background: linear-gradient(90deg, #FF8FAB 0%, #D6BCFF 55%, #FFC59B 100%);
+}
+
+.nav-count {
+  margin-left: 16rpx;
+  font-size: 22rpx;
+  color: rgba(45, 27, 36, 0.55);
+  white-space: nowrap;
+}
+
+/* 头图：视差 + 压暗都作用在这一层。 */
+.hero-wrap {
+  position: relative;
+  will-change: transform;
+}
+
+.hero-dim {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: #2D1B24;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero {
+  position: relative;
+  z-index: 2;
+}
+
+/* 底部操作栏的「我的」：图标在上、文字在下。 */
+.me-tab {
+  flex: none;
+  width: 92rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.me-tab-icon {
+  width: 44rpx;
+  height: 44rpx;
   background-color: rgba(45, 27, 36, 0.75);
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' x2='9.01' y1='9' y2='9'/%3E%3Cline x1='15' x2='15.01' y1='9' y2='9'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' x2='9.01' y1='9' y2='9'/%3E%3Cline x1='15' x2='15.01' y1='9' y2='9'/%3E%3C/svg%3E");
   -webkit-mask-position: center;
   -webkit-mask-size: contain;
   -webkit-mask-repeat: no-repeat;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' x2='9.01' y1='9' y2='9'/%3E%3Cline x1='15' x2='15.01' y1='9' y2='9'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' x2='9.01' y1='9' y2='9'/%3E%3Cline x1='15' x2='15.01' y1='9' y2='9'/%3E%3C/svg%3E");
   mask-position: center;
   mask-size: contain;
   mask-repeat: no-repeat;
+}
+
+.me-tab-text {
+  margin-top: 4rpx;
+  font-size: 20rpx;
+  color: rgba(45, 27, 36, 0.65);
+}
+
+/* 最爱吃：双栏输入 */
+.fave-row {
+  display: flex;
+  margin: 0 -14rpx;
+}
+
+.fave-col {
+  flex: 1;
+  min-width: 0;
+  margin: 0 14rpx;
+}
+
+.fave-cap {
+  display: block;
+  margin-bottom: 6rpx;
+  font-size: 22rpx;
+  color: rgba(45, 27, 36, 0.5);
 }
 
 /* 小标记用一道渐变短条，不用圆点，整体更软。 */

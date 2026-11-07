@@ -1,12 +1,27 @@
-<view class="page theme-{{theme}}">
+<view class="page theme-{{theme}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+  <!-- 自定义导航栏：顶部透明，下滑渐变成毛玻璃，吸顶显示已写进度。 -->
+  <view class="nav {{collapsed ? 'nav-solid' : ''}}" style="padding-top: {{statusBarH}}px">
+    <view class="nav-row" style="height: {{navInnerH}}px">
+      <text class="nav-title" style="opacity: {{navTitleOpacity}}">{{appName}}</text>
+      <view class="nav-progress" style="opacity: {{navProgressOpacity}}">
+        <view class="nav-track">
+          <view class="nav-fill" style="width: {{filledPercent}}%"></view>
+        </view>
+        <text class="nav-count">已经写下 {{filledCount}} / {{totalCount}} 项</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 弥散底：两摊颜色化开铺在整页上，页面往下滑它不动，
        所以整张表单像铺在一层会流动的光里。颜色由 themes.js 算好直接内联。 -->
+  <view class="hero-wrap" style="transform: translateY({{heroShift}}px) scale({{heroScale}})">
   <view class="ambient">
     <view class="mesh mesh-1" style="background-image: {{ambientMesh}}"></view>
     <view class="mesh amb-lower" style="background-image: {{ambientLower}}"></view>
     <view class="bloom"></view>
     <view class="amb-fade" style="background: {{ambientFade}}"></view>
   </view>
+  <view class="hero-dim" style="opacity: {{heroDim}}"></view>
 
   <view class="hero">
     <view class="hero-top">
@@ -14,18 +29,17 @@
         <view class="eyebrow-dot"></view>
         <text class="eyebrow">写给你们的小册子</text>
       </view>
-      <!-- 图标：Material Icons 的 account_circle，用 mask 上色，跟主题墨色走。 -->
-      <view class="me-entry" hover-class="pressed" bindtap="goProfile" aria-role="button" aria-label="我的"></view>
     </view>
-    <text class="hero-title">{{appName}}</text>
-    <text class="hero-sub">由你写下两个名字和一些小事。生成之后可以左右滑动，像翻一本只印了一份的小册子。</text>
+    <text class="hero-title" style="opacity: {{heroTitleOpacity}}; transform: scale({{heroTitleScale}})">{{appName}}</text>
+    <text class="hero-sub" style="opacity: {{heroSubOpacity}}">由你写下两个名字和一些小事。生成之后可以左右滑动，像翻一本只印了一份的小册子。</text>
 
-    <view class="progress">
+    <view class="progress" style="opacity: {{heroProgressOpacity}}">
       <view class="progress-track">
         <view class="progress-fill" style="width: {{filledPercent}}%"></view>
       </view>
       <text class="progress-text">已经写下 {{filledCount}} / {{totalCount}} 项</text>
     </view>
+  </view>
   </view>
 
   <view class="sheet">
@@ -178,16 +192,34 @@
 
       <view class="field-block">
         <text class="field-label">你们最爱吃的东西</text>
-        <input
-          class="field"
-          maxlength="24"
-          placeholder="比如：小熊爱麻辣烫，阿树爱草莓"
-          placeholder-class="ph"
-          cursor-spacing="80"
-          value="{{form.faveFoods}}"
-          data-key="faveFoods"
-          bindinput="onInput"
-        />
+        <view class="fave-row">
+          <view class="fave-col">
+            <text class="fave-cap">我的</text>
+            <input
+              class="field"
+              maxlength="12"
+              placeholder="比如：麻辣烫"
+              placeholder-class="ph"
+              cursor-spacing="80"
+              value="{{form.myFave}}"
+              data-key="myFave"
+              bindinput="onInput"
+            />
+          </view>
+          <view class="fave-col">
+            <text class="fave-cap">TA 的</text>
+            <input
+              class="field"
+              maxlength="12"
+              placeholder="比如：草莓"
+              placeholder-class="ph"
+              cursor-spacing="80"
+              value="{{form.theirFave}}"
+              data-key="theirFave"
+              bindinput="onInput"
+            />
+          </view>
+        </view>
       </view>
 
       <view class="field-block">
@@ -384,7 +416,11 @@
   </view>
 
   <view class="action-bar">
-    <text class="count-line">按现在的内容，会生成 {{slideCount}} 页</text>
+    <view class="me-tab" hover-class="pressed" bindtap="goProfile" aria-role="button" aria-label="我的">
+      <view class="me-tab-icon"></view>
+      <text class="me-tab-text">我的</text>
+    </view>
+    <text class="count-line">会生成 {{slideCount}} 页</text>
     <view class="btn btn-primary {{canOpen ? '' : 'dim'}}" hover-class="pressed" bindtap="onGenerate">生成纪念册</view>
   </view>
 </view>

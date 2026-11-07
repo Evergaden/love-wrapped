@@ -11,6 +11,8 @@ const SAMPLE = {
   cityCount: '',
   myCity: '杭州',
   theirCity: '成都',
+  myFave: '麻辣烫',
+  theirFave: '草莓',
   mealMode: 'daily',
   mealCount: '',
   fightCount: '2',

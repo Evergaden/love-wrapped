@@ -241,6 +241,21 @@
                   <text class="body award-reason">{{item.reason}}</text>
                 </block>
 
+                  <!-- 爱吃的东西：一人一张小卡。 -->
+                  <block wx:elif="{{item.layout === 'fave'}}">
+                  <view class="title-wrap">
+                    <view class="title-glow"></view>
+                    <text class="title title-lg">{{item.title}}</text>
+                  </view>
+                  <view class="fave-cards">
+                    <view class="fave-card" wx:for="{{item.cards}}" wx:for-item="card" wx:key="cap" style="{{card.bgStyle}}">
+                      <text class="fave-card-cap">{{card.cap}}</text>
+                      <text class="fave-card-text {{card.empty ? 'fave-card-empty' : ''}}">{{card.text}}</text>
+                    </view>
+                  </view>
+                  <text class="meta fave-meta">{{item.meta}}</text>
+                </block>
+
                   <!-- 终章：整页居中，像扉页的题字。 -->
                   <block wx:elif="{{item.layout === 'finale'}}">
                   <view class="title-wrap finale-title-wrap">

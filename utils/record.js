@@ -47,6 +47,8 @@ const EMPTY = {
   meetMode: '',
   meetCount: '',
   sentence: '',
+  myFave: '',
+  theirFave: '',
   faveFoods: '',
   writtenAt: ''
 }
@@ -187,6 +189,8 @@ function normalize(raw) {
   form.sentence = clip(form.sentence, 40)
   form.faveFoods = clip(form.faveFoods, 24)
   form.writtenAt = isYmd(form.writtenAt) ? form.writtenAt : ''
+  form.myFave = clip(form.myFave, 12)
+  form.theirFave = clip(form.theirFave, 12)
   return form
 }
 

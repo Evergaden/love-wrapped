@@ -58,10 +58,118 @@ Page({
     errorHint: '',
     placeDraft: '',
     placeList: [],
+    statusBarH: 44,
+    navInnerH: 44,
+    heroShift: 0,
+    heroScale: 1,
+    heroDim: 0,
+    heroTitleOpacity: 1,
+    heroTitleScale: 1,
+    heroSubOpacity: 1,
+    heroProgressOpacity: 1,
+    navTitleOpacity: 0,
+    navProgressOpacity: 0,
+    collapsed: false,
     appName: brand.APP_NAME,
     theme: themes.DEFAULT,
     themeList: themes.pickerList(),
     accentColor: themes.THEMES[themes.DEFAULT].kicker
+  },
+
+  onLoad() {
+    // 导航栏高度对齐胶囊：状态栏 + 胶囊上下留白。
+    let statusBarH = 44
+    let navInnerH = 44
+    try {
+      const menu = wx.getMenuButtonBoundingClientRect()
+      if (menu && menu.top) {
+        statusBarH = menu.top
+        navInnerH = menu.height + 14
+      }
+    } catch (err) {
+      console.warn('导航度量失败，用默认值', err)
+    }
+    this.navTotalH = statusBarH + navInnerH
+    this.setData({ statusBarH: statusBarH, navInnerH: navInnerH })
+  },
+
+  onReady() {
+    this.measureHero()
+  },
+
+  // 量出头图高度，算出「收起」的滚动位置。
+  measureHero() {
+    const q = this.createSelectorQuery()
+    q.select('.hero-wrap').boundingClientRect()
+    q.exec((res) => {
+      const rect = res && res[0]
+      if (!rect || !rect.height) return
+      this.collapseAt = Math.max(80, rect.height - (this.navTotalH || 88))
+      this.applyHero(this._lastSt || 0)
+    })
+  },
+
+  onPageScroll(e) {
+    const st = e.scrollTop
+    const now = Date.now()
+    // 速度采样：松手回弹的方向判断用。
+    if (this._lastScrollT) {
+      const dt = now - this._lastScrollT
+      if (dt > 0 && dt < 220) this._velocity = (st - this._lastSt) / dt
+    }
+    this._lastSt = st
+    this._lastScrollT = now
+    // 节流：滚动位置变化小于 2px 不重绘。
+    // 节流：滚动位置变化小于 12px 不重绘（避免 setData 风暴）。
+    if (Math.abs(st - (this._appliedSt || 0)) < 12 && st >= 0 && st > 0) return
+    this._appliedSt = st
+    this.applyHero(st)
+    if (this._snapTimer) clearTimeout(this._snapTimer)
+    this._snapTimer = setTimeout(() => this.snapHero(), 170)
+  },
+
+  onTouchStart() {
+    this.touching = true
+    if (this._snapTimer) clearTimeout(this._snapTimer)
+  },
+
+  onTouchEnd() {
+    this.touching = false
+    this._snapTimer = setTimeout(() => this.snapHero(), 150)
+  },
+
+  // 松手后：按速度和位置收到底或弹回展开，不停在半路。
+  snapHero() {
+    if (this.touching) return
+    const st = this._lastSt || 0
+    const collapseAt = this.collapseAt || 1
+    const p = st / collapseAt
+    if (p <= 0.02 || p >= 0.98) return
+    const v = this._velocity || 0
+    let target
+    if (v > 0.45) target = collapseAt
+    else if (v < -0.45) target = 0
+    else target = p >= 0.5 ? collapseAt : 0
+    wx.pageScrollTo({ scrollTop: target, duration: 200 })
+  },
+
+  // 头图三件事：0.5 倍视差、慢慢压暗、下拉放大。
+  applyHero(st) {
+    const collapseAt = this.collapseAt || 1
+    const p = Math.max(0, Math.min(1, st / collapseAt))
+    const pull = st < 0 ? Math.min(-st, 240) : 0
+    this.setData({
+      heroShift: Math.round(st * 0.5),
+      heroScale: pull ? Number((1 + pull / 900).toFixed(3)) : 1,
+      heroDim: Number((p * 0.32).toFixed(2)),
+      heroTitleOpacity: Number(Math.max(0, 1 - p * 1.15).toFixed(2)),
+      heroTitleScale: Number((1 - p * 0.35).toFixed(3)),
+      heroSubOpacity: Number(Math.max(0, 1 - p * 1.5).toFixed(2)),
+      heroProgressOpacity: Number(Math.max(0, 1 - p * 1.6).toFixed(2)),
+      navTitleOpacity: Number(p.toFixed(2)),
+      navProgressOpacity: Number(Math.max(0, (p - 0.35) / 0.65).toFixed(2)),
+      collapsed: p > 0.55
+    })
   },
 
   onShow() {
