@@ -18,12 +18,8 @@
     </view>
   </view>
 
-  <!-- 礼物模式：凭令牌取回答案的过程与出错提示 -->
-  <view wx:elif="{{giftState === 'loading' && !giftFetching}}" class="empty">
-    <view class="mesh mesh-1" style="background-image: {{emptyMeshStyle}}"></view>
-    <view class="mesh amb-lower" style="background-image: {{emptyLowerStyle}}"></view>
-    <view class="bloom"></view>
-    <view wx:elif="{{giftState === 'loading' && giftFetching}}" class="empty">
+  <!-- 礼物模式：正在取回答案（令牌还在拉数据） -->
+  <view wx:elif="{{giftState === 'loading' && giftFetching}}" class="empty">
     <view class="mesh mesh-1" style="background-image: {{emptyMeshStyle}}"></view>
     <view class="mesh amb-lower" style="background-image: {{emptyLowerStyle}}"></view>
     <view class="bloom"></view>
@@ -37,6 +33,7 @@
     </view>
   </view>
 
+  <!-- 礼物模式：数据已取回，正在拆封 -->
   <view wx:elif="{{giftState === 'loading'}}" class="empty">
     <view class="mesh mesh-1" style="background-image: {{emptyMeshStyle}}"></view>
     <view class="mesh amb-lower" style="background-image: {{emptyLowerStyle}}"></view>
@@ -420,5 +417,4 @@
     <button class="share-go" open-type="share">发给 TA</button>
     <view class="share-cancel" bindtap="onCloseShareSheet" aria-role="button">取消</view>
   </view>
-</view>
 </view>
