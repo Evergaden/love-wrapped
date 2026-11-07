@@ -379,7 +379,18 @@ function buildSlides(raw, today, themeId) {
     const chips = []
     if (whoText) chips.push({ text: '先道歉：' + whoText, role: 'a' })
     if (fightN !== null && fightN >= 1 && fightDays && fightDays / fightN >= 2) {
-      chips.push({ text: '平均每 ' + Math.round(fightDays / fightN) + ' 天一次', role: 'b' })
+      // 间隔天数太长没人记得住，换成自然单位：年 / 个月 / 天。
+      const avgD = Math.round(fightDays / fightN)
+      let avgText
+      if (avgD >= 365) {
+        const years = avgD / 365
+        avgText = (years >= 3 ? Math.round(years) + ' 年' : years >= 1.4 ? '一年半' : '一年') + '才吵一次'
+      } else if (avgD >= 60) {
+        avgText = '约每 ' + Math.round(avgD / 30) + ' 个月一次'
+      } else {
+        avgText = '平均每 ' + avgD + ' 天一次'
+      }
+      chips.push({ text: avgText, role: 'b' })
     }
     if (fightN === 0) chips.push({ text: '和好速度：瞬间', role: 'c' })
     const fightTitle = fightN === 0 ? '一次都没红过脸' : (fightN !== null ? fightN + ' 次' : '吵过的那些天')

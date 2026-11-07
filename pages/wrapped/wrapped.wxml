@@ -127,7 +127,7 @@
               <view class="card">
                 <view class="hairline" style="background: {{item.hairStyle}}"></view>
                 <view class="card-main">
-                  <view class="kicker-row {{item.layout === 'journey' || item.layout === 'bubble' || item.layout === 'award' || item.layout === 'finale' ? 'centered' : ''}}">
+                  <view class="kicker-row {{item.layout === 'journey' || item.layout === 'bubble' || item.layout === 'award' || item.layout === 'fight' || item.layout === 'finale' ? 'centered' : ''}}">
                     <view class="kicker-bar"></view>
                     <text class="kicker">{{item.kicker}}</text>
                   </view>
@@ -277,7 +277,7 @@
                 </block>
 
                   <block wx:elif="{{item.layout === 'fight'}}">
-                  <view class="title-wrap">
+                  <view class="title-wrap fight-title-wrap">
                     <view class="title-glow"></view>
                     <text class="title title-{{item.titleSize}}">{{item.title}}</text>
                   </view>
