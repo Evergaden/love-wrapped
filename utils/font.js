@@ -20,7 +20,7 @@ const FONT_FAMILY = 'LXGW WenKai'
 // 子集版只有 1.8MB（原版 11.7MB），由 fontTools 子集化生成——字符清单 =
 // 项目全部固定文案 + GB2312 一级字 + ASCII + 中英标点，缺的生僻字自动落回
 // 系统字体。生成脚本与本机产物见仓库外的 font-tools/ 目录。
-const FONT_FILE_ID = ''
+const FONT_FILE_ID = 'cloud://cloud1-d9g4gaoh8e7070095.636c-cloud1-d9g4gaoh8e7070095-1307885028/fonts/LXGWWenKaiLite-Subset-Regular.ttf'
 
 const FONT_URL = 'https://cdn.jsdelivr.net/gh/lxgw/LxgwWenKai-Lite@v1.510/fonts/TTF/LXGWWenKaiLite-Regular.ttf'
 
