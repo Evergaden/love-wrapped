@@ -128,19 +128,41 @@ utils/festivals.js`）
 
 启动时自动加载手写体「霞鹜文楷」（SIL OFL 1.1，免费商用可嵌入），全应用与
 导出的图片都会用它；加载完成前显示系统字体，失败也不影响功能。
-字体文件约 9MB，走 jsdelivr CDN，微信首次加载后缓存。
+
+字体用**子集版（约 1.8MB）**：由 fontTools 从原版（11.7MB）子集化而来，字符清单 =
+项目全部固定文案 + GB2312 一级字 3755 个 + ASCII + 中英标点；用户写出的清单外
+生僻字会自动落回系统字体，不影响阅读。重新生成的命令：
+
+```
+pip install fonttools brotli
+# 1) 从 jsdelivr 下载原版 LXGWWenKaiLite-Regular.ttf
+# 2) 生成字符清单：扫描仓库源码里的固定文案，并上 GB2312 一级字与标点
+# 3) 子集化（本仓库的 utils/ 全部文案必须先扫进去，一个都不能少）
+python -m fontTools.subset LXGWWenKaiLite-Regular.ttf --text-file=chars.txt \
+  --output-file=LXGWWenKaiLite-Subset-Regular.ttf \
+  --layout-features='*' --name-IDs='*' --no-hinting
+```
+
+加载链路（每台手机只下一次，之后全走本地）：
+
+1. 本地有缓存（USER_DATA_PATH）→ 直接本地加载，零流量
+2. 没有缓存 → 下载一次、落盘、用本地文件加载
+3. 本地路径加载失败（个别基础库）→ 远程直载，并记住该设备不再尝试缓存
 
 **真机（预览版/正式版）上想看到手写字体，必须换云存储**：`wx.loadFontFace`
 的下载在真机上要过 downloadFile 合法域名校验，jsdelivr 是境外域名没备案，
 加不进白名单，只有开发者工具里能绕过。做法：
 
-1. 云开发控制台 → 存储 → 上传 `fonts/TTF/LXGWWenKaiLite-Regular.ttf`，复制 fileID
+1. 云开发控制台 → 存储 → 上传子集版字体 `LXGWWenKaiLite-Subset-Regular.ttf`，复制 fileID
 2. 把 fileID 填进 `utils/font.js` 顶部的 `FONT_FILE_ID`（运行时自动换下载地址，失败退回 CDN）
 3. mp 后台 → 开发设置 → 服务器域名 → **downloadFile 合法域名**，加上云存储的
    下载域名（`*.tcb.qcloud.la` 子域，腾讯名下已备案，可直接添加）
 
+额度账：子集 1.8MB × 每台手机一次（缓存生效后不再消耗）；一万个用户总共
+约 18GB 一次性下行流量。云存储不缓存直连的话是 1.8MB × 每次冷启动，量级完全不同。
+
 临时想在新编译的预览里看一眼字体：真机上点右上角「…」→ 开发调试 → 打开调试，
-会跳过域名校验（且 jsdelivr 国内直连不稳，9MB 要等一会儿）。
+会跳过域名校验（jsdelivr 国内直连不稳，且那是 11.7MB 的原版，要等一会儿）。
 
 ## 数据存在哪里
 

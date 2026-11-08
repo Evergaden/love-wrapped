@@ -16,8 +16,10 @@
 
 const FONT_FAMILY = 'LXGW WenKai'
 
-// 云存储 fileID：把 fonts/TTF/LXGWWenKaiLite-Regular.ttf 上传到云开发
-// 控制台 → 存储，复制 fileID 填到这里。空字符串 = 暂用 jsdelivr。
+// 云存储 fileID：上传【子集版】字体到云开发控制台 → 存储，复制 fileID 填到这里。
+// 子集版只有 1.8MB（原版 11.7MB），由 fontTools 子集化生成——字符清单 =
+// 项目全部固定文案 + GB2312 一级字 + ASCII + 中英标点，缺的生僻字自动落回
+// 系统字体。生成脚本与本机产物见仓库外的 font-tools/ 目录。
 const FONT_FILE_ID = ''
 
 const FONT_URL = 'https://cdn.jsdelivr.net/gh/lxgw/LxgwWenKai-Lite@v1.510/fonts/TTF/LXGWWenKaiLite-Regular.ttf'
