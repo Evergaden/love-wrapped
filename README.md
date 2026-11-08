@@ -130,8 +130,17 @@ utils/festivals.js`）
 导出的图片都会用它；加载完成前显示系统字体，失败也不影响功能。
 字体文件约 9MB，走 jsdelivr CDN，微信首次加载后缓存。
 
-更稳的做法：把字体文件 `fonts/TTF/LXGWWenKaiLite-Regular.ttf` 上传到自己的云存储，
-把 `utils/font.js` 顶部的 URL 换成云存储下载地址（国内直连更快）。
+**真机（预览版/正式版）上想看到手写字体，必须换云存储**：`wx.loadFontFace`
+的下载在真机上要过 downloadFile 合法域名校验，jsdelivr 是境外域名没备案，
+加不进白名单，只有开发者工具里能绕过。做法：
+
+1. 云开发控制台 → 存储 → 上传 `fonts/TTF/LXGWWenKaiLite-Regular.ttf`，复制 fileID
+2. 把 fileID 填进 `utils/font.js` 顶部的 `FONT_FILE_ID`（运行时自动换下载地址，失败退回 CDN）
+3. mp 后台 → 开发设置 → 服务器域名 → **downloadFile 合法域名**，加上云存储的
+   下载域名（`*.tcb.qcloud.la` 子域，腾讯名下已备案，可直接添加）
+
+临时想在新编译的预览里看一眼字体：真机上点右上角「…」→ 开发调试 → 打开调试，
+会跳过域名校验（且 jsdelivr 国内直连不稳，9MB 要等一会儿）。
 
 ## 数据存在哪里
 
