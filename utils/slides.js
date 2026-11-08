@@ -430,6 +430,8 @@ function buildSlides(raw, today, themeId) {
   const myFood = norm.myFave || (norm.faveFoods ? norm.faveFoods.split(/[、，,]/)[0] || '' : '')
   const theirFood = norm.theirFave || (norm.faveFoods ? norm.faveFoods.split(/[、，,]/)[1] || '' : '')
   if (myFood || theirFood) {
+    // 两张卡都写了且一样时，别再说「不用一样」。
+    const sameFood = myFood && theirFood && myFood === theirFood
     slides.push({
       id: 'fave',
       mesh: 'mesh-4',
@@ -442,7 +444,7 @@ function buildSlides(raw, today, themeId) {
         { cap: '我的', text: myFood || '还没写', empty: !myFood, bgStyle: 'background: ' + themes.tint(theme, 'a', 0.16) },
         { cap: 'TA 的', text: theirFood || '还没写', empty: !theirFood, bgStyle: 'background: ' + themes.tint(theme, 'b', 0.16) }
       ],
-      meta: '口味这种事，不用一样。',
+      meta: sameFood ? '连最爱吃的都一样。' : '口味这种事，不用一样。',
       footer: footer
     })
   }
