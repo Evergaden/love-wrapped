@@ -8,13 +8,15 @@
   padding-bottom: 240rpx;
 }
 
-/* 弥散底。只铺在页头这一段，下面留干净的奶油底给表单。 */
+/* 弥散底。铺满整个头图区（高度跟着 hero 走），下面留干净的奶油底给表单。
+   之前固定 780rpx，比 hero 实际高度长，化开带被 overflow:hidden 拦腰
+   切断，背景上多出一条硬边；现在化开带永远正好落在裁切边上。 */
 .ambient {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
-  height: 780rpx;
+  bottom: 0;
   z-index: 0;
   overflow: hidden;
 }
