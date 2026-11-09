@@ -458,8 +458,29 @@ Page({
     }
     if (this.opening) return
     this.opening = true
-    // 第一次写完的日子记下来，结尾页和长图封底都用它；转发也原样带走。
     const form = this.data.form
+    // 内容安全检测：只在点「生成」时调一次，命中违规就停下来让用户改。
+    // 通过后分享链路不重复检测（令牌在生成时就备好，分享直接用缓存）。
+    wx.showLoading({ title: '正在检查内容…', mask: true })
+    cloud.checkContent(record.normalize(form)).then((res) => {
+      wx.hideLoading()
+      if (res && res.risky) {
+        this.opening = false
+        wx.showModal({
+          title: '先改一下',
+          content: res.reason || '有几处内容不太合适，改一下再生成吧。',
+          confirmText: '去修改',
+          showCancel: false
+        })
+        return
+      }
+      // 检测通过 / 云不可用 / 接口异常（云函数已 fail-open）：照常生成。
+      this.finishGenerate(form)
+    })
+  },
+
+  finishGenerate(form) {
+    // 第一次写完的日子记下来，结尾页和长图封底都用它；转发也原样带走。
     if (!form.writtenAt) {
       const t = new Date()
       const pad = (n) => (n < 10 ? '0' + n : '' + n)

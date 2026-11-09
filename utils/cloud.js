@@ -173,6 +173,14 @@ function callFunction(name, data) {
     })
 }
 
+// 生成前的内容安全检测：只在「点生成纪念册」时调一次，命中违规就让用户改。
+// 云不可用 / 检测接口异常时放行（云函数内部已 fail-open），不误伤正常用户。
+// 检测通过后分享链路不重复检测——分享令牌在生成时就备好了。
+function checkContent(form) {
+  if (!init()) return Promise.resolve({ ok: false, error: null, silent: true })
+  return callFunction('contentCheck', { answers: form })
+}
+
 // 取（或创建）一份答案的分享令牌。resolve { ok, token } 或 { ok:false }，永不 reject。
 // theme 是作者当前配色，随分享记录存云端，收礼的人固定看这一套。
 // 注意：只缓存成功的结果——第一次失败后（云端刚部署、网络慢），
@@ -273,6 +281,7 @@ module.exports = {
   listBooks,
   removeBook,
   checkConnection,
+  checkContent,
   shareTokenFor,
   fetchSharedBook,
   reminderTemplateId,
