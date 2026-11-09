@@ -5,8 +5,9 @@
 //   { _openid, anniversary: '2027-05-20', nicknames: '小熊 和 阿树',
 //     enabled: true, subscribed: true, lastNotifiedFor: '' }
 //
-// 模板：在 mp 后台「订阅消息」申请，字段建议
-//   thing1 昵称们 / date2 纪念日 / thing3 寄语（类别选「日程提醒」）。
+// 模板：「纪念日提醒」（mp 后台已申请，类目信息查询），字段
+//   thing1 纪念日名称（发昵称们）/ time2 日期（时间型）/ thing3 备注（寄语）。
+// 注意：日期是 time 型字段，要求「日期 + 时刻」格式，只发 YYYY-MM-DD 会报 47003。
 // 模板 ID 放在本函数的环境变量 REMINDER_TEMPLATE_ID 里
 // （云开发控制台 → 函数配置 → 环境变量），不写死在代码里。
 //
@@ -23,6 +24,13 @@ const PAGE = 'pages/wrapped/wrapped'
 function ymd(date) {
   const pad = (n) => (n < 10 ? '0' + n : '' + n)
   return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
+}
+
+// 订阅消息的 time 型字段要「日期 + 时刻」：把纪念日展开成当天上午 9 点。
+function timeFor(ymdStr) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymdStr || ''))
+  if (!m) return String(ymdStr || '')
+  return Number(m[1]) + '年' + Number(m[2]) + '月' + Number(m[3]) + '日 09:00'
 }
 
 // reminders 集合第一次用时会自动创建，之后忽略报错。
@@ -66,7 +74,7 @@ exports.main = async () => {
         page: PAGE,
         data: {
           thing1: { value: clip(doc.nicknames, 20) },
-          date2: { value: doc.anniversary },
+          time2: { value: timeFor(doc.anniversary) },
           thing3: { value: '还有 7 天，回来翻翻这一册吧' }
         }
       })

@@ -227,7 +227,7 @@ function fetchSharedBook(token) {
 // 订阅消息模板 ID：在 mp 后台「功能 → 订阅消息」申请后填进来。
 // 推荐模板字段：thing1 昵称们、date2 纪念日、thing3 寄语（类别选「日程提醒」）。
 // 留空时，提醒询问只记下意愿，云端计划会标记为未订阅，定时函数不会下发。
-const REMINDER_TMPL_ID = ''
+const REMINDER_TMPL_ID = 'FKHmUCrt7OZgbsElTatpf17YJp2958IBOyIbQ7RunI'
 
 const REMINDERS_COLLECTION = 'reminders'
 
