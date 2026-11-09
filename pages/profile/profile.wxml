@@ -21,6 +21,23 @@
       <text class="card-body" wx:elif="{{cloudState === 'checking'}}">正在确认云端的连接…</text>
     </view>
 
+    <!-- 周年提醒：可取消，可重新开启（重新开启是真正的点击手势，才能拉起授权） -->
+    <view class="card">
+      <view class="card-head">
+        <text class="card-title">周年提醒</text>
+        <view class="state {{reminderState === 'on' ? 'ok' : ''}}">
+          <text wx:if="{{reminderState === 'on'}}">已开启</text>
+          <text wx:elif="{{reminderState === 'off'}}">已取消</text>
+          <text wx:else>未开启</text>
+        </view>
+      </view>
+      <text class="card-body" wx:if="{{reminderState === 'on'}}">下个周年（{{reminderDate}}）前 7 天提醒你。</text>
+      <text class="card-body" wx:elif="{{reminderState === 'off'}}">已取消，这个周年不会再提醒。</text>
+      <text class="card-body" wx:else>还没开过。写好一册生成时，会轻轻问你一次。</text>
+      <view class="ghost" hover-class="pressed" bindtap="onCancelReminder" wx:if="{{reminderState === 'on'}}" aria-role="button">取消提醒</view>
+      <view class="ghost" hover-class="pressed" bindtap="onEnableReminder" wx:elif="{{reminderState === 'off'}}" aria-role="button">重新开启</view>
+    </view>
+
     <!-- 历史记录 -->
     <view class="card link" hover-class="pressed" bindtap="goHistory" aria-role="button">
       <view class="card-head">

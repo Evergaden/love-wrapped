@@ -528,7 +528,8 @@ Page({
     this.setData({ remindAsk: null })
     this._remindDone = null
     const save = (enabled, subscribed) => {
-      storage.saveReminder({ anniversary: ask.anniversary, years: ask.years, enabled: enabled, subscribed: subscribed, declined: !enabled, askedAt: Date.now() })
+      // togetherDate/nicknames 也存本地一份：「我的」里取消/重开时云端计划要用。
+      storage.saveReminder({ anniversary: ask.anniversary, years: ask.years, togetherDate: ask.togetherDate, nicknames: ask.nicknames, enabled: enabled, subscribed: subscribed, declined: !enabled, askedAt: Date.now() })
       cloud.saveReminderPlan({ anniversary: ask.anniversary, years: ask.years, togetherDate: ask.togetherDate, nicknames: ask.nicknames, enabled: enabled, subscribed: subscribed })
     }
     const tmpl = cloud.reminderTemplateId()
@@ -558,7 +559,7 @@ Page({
     const ask = this.data.remindAsk
     const done = this._remindDone
     if (!ask) return
-    storage.saveReminder({ anniversary: ask.anniversary, years: ask.years, enabled: false, declined: true, askedAt: Date.now() })
+    storage.saveReminder({ anniversary: ask.anniversary, years: ask.years, togetherDate: ask.togetherDate, nicknames: ask.nicknames, enabled: false, declined: true, askedAt: Date.now() })
     this.setData({ remindAsk: null })
     this._remindDone = null
     wx.showToast({ title: '好的，想开随时回来', icon: 'none' })

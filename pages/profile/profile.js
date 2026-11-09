@@ -15,7 +15,10 @@ Page({
     cloudState: 'checking',
     cloudError: '',
     hasDraft: false,
-    draftTitle: ''
+    draftTitle: '',
+    // 周年提醒：on 已开启 / off 已取消 / none 未开启过
+    reminderState: 'none',
+    reminderDate: ''
   },
 
   onShow() {
@@ -29,6 +32,92 @@ Page({
       draftTitle: stored ? (stored.myNickname + ' · ' + stored.theirNickname) : ''
     })
     this.checkCloud()
+    this.refreshReminder()
+  },
+
+  // 周年提醒状态：本地记录为准（云端计划跟着它同步）。
+  refreshReminder() {
+    const rec = storage.loadReminder()
+    let state = 'none'
+    let dateText = ''
+    if (rec && rec.anniversary) {
+      state = rec.enabled ? 'on' : 'off'
+      dateText = String(rec.anniversary).replace(/-/g, '.')
+    }
+    this.setData({ reminderState: state, reminderDate: dateText })
+  },
+
+  // 取消提醒：本地关闸并标记拒绝（生成时也不再问），云端计划同步 enabled: false。
+  // 定时函数只挑 enabled 的计划，自然不会再下发。
+  onCancelReminder() {
+    const page = this
+    const rec = storage.loadReminder() || {}
+    wx.showModal({
+      title: '取消提醒',
+      content: '到了周年前 7 天就不再提醒你了。想开的话，随时回到这里重新开启。',
+      confirmText: '取消提醒',
+      cancelText: '先不了',
+      confirmColor: themes.pick(this.data.theme).kicker,
+      success(res) {
+        if (!res.confirm) return
+        storage.saveReminder(Object.assign({}, rec, {
+          enabled: false, declined: true, cancelledAt: Date.now()
+        }))
+        const saved = storage.loadAnswers() || {}
+        cloud.saveReminderPlan({
+          anniversary: rec.anniversary,
+          years: rec.years,
+          togetherDate: rec.togetherDate || saved.togetherDate || '',
+          nicknames: rec.nicknames || ((saved.myNickname || '') + ' 和 ' + (saved.theirNickname || '')),
+          enabled: false,
+          subscribed: !!rec.subscribed
+        })
+        page.refreshReminder()
+        wx.showToast({ title: '已取消', icon: 'none' })
+      }
+    })
+  },
+
+  // 重新开启：和生成时的询问一样，授权必须由这个按钮的点击同步发起。
+  onEnableReminder() {
+    const page = this
+    const rec = storage.loadReminder() || {}
+    const tmpl = cloud.reminderTemplateId()
+    if (!rec.anniversary) {
+      wx.showToast({ title: '还没开过，写好一册生成时会问你', icon: 'none' })
+      return
+    }
+    if (!tmpl) {
+      wx.showToast({ title: '提醒功能还在准备中', icon: 'none' })
+      return
+    }
+    wx.requestSubscribeMessage({
+      tmplIds: [tmpl],
+      success(sub) {
+        const accepted = sub && sub[tmpl] === 'accept'
+        if (!accepted) {
+          wx.showToast({ title: '好的，想开随时再来', icon: 'none' })
+          return
+        }
+        const saved = storage.loadAnswers() || {}
+        const payload = {
+          anniversary: rec.anniversary,
+          years: rec.years,
+          togetherDate: rec.togetherDate || saved.togetherDate || '',
+          nicknames: rec.nicknames || ((saved.myNickname || '') + ' 和 ' + (saved.theirNickname || '')),
+          enabled: true,
+          subscribed: true,
+          declined: false
+        }
+        storage.saveReminder(Object.assign({}, rec, payload, { askedAt: Date.now() }))
+        cloud.saveReminderPlan(payload)
+        page.refreshReminder()
+        wx.showToast({ title: '提醒已开启', icon: 'none' })
+      },
+      fail() {
+        wx.showToast({ title: '这次没开成，下次再试', icon: 'none' })
+      }
+    })
   },
 
   checkCloud() {
