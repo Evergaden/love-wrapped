@@ -149,14 +149,13 @@ python -m fontTools.subset LXGWWenKaiLite-Regular.ttf --text-file=chars.txt \
 2. 没有缓存 → 下载一次、落盘、用本地文件加载
 3. 本地路径加载失败（个别基础库）→ 远程直载，并记住该设备不再尝试缓存
 
-**真机（预览版/正式版）上想看到手写字体，必须换云存储**：`wx.loadFontFace`
-的下载在真机上要过 downloadFile 合法域名校验，jsdelivr 是境外域名没备案，
-加不进白名单，只有开发者工具里能绕过。做法：
+**真机字体走微信云通道，无需配置服务器域名**：`wx.cloud.downloadFile`
+（fileID 直下）属于云开发调用，官方规则免 downloadFile 域名校验。
+本项目已接入：子集字体已上传云存储，fileID 已填在 `utils/font.js` 顶部。
 
-1. 云开发控制台 → 存储 → 上传子集版字体 `LXGWWenKaiLite-Subset-Regular.ttf`，复制 fileID
-2. 把 fileID 填进 `utils/font.js` 顶部的 `FONT_FILE_ID`（运行时自动换下载地址，失败退回 CDN）
-3. mp 后台 → 开发设置 → 服务器域名 → **downloadFile 合法域名**，加上云存储的
-   下载域名（`*.tcb.qcloud.la` 子域，腾讯名下已备案，可直接添加）
+- jsdelivr CDN 仅作兜底（没备案，真机被域名校验拦下，只有开发工具里能用）。
+- 可选加固：mp 后台把 `*.tcb.qcloud.la` 加进 downloadFile 合法域名——只在个别
+  基础库不认本地字体路径、需要远程直载兜底的设备上有意义，不加也不影响多数设备。
 
 额度账：子集 1.8MB × 每台手机一次（缓存生效后不再消耗）；一万个用户总共
 约 18GB 一次性下行流量。云存储不缓存直连的话是 1.8MB × 每次冷启动，量级完全不同。
