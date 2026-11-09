@@ -461,15 +461,15 @@ Page({
     const form = this.data.form
     // 内容安全检测：只在点「生成」时调一次，命中违规就停下来让用户改。
     // 通过后分享链路不重复检测（令牌在生成时就备好，分享直接用缓存）。
-    wx.showLoading({ title: '正在检查内容…', mask: true })
+    wx.showLoading({ title: '报告生成中…', mask: true })
     cloud.checkContent(record.normalize(form)).then((res) => {
       wx.hideLoading()
       if (res && res.risky) {
         this.opening = false
         wx.showModal({
-          title: '先改一下',
-          content: res.reason || '有几处内容不太合适，改一下再生成吧。',
-          confirmText: '去修改',
+          title: '先放一放',
+          content: res.reason || '有几句话暂时写不进这册，换个说法再试试吧。',
+          confirmText: '好',
           showCancel: false
         })
         return

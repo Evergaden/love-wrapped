@@ -45,7 +45,7 @@ exports.main = async (event) => {
     const result = (res && (res.result || res)) || {}
     const suggest = result.suggest || (result.result && result.result.suggest) || 'pass'
     if (suggest === 'risky' || suggest === 'review') {
-      return { ok: true, risky: true, reason: '有几处内容不太合适，改一下再生成吧' }
+      return { ok: true, risky: true, reason: '有几句话暂时写不进这册，换个说法再试试吧' }
     }
     return { ok: true, risky: false, checked: true }
   } catch (err) {
