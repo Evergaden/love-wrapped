@@ -172,7 +172,7 @@ python -m fontTools.subset LXGWWenKaiLite-Regular.ttf --text-file=chars.txt \
 
 ## 周年提醒（订阅消息）
 
-生成纪念册时会轻轻问一次：「下个周年纪念日前 7 天，想在微信里收到提醒吗？」——同一个周年只问一次，拒绝过也不再弹。开启后，`reminders` 集合里会存一条计划，云函数 `reminderSend` 每天上午 9 点检查，提前 7 天下发订阅消息。
+生成纪念册时会轻轻问一次：「下个周年纪念日前 7 天，想在微信里收到提醒吗？」——同一个周年只问一次，拒绝过也不再弹。询问用的是**自制弹层**而不是原生 `showModal`：`wx.requestSubscribeMessage` 必须由用户点击（TAP）同步发起，modal 的确认按钮不算页面手势，真机上弹不出「允许通知」的授权面板。开启后，`reminders` 集合里会存一条计划，云函数 `reminderSend` 每天上午 9 点检查，提前 7 天下发订阅消息。
 
 接上线需要三步（都做完通知才会真的到达）：
 

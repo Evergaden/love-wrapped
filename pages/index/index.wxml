@@ -423,4 +423,18 @@
     <text class="count-line">会生成 {{slideCount}} 页</text>
     <view class="btn btn-primary {{canOpen ? '' : 'dim'}}" hover-class="pressed" bindtap="onGenerate">生成纪念册</view>
   </view>
+
+  <!-- 周年提醒：自制弹层。requestSubscribeMessage 必须由用户 TAP 同步触发，
+       原生 showModal 的确认按钮不算页面手势，真机弹不出授权，所以换掉它。 -->
+  <view class="remind-mask" wx:if="{{remindAsk}}" bindtap="onReminderDecline" catchtouchmove="noop">
+    <view class="remind-card" catchtap="noop">
+      <text class="remind-title">{{remindAsk.title}}</text>
+      <text class="remind-body">{{remindAsk.body}}</text>
+      <text class="remind-hint" wx:if="{{remindAsk.hint}}">{{remindAsk.hint}}</text>
+      <view class="remind-btns">
+        <button class="remind-btn remind-btn-no" hover-class="pressed" bindtap="onReminderDecline">先不</button>
+        <button class="remind-btn remind-btn-yes" hover-class="pressed" bindtap="onReminderAgree">好呀</button>
+      </view>
+    </view>
+  </view>
 </view>

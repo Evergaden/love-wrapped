@@ -828,3 +828,84 @@
   text-decoration: underline;
   opacity: 0.75;
 }
+
+/* —— 周年提醒自制弹层。requestSubscribeMessage 要由用户 TAP 同步发起，
+   showModal 的确认不算手势，真机弹不出授权，所以换成页面按钮。 —— */
+.remind-mask {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 60rpx;
+  background: rgba(45, 27, 36, 0.32);
+}
+
+.remind-card {
+  width: 100%;
+  padding: 48rpx 44rpx 40rpx;
+  background: #FFFFFF;
+  border-radius: 36rpx;
+  box-shadow: 0 24rpx 60rpx rgba(45, 27, 36, 0.18);
+}
+
+.remind-title {
+  display: block;
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #2D1B24;
+}
+
+.remind-body {
+  display: block;
+  margin-top: 22rpx;
+  text-align: center;
+  font-size: 28rpx;
+  line-height: 1.7;
+  color: rgba(45, 27, 36, 0.72);
+}
+
+.remind-hint {
+  display: block;
+  margin-top: 10rpx;
+  text-align: center;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: rgba(45, 27, 36, 0.45);
+}
+
+.remind-btns {
+  display: flex;
+  margin-top: 40rpx;
+}
+
+.remind-btn {
+  flex: 1;
+  height: 84rpx;
+  line-height: 84rpx;
+  margin: 0;
+  padding: 0;
+  font-size: 30rpx;
+  border: none;
+  border-radius: 999rpx;
+}
+
+.remind-btn::after {
+  border: none;
+}
+
+.remind-btn-no {
+  margin-right: 20rpx;
+  background: rgba(45, 27, 36, 0.06);
+  color: rgba(45, 27, 36, 0.6);
+}
+
+.remind-btn-yes {
+  background: #FF8FAB;
+  color: #FFFFFF;
+}

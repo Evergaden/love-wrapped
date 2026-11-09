@@ -78,7 +78,8 @@ Page({
     appName: brand.APP_NAME,
     theme: themes.DEFAULT,
     themeList: themes.pickerList(),
-    accentColor: themes.THEMES[themes.DEFAULT].kicker
+    accentColor: themes.THEMES[themes.DEFAULT].kicker,
+    remindAsk: null
   },
 
   onLoad() {
@@ -489,51 +490,81 @@ Page({
   },
 
   // 生成纪念册时，轻轻问一句：下个周年纪念日前 7 天，要不要微信提醒？
-  // 每个周年只问一次；用户拒绝过也不再弹。真正的下发在云函数 reminderSend。
+  // 每个周年只问一次；拒绝过也不再弹。真正的下发在云函数 reminderSend。
+  // 注意：requestSubscribeMessage 必须由用户点击（TAP）同步发起——
+  // 原生 showModal 的「好呀」不算页面手势，真机上弹不出授权面板，
+  // 所以这里换成自制弹层，让「好呀」是一个真正的 bindtap。
   maybeAskReminder(form, done) {
     const ann = record.nextAnniversary(form.togetherDate)
-    if (!ann) return done()
+    if (!ann) { done(); return }
     const rec = storage.loadReminder()
-    // 同一个周年已经处理过（无论开没开），就不再问。
-    if (rec && rec.anniversary === ann.date) return done()
     const tmpl = cloud.reminderTemplateId()
-    wx.showModal({
-      title: '周年提醒',
-      content: '下个周年（' + ann.date.replace(/-/g, '.') + '）前 7 天，想在微信里收到提醒吗？',
-      confirmText: '好呀',
-      cancelText: '先不',
-      success(res) {
-        if (!res.confirm) {
-          storage.saveReminder({ anniversary: ann.date, years: ann.years, enabled: false, askedAt: Date.now() })
-          wx.showToast({ title: '好的，想开随时回来', icon: 'none' })
-          return done()
-        }
-        if (!tmpl) {
-          // 模板还没申请：先记下意愿，等接入后下次生成会再问一次授权。
-          storage.saveReminder({ anniversary: ann.date, years: ann.years, enabled: true, subscribed: false, askedAt: Date.now() })
-          cloud.saveReminderPlan({ anniversary: ann.date, years: ann.years, togetherDate: form.togetherDate, nicknames: form.myNickname + ' 和 ' + form.theirNickname, enabled: true, subscribed: false })
-          wx.showToast({ title: '已记下这个日子', icon: 'none' })
-          return done()
-        }
-        wx.requestSubscribeMessage({
-          tmplIds: [tmpl],
-          success(sub) {
-            const accepted = sub[tmpl] === 'accept'
-            storage.saveReminder({ anniversary: ann.date, years: ann.years, enabled: accepted, subscribed: accepted, askedAt: Date.now() })
-            cloud.saveReminderPlan({ anniversary: ann.date, years: ann.years, togetherDate: form.togetherDate, nicknames: form.myNickname + ' 和 ' + form.theirNickname, enabled: accepted, subscribed: accepted })
-            wx.showToast({ title: accepted ? '提醒已开启' : '好的，随时可以再开', icon: 'none' })
-            done()
-          },
-          fail() {
-            // 用户关掉了授权面板：当次不记「拒绝」，下次生成再问。
-            done()
-          }
-        })
+    // 同一个周年：已订阅 / 明确拒绝过 / 模板没接时已经记过意愿，就不再打扰。
+    const noted = rec && rec.anniversary === ann.date
+    if (noted && (rec.subscribed || rec.declined || (rec.enabled && !rec.subscribed && !tmpl))) {
+      done()
+      return
+    }
+    this.setData({
+      remindAsk: {
+        title: '周年提醒',
+        body: '下个周年（' + ann.date.replace(/-/g, '.') + '）前 7 天，想在微信里收到提醒吗？',
+        hint: tmpl ? '' : '微信提醒还在准备中，先帮你记下这个日子',
+        anniversary: ann.date,
+        years: ann.years,
+        togetherDate: form.togetherDate,
+        nicknames: (form.myNickname || '') + ' 和 ' + (form.theirNickname || '')
+      }
+    })
+    this._remindDone = done
+  },
+
+  onReminderAgree() {
+    // 关键：requestSubscribeMessage 必须在 bindtap 的同步调用栈里直接调，
+    // 不能等任何异步回调，真机才会弹「允许通知」的授权面板。
+    const ask = this.data.remindAsk
+    const done = this._remindDone
+    if (!ask) return
+    this.setData({ remindAsk: null })
+    this._remindDone = null
+    const save = (enabled, subscribed) => {
+      storage.saveReminder({ anniversary: ask.anniversary, years: ask.years, enabled: enabled, subscribed: subscribed, declined: !enabled, askedAt: Date.now() })
+      cloud.saveReminderPlan({ anniversary: ask.anniversary, years: ask.years, togetherDate: ask.togetherDate, nicknames: ask.nicknames, enabled: enabled, subscribed: subscribed })
+    }
+    const tmpl = cloud.reminderTemplateId()
+    if (!tmpl) {
+      // 模板还没申请：只记意愿；接入后下次生成会再问一次授权。
+      save(true, false)
+      wx.showToast({ title: '已记下这个日子', icon: 'none' })
+      done()
+      return
+    }
+    wx.requestSubscribeMessage({
+      tmplIds: [tmpl],
+      success(sub) {
+        const accepted = sub && sub[tmpl] === 'accept'
+        save(accepted, accepted)
+        wx.showToast({ title: accepted ? '提醒已开启' : '好的，随时可以再开', icon: 'none' })
+        done()
       },
       fail() {
+        // 面板被系统或「总是保持以上选择」拦截：当次不记拒绝，下次生成再问。
         done()
       }
     })
-  }
+  },
+
+  onReminderDecline() {
+    const ask = this.data.remindAsk
+    const done = this._remindDone
+    if (!ask) return
+    storage.saveReminder({ anniversary: ask.anniversary, years: ask.years, enabled: false, declined: true, askedAt: Date.now() })
+    this.setData({ remindAsk: null })
+    this._remindDone = null
+    wx.showToast({ title: '好的，想开随时回来', icon: 'none' })
+    if (done) done()
+  },
+
+  noop() {}
 })
 
