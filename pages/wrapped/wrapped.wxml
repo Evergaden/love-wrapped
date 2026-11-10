@@ -23,13 +23,13 @@
     <view class="mesh mesh-1" style="background-image: {{emptyMeshStyle}}"></view>
     <view class="mesh amb-lower" style="background-image: {{emptyLowerStyle}}"></view>
     <view class="bloom"></view>
-    <view class="empty-inner">
+    <view class="empty-inner fetch-wait">
       <view class="fetch-dots">
         <text class="fetch-dot d1">♥</text>
         <text class="fetch-dot d2">♥</text>
         <text class="fetch-dot d3">♥</text>
       </view>
-      <text class="fetch-text">正在取回礼物…</text>
+      <text class="fetch-text">礼物正在来的路上，稍等一下…</text>
     </view>
   </view>
 
@@ -58,14 +58,14 @@
         </view>
         <view class="env-shadow"></view>
       </view>
-      <view class="card">
+      <view class="card gift-wait-card">
         <view class="hairline"></view>
         <view class="kicker-row">
           <view class="kicker-bar"></view>
           <text class="kicker">{{appName}}</text>
         </view>
         <text class="title title-lg">正在拆开这册纪念册…</text>
-        <text class="body">TA 写的字正在路上。</text>
+        <text class="body">TA 写下的字正在路上，稍微等一下。</text>
       </view>
     </view>
   </view>
@@ -81,6 +81,9 @@
       <text class="splash-heart h3">♥</text>
     </view>
     <view class="splash-inner">
+      <view class="kicker-row">
+        <text class="kicker">{{appName}}</text>
+      </view>
       <text class="splash-title">{{giftSplashTitle}}</text>
       <text class="splash-sub">来自 {{giftFrom}} 的一册纪念册</text>
       <text class="splash-date" wx:if="{{giftDateText}}">{{giftDateText}}</text>
@@ -109,7 +112,23 @@
   </view>
 
   <block wx:else>
+    <!-- 书架翻看：这一册还在从云端来的路上。 -->
+    <view class="empty" wx:if="{{viewer && !slides.length}}">
+      <view class="mesh mesh-1" style="background-image: {{emptyMeshStyle}}"></view>
+      <view class="mesh amb-lower" style="background-image: {{emptyLowerStyle}}"></view>
+      <view class="bloom"></view>
+      <view class="empty-inner fetch-wait">
+        <view class="fetch-dots">
+          <text class="fetch-dot d1">♥</text>
+          <text class="fetch-dot d2">♥</text>
+          <text class="fetch-dot d3">♥</text>
+        </view>
+        <text class="fetch-text">正在翻这一册…</text>
+      </view>
+    </view>
+
     <swiper
+      wx:if="{{slides.length}}"
       class="swiper"
       style="height: {{swiperHeight}}px;"
       duration="320"
@@ -311,7 +330,8 @@
       </swiper-item>
     </swiper>
 
-    <view class="dock">
+    <!-- 翻看的册子还没取回来时整个 dock 先不出现：页码会是 1 / 0，分享还会落错册子。 -->
+    <view class="dock" wx:if="{{!viewer || slides.length}}">
       <view class="pager-row">
         <view class="dots">
           <view
@@ -325,8 +345,8 @@
           <text class="pager">{{current + 1}} / {{slides.length}}</text>
         </view>
       </view>
-      <!-- 配色只给作者用：收礼的人看 TA 选好的配色，不换。 -->
-      <view class="theme-row" wx:if="{{!gift}}">
+      <!-- 配色只给作者用：收礼的人看 TA 选好的配色，翻看的人也不写本机主题。 -->
+      <view class="theme-row" wx:if="{{!gift && !viewer}}">
         <text class="theme-row-label">配色</text>
         <view class="theme-dots">
           <view
@@ -345,12 +365,12 @@
         <view class="btn btn-ghost" hover-class="pressed" bindtap="onExportChoose">导出</view>
         <button class="btn btn-share" hover-class="pressedShare" bindtap="onOpenShareSheet" aria-role="button">分享给 TA</button>
       </view>
-      <!-- 礼物视角：这册是 TA 写的。收进自己的历史，或者自己去做一本。 -->
+      <!-- 礼物视角：这册是 TA 写的。收进自己的书架，或者自己去做一本。 -->
       <view class="dock-tip gift-tip" wx:if="{{gift}}">
         <text>这册纪念册是 TA 写给你的。</text>
         <view class="gift-cta-row">
-          <text class="gift-cta" wx:if="{{!giftSaved}}" hover-class="pressed" bindtap="onSaveGift" aria-role="button">收进我的历史</text>
-          <text class="gift-cta gift-cta-done" wx:else>已收进历史 ✓</text>
+          <text class="gift-cta" wx:if="{{!giftSaved}}" hover-class="pressed" bindtap="onSaveGift" aria-role="button">收进我的书架</text>
+          <text class="gift-cta gift-cta-done" wx:else>已收进书架 ✓</text>
           <text class="gift-cta gift-cta-quiet" hover-class="pressed" bindtap="onGoFill" aria-role="button">我也去做一本 →</text>
         </view>
       </view>
@@ -416,6 +436,10 @@
       >{{chip}}</view>
     </view>
     <button class="share-go" open-type="share">发给 TA</button>
+    <!-- 朋友圈没有主动拉起的接口，入口只住在右上角胶囊菜单里。温柔提一句，免得有人找不到。 -->
+    <view class="share-timeline">
+      <text class="share-timeline-text">也想发朋友圈的话：点右上角「<text class="share-timeline-dots">···</text>」，再选「分享到朋友圈」，就能让更多人看到这本册子。</text>
+    </view>
     <view class="share-cancel" bindtap="onCloseShareSheet" aria-role="button">取消</view>
   </view>
 </view>

@@ -82,6 +82,21 @@
   padding: 0 32rpx;
 }
 
+/* 回书架的小入口：一直安安静静待在左上角。 */
+.nav-back {
+  flex: none;
+  margin-right: 22rpx;
+  padding: 8rpx 22rpx 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 0 0 2rpx rgba(255, 194, 209, 0.55);
+}
+
+.nav-back-text {
+  font-size: 24rpx;
+  color: rgba(45, 27, 36, 0.62);
+}
+
 .nav-title {
   font-size: 28rpx;
   font-weight: 600;

@@ -1,0 +1,79 @@
+<view class="page theme-{{theme}}" style="background: {{themeBg}}">
+  <!-- 弥散底：和填写页同一层会流动的光，铺在整页上，颜色由 themes.js 算好内联。 -->
+  <view class="ambient">
+    <view class="mesh mesh-1" style="background-image: {{ambientMesh}}"></view>
+    <view class="mesh amb-lower" style="background-image: {{ambientLower}}"></view>
+    <view class="bloom"></view>
+    <view class="amb-fade" style="background: {{ambientFade}}"></view>
+  </view>
+
+  <view class="wrap">
+    <view class="head">
+      <view class="head-row">
+        <view class="head-main">
+          <view class="eyebrow-row">
+            <view class="eyebrow-dot"></view>
+            <text class="eyebrow">写给你们的小册子</text>
+          </view>
+          <text class="page-title">你们的小书架</text>
+        </view>
+        <view class="me-entry" hover-class="pressed" bindtap="onProfile" aria-role="button" aria-label="我的">
+          <view class="me-entry-icon"></view>
+          <text class="me-entry-text">我的</text>
+        </view>
+      </view>
+      <text class="page-sub">写好一本收一本，都在这里。</text>
+    </view>
+
+    <!-- 书架：一本一本立着的封面，写了一半的排第一。 -->
+    <view class="shelf-grid" wx:if="{{shelfItems.length}}">
+      <view
+        class="book-cover {{item.draft ? 'is-draft' : ''}}"
+        wx:for="{{shelfItems}}"
+        wx:key="id"
+        style="background: {{item.coverBg}}"
+        hover-class="pressed"
+        bindtap="onCoverTap"
+        data-id="{{item.id}}"
+        data-draft="{{item.draft ? 1 : ''}}"
+        aria-role="button"
+      >
+        <view class="spine"></view>
+        <view class="cover-tag" wx:if="{{item.tagText}}"><text class="cover-tag-text">{{item.tagText}}</text></view>
+        <text class="cover-title">{{item.title}}</text>
+        <text class="cover-date" wx:if="{{item.dateText}}">{{item.dateText}}</text>
+        <view class="cover-foot">
+          <text class="cover-state">{{item.draft ? (item.canOpen ? '可以生成啦' : '写了一半') : (item.gift ? '收下的' : '收于 ' + item.timeText)}}</text>
+          <text class="cover-load" wx:if="{{!item.draft}}" hover-class="pressed" catchtap="onReloadBook" data-id="{{item.id}}">载回</text>
+        </view>
+      </view>
+    </view>
+
+    <text class="soft-error" wx:if="{{softError}}">{{softError}}</text>
+
+    <!-- 云端还没回音：先让书架陪着你。 -->
+    <view class="empty" wx:if="{{state === 'loading' && !slow}}">
+      <text class="empty-text">正在翻书架…</text>
+    </view>
+
+    <!-- 第一次来 / 书架空空：一句温柔的引导，新写一本的按钮就在下面。 -->
+    <view class="guide" wx:if="{{showGuide}}">
+      <text class="guide-title">这里以后摆你们的小册子</text>
+      <text class="guide-text">写下两个名字和一些小事，第一本就长出来了。</text>
+    </view>
+
+    <!-- 有草稿但云端还没收过册子：轻声说一句去处。 -->
+    <text class="hint" wx:if="{{hasDraft && !books.length && state === 'ok'}}">写完点「生成纪念册」，它就会自动收进这个书架。</text>
+    <view class="quiet-row" wx:if="{{books.length && state === 'ok'}}">
+      <view class="quiet" hover-class="pressed" bindtap="onManage" aria-role="button">管理这些册子 ›</view>
+    </view>
+  </view>
+
+  <!-- 最显眼的一颗：新写一本。 -->
+  <view class="fab-row">
+    <view class="fab" hover-class="pressed" bindtap="onStart" aria-role="button" aria-label="新写一本">
+      <text class="fab-plus">＋</text>
+      <text class="fab-text">新写一本</text>
+    </view>
+  </view>
+</view>

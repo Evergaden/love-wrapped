@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/shelf/shelf",
     "pages/index/index",
     "pages/wrapped/wrapped",
     "pages/profile/profile",

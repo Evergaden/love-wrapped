@@ -218,7 +218,7 @@ Page({
     if (!record.canGenerate(form)) {
       return {
         title: brand.SHARE_TITLE,
-        path: '/pages/index/index'
+        path: '/pages/shelf/shelf'
       }
     }
     // 之前预热时已经拿到过令牌：直接同步返回，不等云端。
@@ -239,7 +239,7 @@ Page({
       console.warn('[share] 令牌没拿到，退回普通卡片。原因：', res.error || '云端不可用')
       return {
         title: brand.SHARE_TITLE,
-        path: '/pages/index/index'
+        path: '/pages/shelf/shelf'
       }
     })
   },
@@ -450,6 +450,16 @@ Page({
     wx.navigateTo({ url: '/pages/profile/profile' })
   },
 
+  // 回书架：身后就是书架就退回去；从分享卡冷启动直达这一页时
+  // 身后没有页，整个落回书架。
+  goShelf() {
+    if (getCurrentPages().length > 1) {
+      wx.navigateBack({ fail() { wx.reLaunch({ url: '/pages/shelf/shelf' }) } })
+      return
+    }
+    wx.reLaunch({ url: '/pages/shelf/shelf' })
+  },
+
   onGenerate() {
     if (!record.canGenerate(this.data.form)) {
       this.setData({ errorHint: '先写下两个昵称，再选在一起的日子。' })
@@ -488,11 +498,17 @@ Page({
       this.setData({ form })
     }
     storage.saveAnswers(form)
-    // 云端快照：开通云开发时，把这一册存一份到「历史记录」。
+    // 云端快照：开通云开发时，把这一册存一份到书架。
     // 异步且不阻塞翻册子；没开通云开发时安静跳过。
     cloud.saveBook(form).then((res) => {
       if (res && res.error) {
         console.warn('[cloud] 快照没有存上：' + res.error)
+        return
+      }
+      // 收进书架的轻提示：周年提醒的自制弹层在场时就不打扰了，
+      // 省得两条提示顶来顶去；书架反正已经存上。
+      if (res && res.ok && !this.data.remindAsk) {
+        wx.showToast({ title: '已收进我的书架', icon: 'none' })
       }
     })
     // 分享令牌提前备好：点「分享给 TA」时链接不用等云端。

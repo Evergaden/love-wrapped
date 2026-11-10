@@ -2,12 +2,13 @@
 // 用订阅消息发给对应的用户。
 //
 // 数据：reminders 集合（客户端写入，_openid 微信自动带上）。
-//   { _openid, anniversary: '2027-05-20', nicknames: '小熊 和 阿树',
-//     enabled: true, subscribed: true, lastNotifiedFor: '' }
+//   { _openid, anniversary: '2027-05-20', years: 4, togetherDate: '2023-05-20',
+//     nicknames: '小熊 和 阿树', enabled: true, subscribed: true, lastNotifiedFor: '' }
 //
 // 模板：「纪念日提醒」（mp 后台已申请，类目信息查询），字段
-//   thing1 纪念日名称（发昵称们）/ time2 日期（时间型）/ thing3 备注（寄语）。
-// 注意：日期是 time 型字段，要求「日期 + 时刻」格式，只发 YYYY-MM-DD 会报 47003。
+//   thing1 纪念日名称（从 years 派生的标题）/ time2 日期 / thing3 备注（提醒文案）。
+// 注意：time2 是 time 型字段，官方要求「日期 + 时刻」，这里按产品要求只发日期，
+// 真机若报 47003 的回退办法写在 timeFor 的注释里。
 // 模板 ID 放在本函数的环境变量 REMINDER_TEMPLATE_ID 里
 // （云开发控制台 → 函数配置 → 环境变量），不写死在代码里。
 //
@@ -26,11 +27,35 @@ function ymd(date) {
   return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
 }
 
-// 订阅消息的 time 型字段要「日期 + 时刻」：把纪念日展开成当天上午 9 点。
+// 纪念日没有让用户起名，标题从 years 派生（派生规则）：
+//   years 存的是「马上要迎来的第几年」，thing1 固定写成「第 N 个纪念日」，
+//   例：years = 4 → 「第 4 个纪念日」。
+//   老计划万一没存 years，就用 togetherDate → anniversary 补算：
+//   anniversary 比 togetherDate 晚几个整年，就是第几年。两条路都不通返回 null，
+//   调用处退回不带数字的说法，别把「第 undefined 个纪念日」发出去。
+function yearsOf(doc) {
+  const n = Number(doc.years)
+  if (Number.isInteger(n) && n > 0) return n
+  const from = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(doc.togetherDate || ''))
+  const to = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(doc.anniversary || ''))
+  if (from && to) {
+    const md = (m) => Number(m[2]) * 100 + Number(m[3])
+    const y = Number(to[1]) - Number(from[1]) - (md(to) < md(from) ? 1 : 0)
+    if (y > 0) return y
+  }
+  return null
+}
+
+// time2 按产品要求只发日期（例：2027年5月20日），不带时刻。
+// 注意：time 型字段官方要求「日期 + 时刻」（例：2027年5月20日 09:00），
+// 日期-only 真机下发可能报 47003（时间格式不合法）。
+// 回退办法：若真机报 47003，把下面的「return cn」改回「return cn + ' 09:00'」，
+// 恢复成「日期 + 09:00」的完整格式即可。
 function timeFor(ymdStr) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(ymdStr || ''))
   if (!m) return String(ymdStr || '')
-  return Number(m[1]) + '年' + Number(m[2]) + '月' + Number(m[3]) + '日 09:00'
+  const cn = Number(m[1]) + '年' + Number(m[2]) + '月' + Number(m[3]) + '日'
+  return cn
 }
 
 // reminders 集合第一次用时会自动创建，之后忽略报错。
@@ -68,14 +93,23 @@ exports.main = async () => {
       continue
     }
     try {
+      // thing1 标题：有年数就是「第 N 个纪念日」，没有就退回「你们的纪念日」。
+      // thing3 文案：「还有一周就是你们的第N年，备好惊喜吧」（N = years）。
+      //   thing 字段上限 20 字：按用户原话「…为TA准备个惊喜吧」是 22 字会被截断，
+      //   所以收成「备好惊喜吧」——N 两位数时全句也刚好 19 字，不再触发 clip。
+      const n = yearsOf(doc)
+      const title = n ? '第 ' + n + ' 个纪念日' : '你们的纪念日'
+      const remark = n
+        ? '还有一周就是你们的第' + n + '年，备好惊喜吧'
+        : '还有一周就是你们的纪念日，备好惊喜吧'
       await cloud.openapi.subscribeMessage.send({
         touser: doc._openid,
         templateId: TEMPLATE_ID,
         page: PAGE,
         data: {
-          thing1: { value: clip(doc.nicknames, 20) },
+          thing1: { value: clip(title, 20) },
           time2: { value: timeFor(doc.anniversary) },
-          thing3: { value: '还有 7 天，回来翻翻这一册吧' }
+          thing3: { value: clip(remark, 20) }
         }
       })
       sent++

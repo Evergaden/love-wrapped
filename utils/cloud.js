@@ -127,6 +127,39 @@ function listBooks() {
   })
 }
 
+// 按编号取一册。书架点开某一册时用；集合权限「仅创建者可读写」，
+// 自己的册子自己取得到，别人的册子取回来是空的。
+// 字段口径与 listBooks 保持一致。resolve { ok, book } 或 { ok:false, error }，永不 reject。
+function getBook(id) {
+  return new Promise((resolve) => {
+    if (!init()) {
+      resolve({ ok: false, error: '这台设备的微信版本太低，用不了云同步' })
+      return
+    }
+    db().collection(BOOKS_COLLECTION).doc(String(id || ''))
+      .get()
+      .then((res) => {
+        const row = res && res.data
+        if (!row || !row._id) {
+          resolve({ ok: false, error: '这一册找不到了' })
+          return
+        }
+        resolve({
+          ok: true,
+          book: {
+            id: row._id,
+            title: row.title || '一本小册子',
+            togetherDate: row.togetherDate || '',
+            answers: row.answers || {},
+            source: row.source === 'gift' ? 'gift' : 'mine',
+            updatedAt: row.updatedAt || row.createdAt || ''
+          }
+        })
+      })
+      .catch((err) => resolve({ ok: false, error: explainError(err) }))
+  })
+}
+
 // 删除一册。返回 Promise<{ ok, error }>，永不 reject。
 function removeBook(id) {
   return new Promise((resolve) => {
@@ -279,6 +312,7 @@ module.exports = {
   init,
   saveBook,
   listBooks,
+  getBook,
   removeBook,
   checkConnection,
   checkContent,

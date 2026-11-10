@@ -1335,25 +1335,123 @@ function drawPostmark(ctx, right, bottom, text, color) {
   ctx.restore()
 }
 
-// 5:4 的分享封面。一封信的正面：
-//   左上——很淡的小心心
-//   中上——两个名字，横排，「和」用主题主色
-//   中下——一句正文
-//   右下——写册日期的戳
-// card: { nameA, nameB, title, line, meta, postmark, theme }
-function drawShareCard(ctx, w, h, card) {
-  const data = card || {}
-  const nameA = String(data.nameA || '')
-  const nameB = String(data.nameB || '')
-  const line = String(data.line || '')
-  const meta = String(data.meta || '')
-  const mark = String(data.postmark || '')
-  const theme = posterTheme(data.theme)
-  const kicker = String(data.title || brand.APP_NAME)
+// 两个名字排进一行的量法：字号从大到小试，塞不下就缩；
+// 「和」按名字字号折算，量出来的宽画的时候整行居中用。
+function planShareNames(ctx, nameA, nameB, maxW, maxSize, minSize, gap, bold) {
+  const andRatio = 0.54
+  const both = !!(nameA && nameB)
+  function measure(size) {
+    ctx.font = font(size, bold)
+    const aw = ctx.measureText(nameA).width
+    const bw = ctx.measureText(nameB).width
+    ctx.font = font(Math.round(size * andRatio), false)
+    const hw = ctx.measureText('和').width
+    return { size: size, aw: aw, bw: bw, hw: hw }
+  }
+  let m = measure(maxSize)
+  while (m.size > minSize) {
+    const total = m.aw + m.bw + (both ? m.hw + gap * 2 : 0)
+    if (total <= maxW) break
+    m = measure(m.size - 2)
+  }
+  m.andRatio = andRatio
+  m.gap = gap
+  return m
+}
 
-  ctx.save()
+// 大标题的排法：先试单行（字号不低于 56 才压得住场），
+// 单行放不下再拆成两行、字号收一收。最多两行，再长截断。
+function planShareHeadline(ctx, text, maxW) {
+  let size = 88
+  while (size >= 56) {
+    ctx.font = font(size, true)
+    if (ctx.measureText(text).width <= maxW) {
+      return { size: size, lines: [text] }
+    }
+    size -= 2
+  }
+  size = 64
+  while (size >= 38) {
+    ctx.font = font(size, true)
+    const lines = limitLines(wrapText(ctx, text, maxW), 2)
+    let fits = lines.length === 2
+    lines.forEach((ln) => {
+      if (ctx.measureText(ln).width > maxW) fits = false
+    })
+    if (fits) return { size: size, lines: lines }
+    size -= 2
+  }
+  ctx.font = font(38, true)
+  return { size: 38, lines: limitLines(wrapText(ctx, text, maxW), 2) }
+}
+
+// 一行「小A 和 小B」整体居中：名字当主角用大号墨色，
+// 「和」小一号、点主题主色，坐在名字脚边。
+function drawShareNamesBig(ctx, cx, top, nameA, nameB, plan, theme) {
+  const both = !!(nameA && nameB)
+  const andSize = Math.round(plan.size * plan.andRatio)
+  const total = plan.aw + plan.bw + (both ? plan.hw + plan.gap * 2 : 0)
+  let left = cx - total / 2
   ctx.textAlign = 'left'
   ctx.textBaseline = 'top'
+  ctx.fillStyle = theme.ink
+  ctx.font = font(plan.size, true)
+  if (nameA) ctx.fillText(nameA, left, top)
+  left += plan.aw + (both ? plan.gap : 0)
+  if (both) {
+    ctx.fillStyle = theme.roles.a
+    ctx.font = font(andSize, false)
+    ctx.fillText('和', left, top + Math.round(plan.size * 1.06) - andSize)
+    left += plan.hw + plan.gap
+    ctx.fillStyle = theme.ink
+    ctx.font = font(plan.size, true)
+  }
+  if (nameB) ctx.fillText(nameB, left, top)
+}
+
+// 有大标题时，两个名字退成一行小字居中带过，「和」还是点主题强调色。
+function drawShareNamesSmall(ctx, cx, top, nameA, nameB, plan, theme) {
+  const both = !!(nameA && nameB)
+  const andSize = Math.round(plan.size * plan.andRatio)
+  const total = plan.aw + plan.bw + (both ? plan.hw + plan.gap * 2 : 0)
+  let left = cx - total / 2
+  ctx.textAlign = 'left'
+  ctx.textBaseline = 'top'
+  ctx.font = font(plan.size, false)
+  ctx.fillStyle = rgba(theme.ink, 0.82)
+  if (nameA) ctx.fillText(nameA, left, top)
+  left += plan.aw + (both ? plan.gap : 0)
+  if (both) {
+    ctx.fillStyle = theme.kicker
+    ctx.font = font(andSize, false)
+    ctx.fillText('和', left, top + Math.round(plan.size * 1.06) - andSize)
+    left += plan.hw + plan.gap
+    ctx.font = font(plan.size, false)
+    ctx.fillStyle = rgba(theme.ink, 0.82)
+  }
+  if (nameB) ctx.fillText(nameB, left, top)
+}
+
+// 5:4 的分享封面。一封信的正面：
+//   左上一枚很淡的心，右下印上写册日期的戳。
+//   有自拟标题（比如「一周年快乐」）——标题当主角：
+//     两个名字小字居中带过，大标题压在正中，身后衬一团柔光。
+//   没有标题——两个名字当主角：同样的大字居中，身后同一团柔光。
+//   主角下面：一道居中的渐变短线、一句正文，轻轻收尾。
+// card: { nameA, nameB, headline, line, postmark, theme }
+function drawShareCard(ctx, w, h, card) {
+  const data = card || {}
+  // 昵称按纪念册自己的规矩最多留十个字，超长的兜底剪掉，保证一行排得下。
+  const nameA = clipText(String(data.nameA || ''), 10)
+  const nameB = clipText(String(data.nameB || ''), 10)
+  const line = String(data.line || '')
+  const mark = String(data.postmark || '')
+  const theme = posterTheme(data.theme)
+  let headline = Array.from(String(data.headline || '').trim()).slice(0, 24).join('')
+  // 名字和标题都空着时，至少把小册子的名字摆上去。
+  if (!headline && !nameA && !nameB) headline = brand.APP_NAME
+
+  ctx.save()
 
   // 纸底
   const bg = ctx.createLinearGradient(0, 0, 0, h)
@@ -1362,7 +1460,6 @@ function drawShareCard(ctx, w, h, card) {
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, w, h)
   drawMesh(ctx, w, h, 'mesh-1', theme)
-  ctx.restore()
 
   // 信纸
   const x = 46
@@ -1405,74 +1502,98 @@ function drawShareCard(ctx, w, h, card) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillText('♡', x + 76, y + 77)
-  ctx.textAlign = 'left'
-  ctx.textBaseline = 'top'
   ctx.restore()
 
-  // 分享者起的标题（比如「一周年快乐」）压在名字上方，居中。
-  const headline = Array.from(String(data.headline || '').trim()).slice(0, 24).join('')
-  const nameY = y + (headline ? 138 : 96)
+  // 正文区：四边留白，主角竖着居中，右下给日期戳让一块。
+  const padX = 60
+  const colW = cw - padX * 2
+  const cx = x + cw / 2
+  const areaTop = y + 48
+  const areaBottom = y + ch - 48 - (mark ? 24 : 0)
+  const areaH = Math.max(0, areaBottom - areaTop)
 
+  // 正文那一句，最多两行。
+  const bodySize = 28
+  let bodyLines = []
+  if (line) {
+    ctx.font = font(bodySize, false)
+    bodyLines = limitLines(wrapText(ctx, line, colW), 2)
+  }
+  const bodyH = Math.round(bodyLines.length * bodySize * 1.6)
+
+  // 先把版面量成几块，再决定从哪里下笔。
+  const blocks = []
+  let head = null
+  let bigNames = null
+  let smallNames = null
   if (headline) {
-    const hSize = fitLine(ctx, headline, cw - 120, 44, 24, true)
-    ctx.fillStyle = theme.kicker
-    ctx.font = font(hSize, true)
-    ctx.textAlign = 'center'
-    ctx.fillText(headline, x + cw / 2, y + 70)
-    ctx.textAlign = 'left'
+    head = planShareHeadline(ctx, headline, colW)
+    if (nameA || nameB) {
+      smallNames = planShareNames(ctx, nameA, nameB, colW, 30, 18, 8, false)
+      blocks.push({ type: 'namesSmall', h: Math.round(smallNames.size * 1.15) })
+    }
+    blocks.push({
+      type: 'headline',
+      h: Math.round(head.size * 1.22 * head.lines.length),
+      gap: smallNames ? 30 : 0
+    })
+    if (bodyLines.length) {
+      blocks.push({ type: 'divider', h: 3, gap: 38 })
+      blocks.push({ type: 'body', h: bodyH, gap: 30 })
+    }
+  } else {
+    bigNames = planShareNames(ctx, nameA, nameB, colW, 84, 22, 20, true)
+    blocks.push({ type: 'namesBig', h: Math.round(bigNames.size * 1.3) })
+    if (bodyLines.length) {
+      blocks.push({ type: 'divider', h: 3, gap: 42 })
+      blocks.push({ type: 'body', h: bodyH, gap: 32 })
+    }
   }
 
-  // 两个名字。「和」字号更小，颜色是粉的。
-  const textX = x + 66
-  const maxTextW = cw - 132
-  const andGap = 26
+  let totalH = 0
+  blocks.forEach((b, i) => {
+    totalH += (i > 0 ? b.gap || 0 : 0) + b.h
+  })
+  let cursor = areaTop + Math.max(0, Math.round((areaH - totalH) / 2))
 
-  let size = 72
-  let nameAW = 0
-  let nameBW = 0
-  let andW = 0
-  while (size > 32) {
-    ctx.font = font(size, true)
-    nameAW = ctx.measureText(nameA).width
-    nameBW = ctx.measureText(nameB).width
-    ctx.font = font(Math.round(size * 0.54), false)
-    andW = ctx.measureText('和').width
-    if (nameAW + nameBW + andW + andGap * 2 <= maxTextW) break
-    size -= 2
-  }
-
-  ctx.fillStyle = theme.ink
-  ctx.font = font(size, true)
+  ctx.save()
   ctx.textAlign = 'left'
   ctx.textBaseline = 'top'
-  ctx.fillText(nameA, textX, nameY)
-
-  const andSize = Math.round(size * 0.54)
-  const andX = textX + nameAW + andGap
-  const andY = nameY + Math.round(size * 1.16) - andSize
-  ctx.fillStyle = theme.roles.a
-  ctx.font = font(andSize, false)
-  ctx.fillText('和', andX, andY)
-
-  ctx.fillStyle = theme.ink
-  ctx.font = font(size, true)
-  ctx.fillText(nameB, andX + andW + andGap, nameY)
-
-  // 中间那句
-  if (line) {
-    ctx.font = font(30, false)
-    const bodyLines = limitLines(wrapText(ctx, line, maxTextW), 2)
-    drawLines(
-      ctx,
-      bodyLines,
-      textX,
-      nameY + Math.round(size * 1.30) + 18,
-      30,
-      rgba(theme.ink, 0.68),
-      false,
-      Math.round(30 * 1.62)
-    )
-  }
+  blocks.forEach((b, i) => {
+    if (i > 0) cursor += b.gap || 0
+    if (b.type === 'namesSmall') {
+      drawShareNamesSmall(ctx, cx, cursor, nameA, nameB, smallNames, theme)
+      cursor += b.h
+    } else if (b.type === 'headline') {
+      // 一团柔光垫在标题身后，大字才不显得浮在纸上。
+      drawTitleGlow(ctx, cx - Math.round(colW * 0.26), cursor - 22, colW, b.h + 44, theme)
+      ctx.fillStyle = theme.ink
+      ctx.font = font(head.size, true)
+      ctx.textAlign = 'center'
+      head.lines.forEach((ln) => {
+        ctx.fillText(ln, cx, cursor)
+        cursor += Math.round(head.size * 1.22)
+      })
+      ctx.textAlign = 'left'
+    } else if (b.type === 'namesBig') {
+      drawTitleGlow(ctx, cx - Math.round(colW * 0.26), cursor - 22, colW, b.h + 44, theme)
+      drawShareNamesBig(ctx, cx, cursor, nameA, nameB, bigNames, theme)
+      cursor += b.h
+    } else if (b.type === 'divider') {
+      drawDivider(ctx, w, cursor, theme)
+      cursor += b.h
+    } else if (b.type === 'body') {
+      ctx.fillStyle = rgba(theme.ink, 0.66)
+      ctx.font = font(bodySize, false)
+      ctx.textAlign = 'center'
+      bodyLines.forEach((ln) => {
+        ctx.fillText(ln, cx, cursor)
+        cursor += Math.round(bodySize * 1.6)
+      })
+      ctx.textAlign = 'left'
+    }
+  })
+  ctx.restore()
 
   // 右下角日期戳：写这一册的日子
   if (mark) {

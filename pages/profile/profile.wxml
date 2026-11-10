@@ -12,13 +12,14 @@
           hover-class="{{cloudState === 'error' ? 'pressed' : ''}}"
           bindtap="{{cloudState === 'error' ? 'onRetryCloud' : ''}}"
         >
-          <text wx:if="{{cloudState === 'checking'}}">检查中…</text>
-          <text wx:elif="{{cloudState === 'ok'}}">已连接</text>
+          <text wx:if="{{cloudState === 'checking'}}">看看云端…</text>
+          <text wx:elif="{{cloudState === 'ok'}}">已自动备份</text>
           <text wx:else>点我重试</text>
         </view>
       </view>
       <text class="card-body warn" wx:if="{{cloudState === 'error'}}">{{cloudError}}</text>
-      <text class="card-body" wx:elif="{{cloudState === 'checking'}}">正在确认云端的连接…</text>
+      <text class="card-body" wx:elif="{{cloudState === 'checking'}}">正在看一眼云端，马上就好。</text>
+      <text class="card-body" wx:elif="{{cloudState === 'ok'}}">写下的内容都悄悄替你备份着，换台手机也在。</text>
     </view>
 
     <!-- 周年提醒：可取消，可重新开启（重新开启是真正的点击手势，才能拉起授权） -->
@@ -45,16 +46,6 @@
         <text class="chev">›</text>
       </view>
       <text class="card-body">翻看之前写过的册子，可以载回填写页，也可以删掉。</text>
-    </view>
-
-    <!-- 草稿 -->
-    <view class="card">
-      <view class="card-head">
-        <text class="card-title">草稿</text>
-      </view>
-      <text class="card-body" wx:if="{{hasDraft}}">正在写：{{draftTitle}}</text>
-      <text class="card-body" wx:else>还没有写到一半的内容。</text>
-      <view class="ghost" hover-class="pressed" bindtap="onClearDraft" wx:if="{{hasDraft}}" aria-role="button">清空草稿</view>
     </view>
   </view>
 </view>

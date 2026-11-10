@@ -15,6 +15,13 @@ const font = require('../../utils/font')
 const poster = require('../../utils/poster')
 const privacy = require('../../utils/privacy')
 
+// 书架翻看：链接里带一册云端快照的编号。格式不对（链接被截断、被篡改）返回空串。
+function parseBookId(query) {
+  if (!query || typeof query !== 'object') return ''
+  const id = String(query.book || '').trim()
+  return /^[A-Za-z0-9_-]{1,64}$/.test(id) ? id : ''
+}
+
 function readWindow() {
   let info = { windowWidth: 375, windowHeight: 667, screenHeight: 667, pixelRatio: 2 }
   try {
@@ -51,6 +58,7 @@ function readWindow() {
 Page({
   data: {
     empty: false,
+    viewer: false,
     gift: false,
     giftSaved: false,
     giftState: '',
@@ -83,16 +91,21 @@ Page({
     const metrics = readWindow()
     // 礼物模式：链接里只有一枚令牌，答案要从云端凭令牌取回（异步）。
     const giftToken = gift.parseGiftToken(options)
+    // 书架翻看模式：链接里带一册云端快照的编号，凭编号取回这一册。
+    const bookId = parseBookId(options)
+    // 翻看模式不算「我的册子」：先不按本机草稿排页，免得草稿先闪一版。
+    const viewer = !!bookId && !giftToken
     const saved = storage.loadAnswers()
     const mineReady = !!(saved && record.canGenerate(saved))
     // 主题和答案都从本机读。缓存里没有或值不合法时，回到默认配色。
     const theme = themes.resolve(storage.loadTheme())
-    const slides = mineReady ? slidesUtil.buildSlides(saved, null, theme) : []
+    const slides = mineReady && !viewer ? slidesUtil.buildSlides(saved, null, theme) : []
     this.setData({
       windowHeight: metrics.windowHeight,
       swiperHeight: metrics.swiperHeight,
       pixelRatio: metrics.pixelRatio,
-      empty: !mineReady && !giftToken,
+      empty: !mineReady && !giftToken && !viewer,
+      viewer: viewer,
       slides: slides,
       current: 0,
       currentTheme: theme,
@@ -100,13 +113,20 @@ Page({
       emptyLowerStyle: themes.ambLowerImage(theme)
     })
     this.syncChrome(theme)
-    wx.showShareMenu({ menus: ['shareAppMessage'] })
+    // 朋友圈没有主动拉起的接口，入口只住在右上角胶囊菜单里：
+    // 两个菜单都先打开，右上角「···」里才见得到「分享到朋友圈」。
+    wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] })
     if (giftToken) {
       // 礼物模式：先落全屏封面（标题取到后填入），点「立即开启」才演拆信封。
       this.giftToken = giftToken
       this.giftFetching = true
       this.setData({ gift: true, giftState: 'splash', giftSplashTitle: '', giftFrom: '', giftDateText: '', giftFetching: true })
       this.loadGift(giftToken)
+      return
+    }
+    if (viewer) {
+      // 翻看模式：取回这一册再落页；本机草稿不预热分享，免得令牌里装错内容。
+      this.loadBook(bookId)
       return
     }
     // 分享封面在后台先画好，点「分享给 TA」时不用等。
@@ -155,6 +175,62 @@ Page({
         page.prepareShareImage(slides)
       })
     })
+  },
+
+  // 书架翻看：凭编号从云端取回一册，直接落进翻页视图。
+  // 这册不是本机草稿：分享预热也用它自己的内容，本机缓存一个字不碰。
+  loadBook(id) {
+    const page = this
+    cloud.getBook(id).then((res) => {
+      if (!page.data.viewer) return
+      if (!res.ok || !res.book) {
+        page.quitViewer('这一册暂时打不开，晚点再来看看')
+        return
+      }
+      const form = record.pickForm(res.book.answers)
+      if (!record.canGenerate(form)) {
+        page.quitViewer('这一册内容不全，先回书架歇一歇')
+        return
+      }
+      page.bookForm = form
+      const theme = page.data.currentTheme
+      const slides = slidesUtil.buildSlides(form, null, theme)
+      page.setData({
+        empty: false,
+        slides: slides,
+        current: 0,
+        pageIn: 0,
+        currentTheme: theme
+      }, () => {
+        page.syncChrome(theme)
+        page.measureDock()
+        page.prepareShareImage(slides)
+        // 分享令牌按这一册自己的内容提前备好；拿不到也不拦着翻看。
+        cloud.shareTokenFor(form, theme, '').then((r) => {
+          if (r.ok && page.data.viewer) page.shareToken = r.token
+        })
+      })
+    })
+  },
+
+  // 翻看失败：轻声说一句，退回书架。身后没有书架（复制路径直达）就整个落回去。
+  // viewer 标志等导航收尾再翻回来：中途那一下别让 dock 闪现。
+  quitViewer(toastText) {
+    const page = this
+    wx.showToast({ title: toastText, icon: 'none' })
+    setTimeout(() => {
+      if (getCurrentPages().length > 1) {
+        wx.navigateBack({
+          complete() { page.setData({ viewer: false }) },
+          fail() { wx.reLaunch({ url: '/pages/shelf/shelf' }) }
+        })
+      } else {
+        wx.reLaunch({
+          url: '/pages/shelf/shelf',
+          complete() { page.setData({ viewer: false }) }
+        })
+      }
+    }, 600)
   },
 
   onShow() {
@@ -208,7 +284,12 @@ Page({
   },
 
   warmShareToken() {
-    const form = record.normalize(storage.loadAnswers())
+    // 翻看模式下，分享的是正在看的这一册本身，不是本机草稿。
+    // 册子还没取回来时不预热：宁可分享时等一下，也不能把本机草稿的令牌发出去。
+    if (this.data.viewer && !this.bookForm) return
+    const form = this.data.viewer && this.bookForm
+      ? record.normalize(this.bookForm)
+      : record.normalize(storage.loadAnswers())
     if (!record.canGenerate(form)) return
     const title = String(this.data.shareTitleInput || '').trim()
     const page = this
@@ -249,8 +330,12 @@ Page({
       }
     }
     // 自己的纪念册：分享前云端备好令牌，链接里只有令牌。
-    // 分享者在面板里起的标题优先生效。
-    const saved = storage.loadAnswers()
+    // 翻看模式下分享的是正在看的这一册，不是本机草稿。
+    if (this.data.viewer && !this.bookForm) {
+      // 翻看的册子还没取回来：这时连分享对象都未定，先给一张不带内容的卡片。
+      return { title: brand.SHARE_TITLE, path: '/pages/shelf/shelf', imageUrl: imageUrl }
+    }
+    const saved = this.data.viewer && this.bookForm ? this.bookForm : storage.loadAnswers()
     if (saved && record.canGenerate(saved)) {
       const form = record.normalize(saved)
       // 自定义标题印在卡片图里；标题行保持品牌句。
@@ -270,18 +355,18 @@ Page({
             imageUrl: imageUrl
           }
         }
-        // 云不可用：退回一张普通卡片，不带内容。
+        // 云不可用：退回一张普通卡片，不带内容，落回书架。
         console.warn('[share] 令牌没拿到，退回普通卡片。原因：', res.error || '云端不可用')
         return {
           title: brand.SHARE_TITLE,
-          path: '/pages/index/index',
+          path: '/pages/shelf/shelf',
           imageUrl: imageUrl
         }
       })
     }
     return {
       title: this.data.shareTitle || brand.SHARE_TITLE,
-      path: '/pages/index/index',
+      path: '/pages/shelf/shelf',
       imageUrl: imageUrl
     }
   },
@@ -300,7 +385,8 @@ Page({
   onTapTheme(e) {
     const id = themes.resolve(e.currentTarget.dataset.id)
     if (id === this.data.currentTheme) return
-    if (!this.data.gift) storage.saveTheme(id)
+    // 翻看模式下换配色只是看一眼，不写进本机的主题缓存。
+    if (!this.data.gift && !this.data.viewer) storage.saveTheme(id)
     const slides = this.data.slides.map((slide) => slidesUtil.restyleSlide(slide, id))
     this.setData({
       currentTheme: id,
@@ -478,14 +564,14 @@ Page({
     }, 32)
   },
 
-  // 礼物视角：把 TA 写的这册收进自己的历史记录（云端），不动本机自己写的那一份。
-  // 收下的册子带 gift 标记，历史页里和自己的册子区分开。
+  // 礼物视角：把 TA 写的这册收进自己的书架（云端），不动本机自己写的那一份。
+  // 收下的册子带 gift 标记，书架里和自己的册子区分开。
   onSaveGift() {
     if (!this.giftForm || this.data.giftSaved) return
     const page = this
     wx.showModal({
-      title: '收进我的历史',
-      content: '会存进你自己的历史记录，随时翻看；不会动你自己写的那一份。',
+      title: '收进我的书架',
+      content: '会收进你自己的书架，随时翻看；不会动你自己写的那一份。',
       confirmText: '收下',
       cancelText: '先不',
       confirmColor: themes.THEMES[themes.resolve(this.data.currentTheme)].kicker,
@@ -494,7 +580,7 @@ Page({
         cloud.saveBook(page.giftForm, { source: 'gift' }).then((r) => {
           if (r.ok) {
             page.setData({ giftSaved: true })
-            wx.showToast({ title: '已收进历史记录', icon: 'none' })
+            wx.showToast({ title: '已收进我的书架', icon: 'none' })
           } else {
             wx.showToast({ title: (r.error || '云端暂时连不上') + '，稍后再收一次', icon: 'none' })
           }
@@ -521,7 +607,7 @@ Page({
       wx.navigateBack()
       return
     }
-    wx.redirectTo({ url: '/pages/index/index' })
+    wx.redirectTo({ url: '/pages/shelf/shelf' })
   },
 
   onUseSample() {

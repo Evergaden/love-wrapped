@@ -2,6 +2,9 @@
   <!-- 自定义导航栏：顶部透明，下滑渐变成毛玻璃，吸顶显示已写进度。 -->
   <view class="nav {{collapsed ? 'nav-solid' : ''}}" style="padding-top: {{statusBarH}}px">
     <view class="nav-row" style="height: {{navInnerH}}px; padding-right: {{capsulePad}}px">
+      <view class="nav-back" hover-class="pressed" bindtap="goShelf" aria-role="button" aria-label="回到书架">
+        <text class="nav-back-text">‹ 书架</text>
+      </view>
       <text class="nav-title" style="opacity: {{navTitleOpacity}}">{{appName}}</text>
       <view class="nav-progress" style="opacity: {{navProgressOpacity}}">
         <view class="nav-track">
@@ -115,7 +118,8 @@
       </view>
 
       <view class="field-block">
-        <text class="field-label">现在住的城市</text>
+        <text class="field-label">你们常住的城市</text>
+        <text class="field-help">就当是你们俩的家。去过的地方，会一块一块标出离它多远。</text>
         <input
           class="field"
           maxlength="12"
@@ -313,18 +317,20 @@
           </label>
         </radio-group>
         <view wx:if="{{form.distanceMode === 'ldr'}}" class="follow">
-          <text class="field-label">我在的城市</text>
+          <text class="field-label">我的城市</text>
+          <text class="field-help">异地这段日子，你人在的这一座。</text>
           <input
             class="field"
             maxlength="12"
-            placeholder="比如：杭州"
+            placeholder="比如：上海"
             placeholder-class="ph"
             cursor-spacing="80"
             value="{{form.myCity}}"
             data-key="myCity"
             bindinput="onInput"
           />
-          <text class="field-label">TA 在的城市</text>
+          <text class="field-label">TA 的城市</text>
+          <text class="field-help">TA 现在人所在的那一座。</text>
           <input
             class="field"
             maxlength="12"
