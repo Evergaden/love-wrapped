@@ -70,10 +70,7 @@ Page({
     const theme = themes.resolve(storage.loadTheme())
     this.setData({
       theme: theme,
-      themeBg: themes.pick(theme).bg,
-      ambientMesh: themes.meshImage(theme, 'mesh-1'),
-      ambientLower: themes.ambLowerImage(theme),
-      ambientFade: themes.ambFade(theme)
+      themeBg: themes.pick(theme).bg
     })
     this.loadDraft()
     this.refresh()
@@ -89,15 +86,13 @@ Page({
   },
 
   // 界面上几块的显隐都从状态推出来，这里集中算一次，wxml 里只看结果。
-  // 书架封面也在这里组：写了一半的排第一，收好的按收的顺序排，
-  // 封面底色用主题 tint 轮换，像不同封皮的书。
+  // 卡片底色在这里组：写了一半的排第一，收好的按收的顺序排，
+  // 每张卡一块柔和的 pastel 底，role 色轮换，像参考主页那样一卡一色。
   applyFlags(extra) {
     const d = Object.assign({}, this.data, extra || {})
     const settled = d.state !== 'loading' || d.slow
     const ROLES = ['a', 'b', 'c', 'd']
-    const coverBg = (role) =>
-      'linear-gradient(165deg, ' + themes.tint(d.theme, role, 0.42) + ' 0%, ' +
-      themes.tint(d.theme, role, 0.16) + ' 62%, rgba(255,255,255,0.9) 100%)'
+    const cardBg = (role) => themes.tint(d.theme, role, 0.14)
     const items = []
     if (d.draft) {
       items.push({
@@ -106,7 +101,7 @@ Page({
         title: d.draft.title,
         dateText: d.draft.dateText || '',
         tagText: '正在写',
-        coverBg: coverBg('a'),
+        cardBg: cardBg('a'),
         canOpen: d.draft.canOpen
       })
     }
@@ -116,7 +111,7 @@ Page({
         title: b.title,
         dateText: b.dateText || '',
         tagText: b.gift ? '收下的' : '',
-        coverBg: coverBg(ROLES[(i + 1) % ROLES.length]),
+        cardBg: cardBg(ROLES[(i + 1) % ROLES.length]),
         gift: b.gift,
         timeText: b.timeText
       })
