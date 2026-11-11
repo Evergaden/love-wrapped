@@ -35,6 +35,7 @@
       <view class="card-doodle">
         <view class="card-doodle-icon"></view>
       </view>
+      <view class="cell-arrow card-arrow"></view>
     </view>
 
     <text class="soft-error" wx:if="{{softError}}">{{softError}}</text>
@@ -52,7 +53,10 @@
 
     <text class="hint" wx:if="{{hasDraft && !books.length && state === 'ok'}}">写完点「生成纪念册」，它就会自动收进这个书架。</text>
     <view class="quiet-row" wx:if="{{books.length && state === 'ok'}}">
-      <view class="quiet" hover-class="pressed" bindtap="onManage" aria-role="button">管理这些册子 ›</view>
+      <view class="quiet" hover-class="pressed" bindtap="onManage" aria-role="button">
+        <text>管理这些册子</text>
+        <view class="cell-arrow quiet-arrow"></view>
+      </view>
     </view>
   </view>
 

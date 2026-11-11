@@ -76,7 +76,9 @@ function saveBook(form, options) {
     }
     const source = options && options.source === 'gift' ? 'gift' : 'mine'
     const payload = {
-      title: form.myNickname + ' · ' + form.theirNickname,
+      // options.shareTitle：分享时起的标题（如「一周年快乐」）——
+      // 带着标题分享过，书架上这一册的封皮就跟着改叫这个名字。
+      title: (options && options.shareTitle) || (form.myNickname + ' · ' + form.theirNickname),
       togetherDate: form.togetherDate,
       myNickname: form.myNickname,
       theirNickname: form.theirNickname,

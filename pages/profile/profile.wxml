@@ -43,7 +43,7 @@
     <view class="card link" hover-class="pressed" bindtap="goHistory" aria-role="button">
       <view class="card-head">
         <text class="card-title">历史记录</text>
-        <text class="chev">›</text>
+        <view class="cell-arrow"></view>
       </view>
       <text class="card-body">翻看之前写过的册子，可以载回填写页，也可以删掉。</text>
     </view>

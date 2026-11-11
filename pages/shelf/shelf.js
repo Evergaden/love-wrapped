@@ -43,6 +43,7 @@ function draftOf() {
   const touched = Object.keys(record.EMPTY).some((key) => String(form[key] || '').trim() !== '')
   if (!touched) return null
   return {
+    form: form,
     title: form.myNickname && form.theirNickname
       ? form.myNickname + ' · ' + form.theirNickname
       : '还没起名字的一本',
@@ -93,8 +94,13 @@ Page({
     const settled = d.state !== 'loading' || d.slow
     const ROLES = ['a', 'b', 'c', 'd']
     const cardBg = (role) => themes.tint(d.theme, role, 0.14)
+    // 草稿和云端某一册内容一模一样（生成过、没再改）：
+    // 只显示收好的那册，不再挂「正在写」的第二张卡。
+    const draftCollected = !!(d.draft && d.draft.form && (d.books || []).some((b) => {
+      return b.answers && JSON.stringify(record.normalize(b.answers)) === JSON.stringify(d.draft.form)
+    }))
     const items = []
-    if (d.draft) {
+    if (d.draft && !draftCollected) {
       items.push({
         id: 'draft',
         draft: true,

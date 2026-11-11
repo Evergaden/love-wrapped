@@ -199,9 +199,23 @@
 }
 
 .quiet {
+  display: flex;
+  align-items: center;
   font-size: 26rpx;
   color: rgba(45, 27, 36, 0.55);
   text-decoration: underline;
+}
+
+.quiet-arrow {
+  margin-left: 12rpx;
+}
+
+/* 卡片右侧的原生风格箭头：提示整卡可点。 */
+.card-arrow {
+  position: absolute;
+  right: 36rpx;
+  top: 50%;
+  margin-top: -8rpx;
 }
 
 .pressed {

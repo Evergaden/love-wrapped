@@ -295,6 +295,10 @@ Page({
     const page = this
     cloud.shareTokenFor(form, this.data.currentTheme, title).then((res) => {
       if (res.ok) page.shareToken = res.token
+      // 分享时起的标题也写到书架上那一册的封皮上，主页卡片跟着换名字。
+      if (res.ok && title && !page.data.viewer && !page.data.gift) {
+        cloud.saveBook(form, { shareTitle: title })
+      }
     })
     // 标题要印进卡片图：防抖重画，发送时图里已经是新标题。
     if (this.redrawTimer) clearTimeout(this.redrawTimer)
