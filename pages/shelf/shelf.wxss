@@ -208,23 +208,32 @@
   opacity: 0.7;
 }
 
-/* 左下角浮动胶囊：主页 / 我的，纯文字，学参考页的底部导航。 */
-.nav-pill {
+/* 底部悬浮栏：左边主页/我的胶囊，右边新写一本，同高对齐（学参考页的构图）。 */
+.bottom-bar {
   position: fixed;
   left: 44rpx;
+  right: 44rpx;
   bottom: calc(40rpx + env(safe-area-inset-bottom));
   z-index: 30;
   display: flex;
   align-items: center;
-  padding: 8rpx 12rpx;
+  justify-content: space-between;
+}
+
+/* 左下角浮动胶囊：主页 / 我的，纯文字，学参考页的底部导航。 */
+.nav-pill {
+  display: flex;
+  align-items: center;
+  height: 104rpx;
+  padding: 0 12rpx;
   border-radius: 999rpx;
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 16rpx 40rpx rgba(45, 27, 36, 0.16);
 }
 
 .nav-item {
-  padding: 14rpx 30rpx;
-  border-radius: 999rpx;
+  padding: 0 30rpx;
+  line-height: 104rpx;
   font-size: 28rpx;
   color: rgba(45, 27, 36, 0.5);
 }
@@ -236,10 +245,6 @@
 
 /* 最显眼的一颗：新写一本。悬浮在右下角，跟「问 AI」同一个位置。 */
 .fab {
-  position: fixed;
-  right: 44rpx;
-  bottom: calc(40rpx + env(safe-area-inset-bottom));
-  z-index: 30;
   height: 104rpx;
   padding: 0 44rpx;
   border-radius: 999rpx;
