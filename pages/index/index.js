@@ -12,6 +12,7 @@ const gift = require('../../utils/gift')
 const geo = require('../../utils/geo')
 const privacy = require('../../utils/privacy')
 const cloud = require('../../utils/cloud')
+const reminders = require('../../utils/reminders')
 
 // 拼图页最多放几块。
 const PLACE_CAP = 8
@@ -484,7 +485,8 @@ Page({
         })
         return
       }
-      // 检测通过 / 云不可用 / 接口异常（云函数已 fail-open）：照常生成。
+      // 检测通过：照常生成。检测服务暂时不可用时云端会返回 risky 拦下来（fail-closed），
+      // 弹层文案会提醒稍后再试，不会放行没检过的内容。
       this.finishGenerate(form)
     })
   },

@@ -215,8 +215,8 @@ function callFunction(name, data) {
 }
 
 // 生成前的内容安全检测：只在「点生成纪念册」时调一次，命中违规就让用户改。
-// 云不可用 / 检测接口异常时放行（云函数内部已 fail-open），不误伤正常用户。
-// 检测通过后分享链路不重复检测——分享令牌在生成时就备好了。
+// 云函数内部是 fail-closed：检测接口异常时也返回 risky，宁可让用户稍后再试，
+// 不放行没检过的内容。分享时云端 shareBook 还会把答案和卡片标题再复检一次。
 function checkContent(form) {
   if (!init()) return Promise.resolve({ ok: false, error: null, silent: true })
   return callFunction('contentCheck', { answers: form })
@@ -234,7 +234,9 @@ function shareTokenFor(form, theme, title) {
       resolve({ ok: false, error: null })
       return
     }
-    callFunction('shareBook', { answers: form, theme: theme || '' }).then((r) => {
+    // 卡片标题也一并传给云端：它是生成之后才输入的文本，
+    // shareBook 在落库前会把它和答案一起送 contentCheck 复检。
+    callFunction('shareBook', { answers: form, theme: theme || '', title: title || '' }).then((r) => {
       if (r.ok && r.token) {
         resolve({ ok: true, token: r.token })
       } else {
@@ -264,9 +266,9 @@ function fetchSharedBook(token) {
   })
 }
 
-// ---------- 周年提醒 ----------
+// ---------- 纪念日提醒（多节点） ----------
 // 订阅消息模板 ID：在 mp 后台「功能 → 订阅消息」申请后填进来。
-// 推荐模板字段：thing1 昵称们、date2 纪念日、thing3 寄语（类别选「日程提醒」）。
+// 模板字段：thing1 纪念日名称、time2 日期、thing3 备注（类目信息查询）。
 // 留空时，提醒询问只记下意愿，云端计划会标记为未订阅，定时函数不会下发。
 const REMINDER_TMPL_ID = 'FKHmUCrt7OZgbsElTatpf17YJp2958IBOyIbQ7RunI'
 
@@ -276,9 +278,19 @@ function reminderTemplateId() {
   return REMINDER_TMPL_ID
 }
 
-// 把提醒计划存进 reminders 集合。同一周年只留一份，重复开启走更新。
-// 集合权限「仅创建者可读写」：_openid 由微信自动写入，定时云函数以管理员身份
-// 读取全部计划并下发订阅消息。resolve { ok, error }，永不 reject。
+// 一个节点一条计划，同一个 kind 只留一份，重复开启走更新。
+// 老版本的结构没有 kind（只有 anniversary/togetherDate 的单周年记录），
+// 一起认出来，免得存出两条「在一起纪念日」。
+// plan: { kind, date(起点), nicknames, enabled, subscribed }
+function findPlanDoc(plan) {
+  return db().collection(REMINDERS_COLLECTION).limit(50).get().then((res) => {
+    return (res.data || []).find((row) => {
+      if (row.kind) return row.kind === plan.kind
+      return plan.kind === 'together' && (row.togetherDate === plan.date || row.anniversary)
+    }) || null
+  })
+}
+
 function saveReminderPlan(plan) {
   return new Promise((resolve) => {
     if (!init()) {
@@ -286,33 +298,84 @@ function saveReminderPlan(plan) {
       return
     }
     const payload = {
-      anniversary: plan.anniversary,
-      years: plan.years,
-      togetherDate: plan.togetherDate,
+      kind: plan.kind,
+      originDate: plan.date,
       nicknames: String(plan.nicknames || '').slice(0, 40),
       enabled: !!plan.enabled,
       subscribed: !!plan.subscribed,
       updatedAt: db().serverDate()
     }
-    db().collection(REMINDERS_COLLECTION)
-      .where({ anniversary: plan.anniversary })
-      .limit(1)
-      .get()
+    findPlanDoc(plan).then((old) => {
+      if (old && old._id) {
+        db().collection(REMINDERS_COLLECTION).doc(old._id).update({
+          data: payload
+        }).then(() => resolve({ ok: true, error: null }))
+          .catch((err) => resolve({ ok: false, error: explainError(err) }))
+      } else {
+        db().collection(REMINDERS_COLLECTION).add({
+          data: Object.assign({ createdAt: db().serverDate() }, payload)
+        }).then(() => resolve({ ok: true, error: null }))
+          .catch((err) => resolve({ ok: false, error: explainError(err) }))
+      }
+    }).catch((err) => resolve({ ok: false, error: explainError(err) }))
+  })
+}
+
+// 云端计划列表：我的页把订阅额度的真相并回本机（下发一次额度就没了，
+// 只有云端知道）。顺手把老结构补上 kind / originDate，之后按 kind 查就准了。
+// resolve { list: [{ kind, originDate, enabled, subscribed }], error }，永不 reject。
+function listReminderPlans() {
+  return new Promise((resolve) => {
+    if (!init()) {
+      resolve({ list: [], error: null, silent: true })
+      return
+    }
+    db().collection(REMINDERS_COLLECTION).limit(50).get()
       .then((res) => {
-        const old = res.data && res.data[0]
-        if (old && old._id) {
-          db().collection(REMINDERS_COLLECTION).doc(old._id).update({
-            data: payload
-          }).then(() => resolve({ ok: true, error: null }))
-            .catch((err) => resolve({ ok: false, error: explainError(err) }))
-        } else {
-          db().collection(REMINDERS_COLLECTION).add({
-            data: Object.assign({ createdAt: db().serverDate() }, payload)
-          }).then(() => resolve({ ok: true, error: null }))
-            .catch((err) => resolve({ ok: false, error: explainError(err) }))
-        }
+        const list = []
+        const fixes = []
+        ;(res.data || []).forEach((row) => {
+          const kind = row.kind || 'together'
+          const originDate = row.originDate || row.togetherDate || row.anniversary || ''
+          if (!row.kind || !row.originDate) {
+            fixes.push({ id: row._id, kind: kind, originDate: originDate })
+          }
+          list.push({
+            kind: kind,
+            originDate: originDate,
+            enabled: !!row.enabled,
+            subscribed: !!row.subscribed
+          })
+        })
+        // 老结构就地补齐字段（失败不打扰，下次再补）。
+        fixes.forEach((fix) => {
+          db().collection(REMINDERS_COLLECTION).doc(fix.id).update({
+            data: { kind: fix.kind, originDate: fix.originDate }
+          }).catch(() => {})
+        })
+        resolve({ list: list, error: null })
       })
-      .catch((err) => resolve({ ok: false, error: explainError(err) }))
+      .catch((err) => resolve({ list: [], error: explainError(err) }))
+  })
+}
+
+// 删掉一个节点的云端计划（「我的」页删除自定义日子时用）。
+// resolve { ok, error }，永不 reject。
+function removeReminderPlan(kind) {
+  return new Promise((resolve) => {
+    if (!init()) {
+      resolve({ ok: false, error: null, silent: true })
+      return
+    }
+    findPlanDoc({ kind: kind }).then((old) => {
+      if (!old || !old._id) {
+        resolve({ ok: true, error: null })
+        return
+      }
+      db().collection(REMINDERS_COLLECTION).doc(old._id).remove()
+        .then(() => resolve({ ok: true, error: null }))
+        .catch((err) => resolve({ ok: false, error: explainError(err) }))
+    }).catch((err) => resolve({ ok: false, error: explainError(err) }))
   })
 }
 
@@ -327,6 +390,8 @@ module.exports = {
   shareTokenFor,
   fetchSharedBook,
   reminderTemplateId,
-  saveReminderPlan
+  saveReminderPlan,
+  listReminderPlans,
+  removeReminderPlan
 }
 

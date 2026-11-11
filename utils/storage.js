@@ -94,25 +94,41 @@ function saveTheme(themeId) {
   }
 }
 
-// 周年提醒的本机记录：问过没有、开没开、针对哪个周年。
-// 只存意愿，真正的计划在云端 reminders 集合里。
-function loadReminder() {
+// 纪念日提醒的本机节点（多节点）：每个日子一条 { kind, date, enabled, subscribed,
+// declinedFor, askedFor }。只存意愿，真正的计划在云端 reminders 集合里。
+// 老版本只有一条周年记录（loveWrapped.reminder.v1），读到这里自动迁成
+// together 节点并把旧键清掉。
+function loadReminderNodes() {
   try {
-    const value = wx.getStorageSync(REMINDER_KEY)
-    if (!value || typeof value !== 'object') return null
-    return value
+    const value = wx.getStorageSync(REMINDERS_KEY)
+    if (value && Array.isArray(value.nodes)) return value.nodes
+    const old = wx.getStorageSync(REMINDER_KEY)
+    if (old && typeof old === 'object' && (old.togetherDate || old.anniversary)) {
+      const nodes = [{
+        kind: 'together',
+        date: old.togetherDate || old.anniversary,
+        enabled: !!old.enabled,
+        subscribed: !!old.subscribed,
+        declinedFor: old.declined ? String(old.anniversary || '') : '',
+        askedFor: String(old.anniversary || '')
+      }]
+      wx.setStorageSync(REMINDERS_KEY, { nodes: nodes })
+      wx.removeStorageSync(REMINDER_KEY)
+      return nodes
+    }
+    return null
   } catch (err) {
-    console.warn('读取提醒记录失败', err)
+    console.warn('读取提醒节点失败', err)
     return null
   }
 }
 
-function saveReminder(reminder) {
+function saveReminderNodes(nodes) {
   try {
-    wx.setStorageSync(REMINDER_KEY, reminder)
+    wx.setStorageSync(REMINDERS_KEY, { nodes: nodes || [] })
     return true
   } catch (err) {
-    console.warn('保存提醒记录失败', err)
+    console.warn('保存提醒节点失败', err)
     return false
   }
 }
@@ -126,7 +142,7 @@ module.exports = {
   loadDraftTheme,
   saveDraftTheme,
   clearDraftTheme,
-  loadReminder,
-  saveReminder
+  loadReminderNodes,
+  saveReminderNodes
 }
 
