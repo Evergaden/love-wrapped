@@ -105,6 +105,9 @@ Page({
         id: 'draft',
         draft: true,
         title: d.draft.title,
+        namesText: d.draft.form.myNickname && d.draft.form.theirNickname
+          ? d.draft.form.myNickname + ' · ' + d.draft.form.theirNickname
+          : '',
         dateText: d.draft.dateText || '',
         tagText: '正在写',
         cardBg: cardBg('a'),
@@ -115,6 +118,7 @@ Page({
       items.push({
         id: b.id,
         title: b.title,
+        namesText: [b.myNickname, b.theirNickname].filter(Boolean).join(' · '),
         dateText: b.dateText || '',
         tagText: b.gift ? '收下的' : '',
         cardBg: cardBg(ROLES[(i + 1) % ROLES.length]),
@@ -191,15 +195,33 @@ Page({
     wx.navigateTo({ url: '/pages/wrapped/wrapped?book=' + encodeURIComponent(id) })
   },
 
-  // 把收好的一册载回填写页继续写。会覆盖本机正在写的内容，所以留一次确认。
+  // 长按收好的一册：编辑（载回填写页）或删除，二选一。
+  onCardLongPress(e) {
+    if (e.currentTarget.dataset.draft) return
+    const id = e.currentTarget.dataset.id
+    if (!id) return
+    const page = this
+    wx.showActionSheet({
+      itemList: ['编辑这一册', '删除这一册'],
+      success(res) {
+        if (res.tapIndex === 0) {
+          page.onReloadBook(e)
+        } else if (res.tapIndex === 1) {
+          page.confirmDeleteBook(id)
+        }
+      }
+    })
+  },
+
+  // 把收好的一册载回填写页继续写（编辑）。会覆盖本机正在写的内容，所以留一次确认。
   onReloadBook(e) {
     const id = e.currentTarget.dataset.id
     const book = this.data.books.find((b) => b.id === id)
     if (!book || !book.answers) return
     wx.showModal({
-      title: '载回填写页',
+      title: '编辑这一册',
       content: '「' + book.title + '」会覆盖填写页现在的内容。',
-      confirmText: '载入',
+      confirmText: '继续写',
       cancelText: '先不了',
       confirmColor: themes.pick(this.data.theme).kicker,
       success(res) {
@@ -210,6 +232,31 @@ Page({
           fail() {
             wx.reLaunch({ url: '/pages/index/index' })
           }
+        })
+      }
+    })
+  },
+
+  // 删除收好的一册：确认一次，云端删掉，书架刷新。
+  confirmDeleteBook(id) {
+    const book = this.data.books.find((b) => b.id === id)
+    if (!book) return
+    const page = this
+    wx.showModal({
+      title: '删除这一册',
+      content: '「' + book.title + '」会从书架上消失，本机正在写的内容不受影响。',
+      confirmText: '删除',
+      cancelText: '先不了',
+      confirmColor: themes.pick(this.data.theme).kicker,
+      success(res) {
+        if (!res.confirm) return
+        cloud.removeBook(id).then((r) => {
+          if (r && r.error) {
+            wx.showToast({ title: '暂时没删掉，稍后再试', icon: 'none' })
+            return
+          }
+          wx.showToast({ title: '已删除', icon: 'none' })
+          page.refresh()
         })
       }
     })
@@ -226,9 +273,5 @@ Page({
   // 主页项：已经在主页，点了就回到书架顶部。
   onHomeTap() {
     wx.pageScrollTo({ scrollTop: 0, duration: 200 })
-  },
-
-  onManage() {
-    wx.navigateTo({ url: '/pages/history/history' })
   }
 })

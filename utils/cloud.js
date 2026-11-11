@@ -118,6 +118,8 @@ function listBooks() {
         const list = (res.data || []).map((row) => ({
           id: row._id,
           title: row.title || '一本小册子',
+          myNickname: row.myNickname || '',
+          theirNickname: row.theirNickname || '',
           togetherDate: row.togetherDate || '',
           answers: row.answers || {},
           source: row.source === 'gift' ? 'gift' : 'mine',

@@ -122,13 +122,3 @@ swiper-item {
   border-color: #E4D4FA;
 }
 
-/* —— 原生风格箭头：微信设置页单元格那种粗折角，替代细细的「›」。 —— */
-.cell-arrow {
-  width: 16rpx;
-  height: 16rpx;
-  border-top: 4rpx solid rgba(45, 27, 36, 0.3);
-  border-right: 4rpx solid rgba(45, 27, 36, 0.3);
-  transform: rotate(45deg);
-  border-radius: 2rpx;
-  flex: none;
-}
