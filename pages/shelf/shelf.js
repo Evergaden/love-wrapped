@@ -217,6 +217,11 @@ Page({
     wx.navigateTo({ url: '/pages/profile/profile' })
   },
 
+  // 主页项：已经在主页，点了就回到书架顶部。
+  onHomeTap() {
+    wx.pageScrollTo({ scrollTop: 0, duration: 200 })
+  },
+
   onManage() {
     wx.navigateTo({ url: '/pages/history/history' })
   }

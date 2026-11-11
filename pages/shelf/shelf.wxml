@@ -1,13 +1,8 @@
 <view class="page theme-{{theme}}" style="background: {{themeBg}}">
   <view class="wrap">
     <!-- 顶栏：标题在左，「我的」在右，跟参考主页一样清爽。 -->
-    <view class="head-row">
-      <text class="page-title">你们的小书架</text>
-      <view class="me-entry" hover-class="pressed" bindtap="onProfile" aria-role="button" aria-label="我的">
-        <view class="me-entry-icon"></view>
-        <text class="me-entry-text">我的</text>
-      </view>
-    </view>
+    <!-- 顶栏：大标题独占，入口都收进底部胶囊。 -->
+    <text class="page-title">你们的小书架</text>
 
     <!-- 收好的册子：一张一张全宽的 pastel 卡，写了一半的排第一。 -->
     <view class="section-row" wx:if="{{hasDraft || books.length}}">
@@ -61,7 +56,13 @@
     </view>
   </view>
 
-  <!-- 最显眼的一颗：新写一本。悬浮在右下角。 -->
+  <!-- 左下角浮动胶囊：主页 / 我的（参考截图的底部导航，纯文字）。 -->
+  <view class="nav-pill">
+    <view class="nav-item is-on" hover-class="pressed" bindtap="onHomeTap" aria-role="button">主页</view>
+    <view class="nav-item" hover-class="pressed" bindtap="onProfile" aria-role="button">我的</view>
+  </view>
+
+  <!-- 右下角最显眼的一颗：新写一本。 -->
   <view class="fab" hover-class="pressed" bindtap="onStart" aria-role="button" aria-label="新写一本">
     <text class="fab-plus">＋</text>
     <text class="fab-text">新写一本</text>
