@@ -585,8 +585,13 @@ Page({
         wx.showToast({ title: accepted ? '提醒已开启' : '好的，随时可以再开', icon: 'none' })
         done()
       },
-      fail() {
+      fail(err) {
         // 面板被系统或「总是保持以上选择」拦截：当次不记拒绝，下次生成再问。
+        // 真实原因打进控制台；开发者工具里本来就弹不出授权面板，提示说清楚。
+        console.warn('[reminder] 订阅授权面板没弹出来：', err && err.errMsg)
+        let inTools = false
+        try { inTools = wx.getSystemInfoSync().platform === 'devtools' } catch (e) { inTools = false }
+        if (inTools) wx.showToast({ title: '开发者工具里开不了，用手机预览就能开', icon: 'none' })
         done()
       }
     })

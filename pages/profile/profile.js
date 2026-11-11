@@ -108,8 +108,12 @@ Page({
         page.refreshReminder()
         wx.showToast({ title: '提醒已开启', icon: 'none' })
       },
-      fail() {
-        wx.showToast({ title: '这次没开成，下次再试', icon: 'none' })
+      fail(err) {
+        // 真实原因打进控制台，好排查；开发者工具里本来就弹不出授权面板，提示说清楚。
+        console.warn('[reminder] 订阅授权面板没弹出来：', err && err.errMsg)
+        let inTools = false
+        try { inTools = wx.getSystemInfoSync().platform === 'devtools' } catch (e) { inTools = false }
+        wx.showToast({ title: inTools ? '开发者工具里开不了，用手机预览就能开' : '这次没开成，下次再试', icon: 'none' })
       }
     })
   },
