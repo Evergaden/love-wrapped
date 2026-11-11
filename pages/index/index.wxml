@@ -422,10 +422,6 @@
   </view>
 
   <view class="action-bar">
-    <view class="me-tab" hover-class="pressed" bindtap="goProfile" aria-role="button" aria-label="我的">
-      <view class="me-tab-icon"></view>
-      <text class="me-tab-text">我的</text>
-    </view>
     <text class="count-line">会生成 {{slideCount}} 页</text>
     <view class="btn btn-primary {{canOpen ? '' : 'dim'}}" hover-class="pressed" bindtap="onGenerate">生成纪念册</view>
   </view>

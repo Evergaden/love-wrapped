@@ -450,10 +450,6 @@ Page({
     })
   },
 
-  goProfile() {
-    wx.navigateTo({ url: '/pages/profile/profile' })
-  },
-
   // 回书架：身后就是书架就退回去；从分享卡冷启动直达这一页时
   // 身后没有页，整个落回书架。
   goShelf() {

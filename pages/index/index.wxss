@@ -85,16 +85,17 @@
 /* 回书架的小入口：一直安安静静待在左上角。 */
 .nav-back {
   flex: none;
-  margin-right: 22rpx;
-  padding: 14rpx 30rpx 14rpx 8rpx;
+  margin-right: 20rpx;
+  padding: 10rpx 26rpx 10rpx 0;
 }
 
 /* 微信原生导航栏那种返回箭头：粗折角指向左，不带文字。 */
+/* 微信原生返回箭头的比例：高约 42rpx、线宽 5rpx、纯黑、无背景。 */
 .nav-back-arrow {
-  width: 20rpx;
-  height: 20rpx;
-  border-left: 4rpx solid #2D1B24;
-  border-bottom: 4rpx solid #2D1B24;
+  width: 42rpx;
+  height: 42rpx;
+  border-left: 5rpx solid #000000;
+  border-bottom: 5rpx solid #000000;
   transform: rotate(45deg);
   border-radius: 2rpx;
 }
@@ -167,33 +168,6 @@
 }
 
 /* 底部操作栏的「我的」：图标在上、文字在下。 */
-.me-tab {
-  flex: none;
-  width: 92rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.me-tab-icon {
-  width: 44rpx;
-  height: 44rpx;
-  background-color: rgba(45, 27, 36, 0.75);
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' x2='9.01' y1='9' y2='9'/%3E%3Cline x1='15' x2='15.01' y1='9' y2='9'/%3E%3C/svg%3E");
-  -webkit-mask-position: center;
-  -webkit-mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' x2='9.01' y1='9' y2='9'/%3E%3Cline x1='15' x2='15.01' y1='9' y2='9'/%3E%3C/svg%3E");
-  mask-position: center;
-  mask-size: contain;
-  mask-repeat: no-repeat;
-}
-
-.me-tab-text {
-  margin-top: 4rpx;
-  font-size: 20rpx;
-  color: rgba(45, 27, 36, 0.65);
-}
 
 /* 最爱吃：双栏输入 */
 .fave-row {
