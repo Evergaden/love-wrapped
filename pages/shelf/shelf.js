@@ -44,6 +44,7 @@ function draftOf() {
   if (!touched) return null
   return {
     form: form,
+    theme: storage.loadDraftTheme() || 'cream',
     title: form.myNickname && form.theirNickname
       ? form.myNickname + ' · ' + form.theirNickname
       : '还没起名字的一本',
@@ -93,7 +94,8 @@ Page({
     const d = Object.assign({}, this.data, extra || {})
     const settled = d.state !== 'loading' || d.slow
     const ROLES = ['a', 'b', 'c', 'd']
-    const cardBg = (role) => themes.tint(d.theme, role, 0.14)
+    // 每张卡用这一册自己的配色染 pastel，改一本的颜色不会染到别的册子。
+    const cardBg = (themeId, role) => themes.tint(themeId, role, 0.14)
     // 草稿和云端某一册内容一模一样（生成过、没再改）：
     // 只显示收好的那册，不再挂「正在写」的第二张卡。
     const draftCollected = !!(d.draft && d.draft.form && (d.books || []).some((b) => {
@@ -110,7 +112,7 @@ Page({
           : '',
         dateText: d.draft.dateText || '',
         tagText: '正在写',
-        cardBg: cardBg('a'),
+        cardBg: cardBg(d.draft.theme || 'cream', 'a'),
         canOpen: d.draft.canOpen
       })
     }
@@ -121,7 +123,7 @@ Page({
         namesText: [b.myNickname, b.theirNickname].filter(Boolean).join(' · '),
         dateText: b.dateText || '',
         tagText: b.gift ? '收下的' : '',
-        cardBg: cardBg(ROLES[(i + 1) % ROLES.length]),
+        cardBg: cardBg(b.theme || 'cream', ROLES[(i + 1) % ROLES.length]),
         gift: b.gift,
         timeText: b.timeText
       })
@@ -227,6 +229,8 @@ Page({
       success(res) {
         if (!res.confirm) return
         storage.saveAnswers(book.answers)
+        // 编辑这一册：它的配色也一起回来。
+        if (book.theme) storage.saveDraftTheme(book.theme)
         wx.navigateTo({
           url: '/pages/index/index',
           fail() {

@@ -204,7 +204,8 @@ Page({
     const form = saved ? record.normalize(saved) : record.blankForm()
     this.applyForm(form, { hasStored: !!saved, errorHint: '' })
     // 主题和答案分开存：换配色不用动写过的字。
-    this.applyTheme(storage.loadTheme() || themes.DEFAULT, { silent: true })
+    // 草稿自己选过配色就用它（写的是这一本的颜色，不碰主页）；没选过用全局默认。
+    this.applyTheme(storage.loadDraftTheme() || storage.loadTheme() || themes.DEFAULT, { silent: true })
     wx.showShareMenu({ menus: ['shareAppMessage'] })
     // 填写会把内容写进本机缓存。首次进页问一次隐私授权，用户已同意过则直接通过。
     privacy.checkPrivacy()
@@ -274,7 +275,9 @@ Page({
 
   onTheme(e) {
     const id = themes.resolve(e.currentTarget.dataset.id)
-    this.applyTheme(id)
+    // 换的是「正在写的这一本」的颜色，只记在草稿上，不动全局主题（主页不跟着变）。
+    this.applyTheme(id, { silent: true })
+    storage.saveDraftTheme(id)
   },
 
   applyForm(form, extra) {
@@ -440,6 +443,7 @@ Page({
       success(res) {
         if (!res.confirm) return
         storage.clearAnswers()
+        storage.clearDraftTheme()
         page.applyForm(record.blankForm(), { hasStored: false, errorHint: '' })
         wx.pageScrollTo({ scrollTop: 0, duration: 200 })
       }
@@ -498,9 +502,9 @@ Page({
       this.setData({ form })
     }
     storage.saveAnswers(form)
-    // 云端快照：开通云开发时，把这一册存一份到书架。
+    // 云端快照：开通云开发时，把这一册存一份到书架（带它自己的配色）。
     // 异步且不阻塞翻册子；没开通云开发时安静跳过。
-    cloud.saveBook(form).then((res) => {
+    cloud.saveBook(form, { theme: this.data.theme }).then((res) => {
       if (res && res.error) {
         console.warn('[cloud] 快照没有存上：' + res.error)
         return

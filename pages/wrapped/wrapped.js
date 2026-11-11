@@ -97,8 +97,8 @@ Page({
     const viewer = !!bookId && !giftToken
     const saved = storage.loadAnswers()
     const mineReady = !!(saved && record.canGenerate(saved))
-    // 主题和答案都从本机读。缓存里没有或值不合法时，回到默认配色。
-    const theme = themes.resolve(storage.loadTheme())
+    // 主题和答案都从本机读：优先这一册自己选过的配色，再退回全局默认。
+    const theme = themes.resolve(storage.loadDraftTheme() || storage.loadTheme())
     const slides = mineReady && !viewer ? slidesUtil.buildSlides(saved, null, theme) : []
     this.setData({
       windowHeight: metrics.windowHeight,
@@ -193,7 +193,8 @@ Page({
         return
       }
       page.bookForm = form
-      const theme = page.data.currentTheme
+      // 翻看云书架上的册子：用这一册自己的配色，没有记录过才用本机默认。
+      const theme = themes.resolve(res.book.theme || page.data.currentTheme)
       const slides = slidesUtil.buildSlides(form, null, theme)
       page.setData({
         empty: false,
@@ -297,7 +298,7 @@ Page({
       if (res.ok) page.shareToken = res.token
       // 分享时起的标题也写到书架上那一册的封皮上，主页卡片跟着换名字。
       if (res.ok && title && !page.data.viewer && !page.data.gift) {
-        cloud.saveBook(form, { shareTitle: title })
+        cloud.saveBook(form, { shareTitle: title, theme: page.data.currentTheme })
       }
     })
     // 标题要印进卡片图：防抖重画，发送时图里已经是新标题。
@@ -390,7 +391,11 @@ Page({
     const id = themes.resolve(e.currentTarget.dataset.id)
     if (id === this.data.currentTheme) return
     // 翻看模式下换配色只是看一眼，不写进本机的主题缓存。
-    if (!this.data.gift && !this.data.viewer) storage.saveTheme(id)
+    // 自己的册子换配色：改的是这一册自己的颜色（草稿 + 云端记录），不动全局主题。
+    if (!this.data.gift && !this.data.viewer) {
+      storage.saveDraftTheme(id)
+      cloud.saveBook(record.normalize(storage.loadAnswers()), { theme: id })
+    }
     const slides = this.data.slides.map((slide) => slidesUtil.restyleSlide(slide, id))
     this.setData({
       currentTheme: id,
@@ -581,7 +586,7 @@ Page({
       confirmColor: themes.THEMES[themes.resolve(this.data.currentTheme)].kicker,
       success(res) {
         if (!res.confirm) return
-        cloud.saveBook(page.giftForm, { source: 'gift' }).then((r) => {
+        cloud.saveBook(page.giftForm, { source: 'gift', theme: page.data.currentTheme }).then((r) => {
           if (r.ok) {
             page.setData({ giftSaved: true })
             wx.showToast({ title: '已收进我的书架', icon: 'none' })

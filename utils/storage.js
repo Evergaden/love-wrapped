@@ -5,6 +5,9 @@
 
 const ANSWERS_KEY = 'loveWrapped.answers.v1'
 const THEME_KEY = 'loveWrapped.theme.v1'
+// 正在写的这一本自己选的配色：不写进全局主题（全局的只管主页观感），
+// 书架的草稿卡和纪念册跟着这一份走。
+const DRAFT_THEME_KEY = 'loveWrapped.draftTheme.v1'
 const REMINDER_KEY = 'loveWrapped.reminder.v1'
 
 const record = require('./record')
@@ -36,6 +39,36 @@ function clearAnswers() {
     wx.removeStorageSync(ANSWERS_KEY)
   } catch (err) {
     console.warn('清空答案失败', err)
+  }
+}
+
+// 正在写的这一本的配色。
+function loadDraftTheme() {
+  try {
+    const value = wx.getStorageSync(DRAFT_THEME_KEY)
+    if (!value || typeof value !== 'string') return null
+    return value
+  } catch (err) {
+    console.warn('读取草稿配色失败', err)
+    return null
+  }
+}
+
+function saveDraftTheme(themeId) {
+  try {
+    wx.setStorageSync(DRAFT_THEME_KEY, String(themeId || ''))
+    return true
+  } catch (err) {
+    console.warn('保存草稿配色失败', err)
+    return false
+  }
+}
+
+function clearDraftTheme() {
+  try {
+    wx.removeStorageSync(DRAFT_THEME_KEY)
+  } catch (err) {
+    console.warn('清空草稿配色失败', err)
   }
 }
 
@@ -90,6 +123,9 @@ module.exports = {
   clearAnswers,
   loadTheme,
   saveTheme,
+  loadDraftTheme,
+  saveDraftTheme,
+  clearDraftTheme,
   loadReminder,
   saveReminder
 }

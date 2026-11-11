@@ -79,6 +79,8 @@ function saveBook(form, options) {
       // options.shareTitle：分享时起的标题（如「一周年快乐」）——
       // 带着标题分享过，书架上这一册的封皮就跟着改叫这个名字。
       title: (options && options.shareTitle) || (form.myNickname + ' · ' + form.theirNickname),
+      // 这一册自己的配色：书架卡片和翻看都用它，不跟全局主题走。
+      theme: (options && options.theme) || 'cream',
       togetherDate: form.togetherDate,
       myNickname: form.myNickname,
       theirNickname: form.theirNickname,
@@ -120,6 +122,7 @@ function listBooks() {
           title: row.title || '一本小册子',
           myNickname: row.myNickname || '',
           theirNickname: row.theirNickname || '',
+          theme: row.theme || 'cream',
           togetherDate: row.togetherDate || '',
           answers: row.answers || {},
           source: row.source === 'gift' ? 'gift' : 'mine',
@@ -153,6 +156,7 @@ function getBook(id) {
           book: {
             id: row._id,
             title: row.title || '一本小册子',
+            theme: row.theme || 'cream',
             togetherDate: row.togetherDate || '',
             answers: row.answers || {},
             source: row.source === 'gift' ? 'gift' : 'mine',
