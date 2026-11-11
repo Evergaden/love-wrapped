@@ -3,7 +3,7 @@
   <view class="nav {{collapsed ? 'nav-solid' : ''}}" style="padding-top: {{statusBarH}}px">
     <view class="nav-row" style="height: {{navInnerH}}px; padding-right: {{capsulePad}}px">
       <view class="nav-back" hover-class="pressed" bindtap="goShelf" aria-role="button" aria-label="回到书架">
-        <text class="nav-back-text">‹ 书架</text>
+        <view class="nav-back-arrow"></view>
       </view>
       <text class="nav-title" style="opacity: {{navTitleOpacity}}">{{appName}}</text>
       <view class="nav-progress" style="opacity: {{navProgressOpacity}}">

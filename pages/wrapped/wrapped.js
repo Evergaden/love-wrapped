@@ -98,7 +98,7 @@ Page({
     const saved = storage.loadAnswers()
     const mineReady = !!(saved && record.canGenerate(saved))
     // 主题和答案都从本机读：优先这一册自己选过的配色，再退回全局默认。
-    const theme = themes.resolve(storage.loadDraftTheme() || storage.loadTheme())
+    const theme = themes.resolve(storage.loadDraftTheme() || themes.DEFAULT)
     const slides = mineReady && !viewer ? slidesUtil.buildSlides(saved, null, theme) : []
     this.setData({
       windowHeight: metrics.windowHeight,

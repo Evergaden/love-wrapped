@@ -109,7 +109,7 @@ Page({
       statusBarH: statusBarH,
       navInnerH: navInnerH,
       capsulePad: capsulePad,
-      heroWrapBg: themes.pick(themes.resolve(storage.loadTheme())).bg
+      heroWrapBg: themes.pick(themes.DEFAULT).bg
     })
   },
 
@@ -205,7 +205,7 @@ Page({
     this.applyForm(form, { hasStored: !!saved, errorHint: '' })
     // 主题和答案分开存：换配色不用动写过的字。
     // 草稿自己选过配色就用它（写的是这一本的颜色，不碰主页）；没选过用全局默认。
-    this.applyTheme(storage.loadDraftTheme() || storage.loadTheme() || themes.DEFAULT, { silent: true })
+    this.applyTheme(storage.loadDraftTheme() || themes.DEFAULT, { silent: true })
     wx.showShareMenu({ menus: ['shareAppMessage'] })
     // 填写会把内容写进本机缓存。首次进页问一次隐私授权，用户已同意过则直接通过。
     privacy.checkPrivacy()

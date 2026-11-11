@@ -69,7 +69,8 @@ Page({
   },
 
   onShow() {
-    const theme = themes.resolve(storage.loadTheme())
+    // 全局主题已退休：主页固定默认配色，书的颜色各管各的。
+    const theme = themes.DEFAULT
     this.setData({
       theme: theme,
       themeBg: themes.pick(theme).bg
