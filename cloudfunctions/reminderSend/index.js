@@ -92,6 +92,25 @@ exports.main = async () => {
       failed++
       continue
     }
+    // 先占坑再发送：条件更新只在 lastNotifiedFor 还不是今年时生效，
+    // 谁把它改写成今年谁就认领到这条计划（stats.updated === 1）。
+    // 并发两个实例同时跑到这里，只有一个认领成功，另一个 updated=0 跳过，
+    // 同一条计划不会被发送两次。占坑用的也是真实数据库的条件更新，
+    // 不是内存标记，跨实例依然成立。
+    let claimed = false
+    try {
+      const claim = await db.collection('reminders')
+        .where({ _id: doc._id, lastNotifiedFor: _.neq(doc.anniversary) })
+        .update({
+          data: { lastNotifiedFor: doc.anniversary, lastSentAt: db.serverDate() }
+        })
+      claimed = !!(claim && claim.stats && claim.stats.updated === 1)
+    } catch (err) {
+      failed++
+      continue
+    }
+    if (!claimed) continue
+
     try {
       // thing1 标题：有年数就是「第 N 个纪念日」，没有就退回「你们的纪念日」。
       // thing3 文案：「还有一周就是你们的第N年，备好惊喜吧」（N = years）。
@@ -113,19 +132,20 @@ exports.main = async () => {
         }
       })
       sent++
-      await db.collection('reminders').doc(doc._id).update({
-        data: { lastNotifiedFor: doc.anniversary, lastSentAt: db.serverDate() }
-      })
     } catch (err) {
       failed++
       const msg = String((err && (err.errMsg || err.message)) || '')
-      // 43101 = 用户没订阅或订阅额度用完：关掉这条计划，别每天撞墙。
+      // 43101 = 用户没订阅或订阅额度用完：坑不退（今年不再发），关掉这条计划，别每天撞墙。
       if (msg.indexOf('43101') >= 0) {
         await db.collection('reminders').doc(doc._id).update({
           data: { enabled: false, disabledReason: '用户未订阅或额度用完' }
         })
+      } else {
+        // 限频、网络这类暂时性失败：退坑，坑还回去下次触发才认得出「还没发过」。
+        await db.collection('reminders').doc(doc._id).update({
+          data: { lastNotifiedFor: doc.lastNotifiedFor || '' }
+        })
       }
-      // 其他错误（限频、网络）留到下次触发再试。
     }
   }
 

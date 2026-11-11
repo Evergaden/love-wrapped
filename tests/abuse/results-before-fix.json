@@ -1,0 +1,52 @@
+[
+  {
+    "caseId": "shareBook-bypass-msgseccheck",
+    "outcome": "accepted-bad-input",
+    "detail": "返回 {\"ok\":true,\"token\":\"5eb9ad2740772c10831b871a9855d08143428d415e3c0dfb\"}；msgSecCheck 调用 0 次；db 写入：shares.add×1，落库 story 含 BANNED-MARKER=true"
+  },
+  {
+    "caseId": "shareBook-title-injection",
+    "outcome": "accepted-bad-input",
+    "detail": "返回 {\"ok\":true,\"token\":\"46c94ecff9104a4abf220c6cbb276e6c64f966aeac35af8b\"}；title 入库值=\"加微信免费领红包888\"；msgSecCheck 调用 0 次；db 写入：shares.add×1"
+  },
+  {
+    "caseId": "contentCheck-window-exhaust",
+    "outcome": "accepted-bad-input",
+    "detail": "返回 {\"ok\":true,\"risky\":false,\"checked\":true}（BANNED-MARKER 被放行）；msgSecCheck 调用 1 次，首调实收 2000 字、含 BANNED-MARKER=false"
+  },
+  {
+    "caseId": "shareBook-oversize-answers",
+    "outcome": "accepted-bad-input",
+    "detail": "返回 {\"ok\":true,\"token\":\"c8a41b48338c5202a3d6ecc678c0a69d8af225b6ef61eca5\"}；落库 story 长度 50000、未知字段 junk={\"deep\":{\"x\":1}}（无 normalize/限长/丢未知字段）；db 写入：shares.add×1"
+  },
+  {
+    "caseId": "shareBook-no-quota",
+    "outcome": "accepted-bad-input",
+    "detail": "repeat=20：20 次返回 ok:true、每次都发新 token；db 写入：shares.add×20（无按 OPENID 限频限量）"
+  },
+  {
+    "caseId": "contentCheck-failopen-on-error",
+    "outcome": "accepted-bad-input",
+    "detail": "mock msgSecCheck 抛错后返回 {\"ok\":true,\"risky\":false,\"skipped\":true}（fail-open 放行 BANNED-MARKER）；msgSecCheck 调用 1 次，首调实收 31 字、含 BANNED-MARKER=true"
+  },
+  {
+    "caseId": "reminderSend-concurrent-duplicate",
+    "outcome": "accepted-bad-input",
+    "detail": "并发 2 实例：同一计划被发送 2 次（send 共 2 次）；responses={\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":1,\"failed\":0} ; {\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":1,\"failed\":0}；db 写入：reminders.update×2"
+  },
+  {
+    "caseId": "record-pickform-relay-unbounded",
+    "outcome": "graceful",
+    "detail": "pickForm 正常返回、未崩溃；回读 myNickname 长度 100000（入参 100000 字，未截断）；normalize 对照组 myNickname=10 字"
+  },
+  {
+    "caseId": "getSharedBook-miss-flood",
+    "outcome": "accepted-bad-input",
+    "detail": "repeat=50：全部返回业务性拒绝（如「这份分享不存在，或已被分享者取消」）、0 次限频信号；shares 查询 50 次全部执行（无未命中节流，配额照常被消耗）"
+  },
+  {
+    "caseId": "reminderSend-manual-early-trigger",
+    "outcome": "graceful",
+    "detail": "正常返回 {\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":1,\"failed\":0}；subscribeMessage.send 调用 1 次；db 写入：reminders.update×1"
+  }
+]

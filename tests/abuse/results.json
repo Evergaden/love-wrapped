@@ -1,0 +1,62 @@
+[
+  {
+    "caseId": "shareBook-bypass-msgseccheck",
+    "outcome": "rejected",
+    "detail": "返回 {\"ok\":false,\"error\":\"内容不完整，先去填写页补齐昵称和日子\"}；msgSecCheck 调用 0 次；db 写入：无"
+  },
+  {
+    "caseId": "shareBook-title-injection",
+    "outcome": "rejected",
+    "detail": "返回 {\"ok\":false,\"error\":\"内容不完整，先去填写页补齐昵称和日子\"}；msgSecCheck 调用 0 次；db 写入：无"
+  },
+  {
+    "caseId": "contentCheck-window-exhaust",
+    "outcome": "rejected",
+    "detail": "返回 {\"ok\":true,\"risky\":true,\"reason\":\"有几句话暂时写不进这册，换个说法再试试吧\"}；msgSecCheck 调用 2 次，首调实收 2000 字、含 BANNED-MARKER=false"
+  },
+  {
+    "caseId": "shareBook-oversize-answers",
+    "outcome": "rejected",
+    "detail": "返回 {\"ok\":false,\"error\":\"内容不完整，先去填写页补齐昵称和日子\"}；db 写入：无"
+  },
+  {
+    "caseId": "shareBook-no-quota",
+    "outcome": "rejected",
+    "detail": "repeat=20 全部拒绝，首个拒绝：{\"ok\":false,\"error\":\"内容不完整，先去填写页补齐昵称和日子\"}；db 写入：无"
+  },
+  {
+    "caseId": "contentCheck-failopen-on-error",
+    "outcome": "rejected",
+    "detail": "返回 {\"ok\":false,\"risky\":true,\"reason\":\"内容检测服务这会儿忙，稍等一下再试试\"}（检测失败未放行）；msgSecCheck 调用 1 次，首调实收 31 字、含 BANNED-MARKER=true"
+  },
+  {
+    "caseId": "reminderSend-concurrent-duplicate",
+    "outcome": "rejected",
+    "detail": "并发 2 实例仅发送 1 次（无重复）；responses={\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":1,\"failed\":0} ; {\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":0,\"failed\":0}；db 写入：reminders.update×2"
+  },
+  {
+    "caseId": "record-pickform-relay-unbounded",
+    "outcome": "graceful",
+    "detail": "pickForm 正常返回、未崩溃；回读 myNickname 长度 100000（入参 100000 字，未截断）；normalize 对照组 myNickname=10 字"
+  },
+  {
+    "caseId": "getSharedBook-miss-flood",
+    "outcome": "rejected",
+    "detail": "repeat=50：出现 20 次限频类拒绝；shares 查询 30 次"
+  },
+  {
+    "caseId": "reminderSend-manual-early-trigger",
+    "outcome": "graceful",
+    "detail": "正常返回 {\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":1,\"failed\":0}；subscribeMessage.send 调用 1 次；db 写入：reminders.update×1"
+  },
+  {
+    "caseId": "shareBook-moderate-story-risky",
+    "outcome": "rejected",
+    "detail": "expect=\"reject\"；返回拒绝：{\"ok\":false,\"error\":\"有几句话暂时写不进这册，换个说法再试试吧\"}"
+  },
+  {
+    "caseId": "shareBook-moderate-title-risky",
+    "outcome": "rejected",
+    "detail": "expect=\"reject\"；返回拒绝：{\"ok\":false,\"error\":\"有几句话暂时写不进这册，换个说法再试试吧\"}"
+  }
+]
