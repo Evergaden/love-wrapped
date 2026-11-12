@@ -32,7 +32,7 @@
   {
     "caseId": "reminderSend-concurrent-duplicate",
     "outcome": "rejected",
-    "detail": "并发 2 实例仅发送 1 次（无重复）；responses={\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":1,\"failed\":0} ; {\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":0,\"failed\":0}；db 写入：reminders.update×2"
+    "detail": "并发 2 实例仅发送 1 次（无重复）；responses={\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":1,\"failed\":0} ; {\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":0,\"failed\":0}；db 写入：reminders.update×3"
   },
   {
     "caseId": "record-pickform-relay-unbounded",
@@ -47,7 +47,7 @@
   {
     "caseId": "reminderSend-manual-early-trigger",
     "outcome": "graceful",
-    "detail": "正常返回 {\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":1,\"failed\":0}；subscribeMessage.send 调用 1 次；db 写入：reminders.update×1"
+    "detail": "正常返回 {\"ok\":true,\"target\":\"2026-11-19\",\"found\":1,\"sent\":1,\"failed\":0}；subscribeMessage.send 调用 1 次；db 写入：reminders.update×2"
   },
   {
     "caseId": "shareBook-moderate-story-risky",

@@ -62,12 +62,14 @@ function ymdPlus7() {
 }
 
 function seedDuePlan() {
+  // 多节点契约：一节点一文档，kind + originDate（起点），云函数按起点月日
+  // 自算周年——起点必须是「目标月的月日 + 若干年前」，不然目标日不命中。
+  const t = ymdPlus7()
   state.store.reminders = [{
     _id: 'abuse-plan-1',
     _openid: 'abuse-openid-0001',
-    anniversary: ymdPlus7(),
-    years: 4,
-    togetherDate: '2023-05-20',
+    kind: 'together',
+    originDate: (Number(t.slice(0, 4)) - 4) + t.slice(4),
     nicknames: '小熊 和 阿树',
     enabled: true,
     subscribed: true,

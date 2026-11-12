@@ -17,6 +17,10 @@
 // 同样只关 subscribed 不关 enabled——用户点一下「续订明年」就能接上，
 // 不像 v1 直接 disable 掉整个计划。
 //
+// 防并发重发（d2115db 引入的占坑，多节点版沿用）：先条件更新占坑
+// （lastNotifiedFor ≠ 本次周年才生效，stats.updated===1 即认领成功），
+// 认领到的才发送；暂时性发送失败退坑（下次触发重试），43101 不退坑。
+//
 // 模板：「纪念日提醒」（mp 后台已申请，类目信息查询），字段
 //   thing1 纪念日名称（按 kind + 年数派生）/ time2 日期 / thing3 提醒文案。
 // 注意：time2 是 time 型字段，官方要求「日期 + 时刻」，这里按产品要求只发日期，
@@ -173,6 +177,25 @@ exports.main = async () => {
       failed++
       continue
     }
+    // 先占坑再发送：条件更新只在 lastNotifiedFor 还不是本次周年时生效，
+    // 谁把它改写成 target 谁就认领到这条节点（stats.updated === 1）。
+    // 并发两个实例同时跑到这里，只有一个认领成功，另一个 updated=0 跳过，
+    // 同一条计划不会被发送两次。占坑用的是真实数据库的条件更新，
+    // 不是内存标记，跨实例依然成立。
+    let claimed = false
+    try {
+      const claim = await db.collection('reminders')
+        .where({ _id: doc._id, lastNotifiedFor: _.neq(target) })
+        .update({
+          data: { lastNotifiedFor: target, lastSentAt: db.serverDate() }
+        })
+      claimed = !!(claim && claim.stats && claim.stats.updated === 1)
+    } catch (err) {
+      failed++
+      continue
+    }
+    if (!claimed) continue
+
     try {
       const meta = metaFor(doc.kind)
       const y = yearsOf(doc, target)
@@ -188,22 +211,26 @@ exports.main = async () => {
         }
       })
       sent++
-      // 发出后：记防重发，并把额度归零（一次授权只能发一条，
+      // 发出后把额度归零（一次授权只能发一条，
       // 客户端读到 subscribed: false 会亮「待续订」）。
       await db.collection('reminders').doc(doc._id).update({
-        data: { lastNotifiedFor: target, lastSentAt: db.serverDate(), subscribed: false }
+        data: { subscribed: false }
       })
     } catch (err) {
       failed++
       const msg = String((err && (err.errMsg || err.message)) || '')
-      // 43101 = 用户没订阅或订阅额度用完：额度归零就好，计划留着
-      // （客户端会亮「待续订」，点一下续订就能接上），别每天撞墙。
+      // 43101 = 用户没订阅或订阅额度用完：坑不退（本次不再发），额度归零，
+      // 计划留着（客户端亮「待续订」，点一下续订就能接上），别每天撞墙。
       if (msg.indexOf('43101') >= 0) {
         await db.collection('reminders').doc(doc._id).update({
           data: { subscribed: false, lastError: '未订阅或额度用完' }
         })
+      } else {
+        // 限频、网络这类暂时性失败：退坑，还回去下次触发才认得出「还没发过」。
+        await db.collection('reminders').doc(doc._id).update({
+          data: { lastNotifiedFor: doc.lastNotifiedFor || '' }
+        })
       }
-      // 其他错误（限频、网络）留到下次触发再试。
     }
   }
 
