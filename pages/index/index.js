@@ -112,6 +112,11 @@ Page({
       capsulePad: capsulePad,
       heroWrapBg: themes.pick(themes.DEFAULT).bg
     })
+    // 订阅额度的真相在云端（下发一次就没了）：进页面就悄悄并回来，
+    // 生成时「该问哪个日子」的判断才不会拿着过期额度跳过询问。
+    cloud.listReminderPlans().then((res) => {
+      if (res && res.list && !res.error) reminders.mergeCloudPlans(res.list)
+    })
   },
 
   onReady() {
@@ -528,30 +533,26 @@ Page({
     })
   },
 
-  // 生成纪念册时，轻轻问一句：下个周年纪念日前 7 天，要不要微信提醒？
-  // 每个周年只问一次；拒绝过也不再弹。真正的下发在云函数 reminderSend。
+  // 生成纪念册时，轻轻问一句：哪个日子快到了，要不要提前 7 天在微信里提醒？
+  // 多节点：挂了几个日子就轮着问，一次只问「最近的还没授权、这一轮也没被
+  // 拒绝过」的那一个；授权一次只能发一条（微信订阅消息的规则），
+  // 下个年度会再问一次。真正的下发在云函数 reminderSend。
   // 注意：requestSubscribeMessage 必须由用户点击（TAP）同步发起——
   // 原生 showModal 的「好呀」不算页面手势，真机上弹不出授权面板，
   // 所以这里换成自制弹层，让「好呀」是一个真正的 bindtap。
   maybeAskReminder(form, done) {
-    const ann = record.nextAnniversary(form.togetherDate)
-    if (!ann) { done(); return }
-    const rec = storage.loadReminder()
+    const nodes = reminders.ensureTogetherNode(form.togetherDate)
     const tmpl = cloud.reminderTemplateId()
-    // 同一个周年：已订阅 / 明确拒绝过 / 模板没接时已经记过意愿，就不再打扰。
-    const noted = rec && rec.anniversary === ann.date
-    if (noted && (rec.subscribed || rec.declined || (rec.enabled && !rec.subscribed && !tmpl))) {
-      done()
-      return
-    }
+    const pick = reminders.pickAsk(nodes, null, { ignoreAskedFor: !!tmpl })
+    if (!pick) { done(); return }
     this.setData({
       remindAsk: {
-        title: '周年提醒',
-        body: '下个周年（' + ann.date.replace(/-/g, '.') + '）前 7 天，想在微信里收到提醒吗？',
+        title: '纪念日提醒',
+        body: '下个「' + reminders.labelOf(pick.node.kind) + '」（' + pick.occ.date.replace(/-/g, '.') + '）前 7 天，想在微信里收到提醒吗？',
         hint: tmpl ? '' : '微信提醒还在准备中，先帮你记下这个日子',
-        anniversary: ann.date,
-        years: ann.years,
-        togetherDate: form.togetherDate,
+        kind: pick.node.kind,
+        date: pick.node.date,
+        occurrence: pick.occ.date,
         nicknames: (form.myNickname || '') + ' 和 ' + (form.theirNickname || '')
       }
     })
@@ -566,15 +567,10 @@ Page({
     if (!ask) return
     this.setData({ remindAsk: null })
     this._remindDone = null
-    const save = (enabled, subscribed) => {
-      // togetherDate/nicknames 也存本地一份：「我的」里取消/重开时云端计划要用。
-      storage.saveReminder({ anniversary: ask.anniversary, years: ask.years, togetherDate: ask.togetherDate, nicknames: ask.nicknames, enabled: enabled, subscribed: subscribed, declined: !enabled, askedAt: Date.now() })
-      cloud.saveReminderPlan({ anniversary: ask.anniversary, years: ask.years, togetherDate: ask.togetherDate, nicknames: ask.nicknames, enabled: enabled, subscribed: subscribed })
-    }
     const tmpl = cloud.reminderTemplateId()
     if (!tmpl) {
-      // 模板还没申请：只记意愿；接入后下次生成会再问一次授权。
-      save(true, false)
+      // 模板还没申请：只记意愿（askedFor）；接入后下次生成会再问一次授权。
+      reminders.updateNode(ask.kind, { askedFor: ask.occurrence })
       wx.showToast({ title: '已记下这个日子', icon: 'none' })
       done()
       return
@@ -583,8 +579,13 @@ Page({
       tmplIds: [tmpl],
       success(sub) {
         const accepted = sub && sub[tmpl] === 'accept'
-        save(accepted, accepted)
-        wx.showToast({ title: accepted ? '提醒已开启' : '好的，随时可以再开', icon: 'none' })
+        if (accepted) {
+          reminders.updateNode(ask.kind, { enabled: true, subscribed: true, declinedFor: '' })
+          cloud.saveReminderPlan({ kind: ask.kind, date: ask.date, nicknames: ask.nicknames, enabled: true, subscribed: true })
+          wx.showToast({ title: '提醒已开启', icon: 'none' })
+        } else {
+          wx.showToast({ title: '好的，随时可以再开', icon: 'none' })
+        }
         done()
       },
       fail(err) {
@@ -603,10 +604,11 @@ Page({
     const ask = this.data.remindAsk
     const done = this._remindDone
     if (!ask) return
-    storage.saveReminder({ anniversary: ask.anniversary, years: ask.years, togetherDate: ask.togetherDate, nicknames: ask.nicknames, enabled: false, declined: true, askedAt: Date.now() })
+    // 只挡这一轮：下一个周年（明年）会再轻轻问一次。
+    reminders.updateNode(ask.kind, { declinedFor: ask.occurrence })
     this.setData({ remindAsk: null })
     this._remindDone = null
-    wx.showToast({ title: '好的，想开随时回来', icon: 'none' })
+    wx.showToast({ title: '好的，明年会再问你', icon: 'none' })
     if (done) done()
   },
 

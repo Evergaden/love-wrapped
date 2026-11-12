@@ -119,16 +119,20 @@ function updateNode(kind, patch) {
   return saveNodes(nodes)
 }
 
-// 生成时该问哪个节点：还没授权、这一轮也没被拒绝过、没记过意愿的，
-// 挑下一个日子离今天最近的那个。都不缺额度返回 null。
-function pickAsk(nodes, today) {
+// 生成时该问哪个节点：还没授权、这一轮也没被拒绝过的，挑下一个日子
+// 离今天最近的那个。都不缺额度返回 null。
+// opts.ignoreAskedFor：模板已接入时传 true——「记过意愿」只该在模板还没接
+// 的时候挡问（免得每次生成都念一遍），模板有了，额度真相就归 subscribed 管，
+// 云端把额度用掉后要能重新问到（续订）。
+function pickAsk(nodes, today, opts) {
+  const ignoreAskedFor = !!(opts && opts.ignoreAskedFor)
   const candidates = []
   ;(nodes || loadNodes()).forEach((node) => {
     const occ = nextOccurrence(node.date, today)
     if (!occ) return
     if (node.subscribed) return
     if (node.declinedFor === occ.date) return
-    if (node.askedFor === occ.date) return
+    if (!ignoreAskedFor && node.askedFor === occ.date) return
     candidates.push({ node: node, occ: occ })
   })
   if (candidates.length === 0) return null

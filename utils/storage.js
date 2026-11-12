@@ -9,6 +9,8 @@ const THEME_KEY = 'loveWrapped.theme.v1'
 // 书架的草稿卡和纪念册跟着这一份走。
 const DRAFT_THEME_KEY = 'loveWrapped.draftTheme.v1'
 const REMINDER_KEY = 'loveWrapped.reminder.v1'
+// 纪念日提醒节点（多节点，v2）。老的单周年记录（REMINDER_KEY）读到时自动迁进来。
+const REMINDERS_KEY = 'loveWrapped.reminders.v2'
 
 const record = require('./record')
 

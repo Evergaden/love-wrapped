@@ -22,21 +22,51 @@
       <text class="card-body" wx:elif="{{cloudState === 'ok'}}">写下的内容都悄悄替你备份着，换台手机也在。</text>
     </view>
 
-    <!-- 周年提醒：可取消，可重新开启（重新开启是真正的点击手势，才能拉起授权） -->
+    <!-- 纪念日提醒（多节点）：每个节点的授权都要单独一次点击
+         （微信订阅消息一次授权只能发一条），开启/续订按钮必须是真 TAP。 -->
     <view class="card">
       <view class="card-head">
-        <text class="card-title">周年提醒</text>
-        <view class="state {{reminderState === 'on' ? 'ok' : ''}}">
-          <text wx:if="{{reminderState === 'on'}}">已开启</text>
-          <text wx:elif="{{reminderState === 'off'}}">已取消</text>
-          <text wx:else>未开启</text>
+        <text class="card-title">纪念日提醒</text>
+        <view class="state {{onCount === nodes.length && nodes.length > 0 ? 'ok' : ''}}">
+          <text>{{nodes.length === 0 ? '还没挂日子' : (onCount === nodes.length ? '都开着' : onCount + ' / ' + nodes.length)}}</text>
         </view>
       </view>
-      <text class="card-body" wx:if="{{reminderState === 'on'}}">下个周年（{{reminderDate}}）前 7 天提醒你。</text>
-      <text class="card-body" wx:elif="{{reminderState === 'off'}}">已取消，这个周年不会再提醒。</text>
-      <text class="card-body" wx:else>还没开过。写好一册生成时，会轻轻问你一次。</text>
-      <view class="ghost" hover-class="pressed" bindtap="onCancelReminder" wx:if="{{reminderState === 'on'}}" aria-role="button">取消提醒</view>
-      <view class="ghost" hover-class="pressed" bindtap="onEnableReminder" wx:elif="{{reminderState === 'off'}}" aria-role="button">重新开启</view>
+      <text class="card-body">这些日子前 7 天，微信里会轻轻提醒你一次。</text>
+
+      <block wx:if="{{nodes.length > 0}}">
+        <view class="node {{index === 0 ? 'node-first' : ''}}" wx:for="{{nodes}}" wx:key="kind">
+          <view class="node-line">
+            <text class="node-name">{{item.label}}</text>
+            <text class="node-next">{{item.nextText}}</text>
+          </view>
+          <text class="node-body">{{item.body}}</text>
+          <view class="node-btns">
+            <view class="ghost slim" hover-class="pressed" wx:if="{{item.canOn}}" data-idx="{{index}}" bindtap="onNodeEnable" aria-role="button">{{item.btnText}}</view>
+            <view class="ghost slim ghost-plain" hover-class="pressed" wx:if="{{item.canCancel}}" data-idx="{{index}}" bindtap="onNodeCancel" aria-role="button">取消</view>
+            <view class="ghost slim ghost-dim" hover-class="pressed" wx:if="{{item.canDelete}}" data-idx="{{index}}" bindtap="onNodeDelete" aria-role="button">删除</view>
+          </view>
+        </view>
+      </block>
+      <text class="card-body" wx:else>写好一册，你们在一起的日子会自动出现在这里；生日、告白这些日子也可以自己加。</text>
+
+      <view class="ghost" hover-class="pressed" wx:if="{{!adding}}" bindtap="onAddToggle" aria-role="button">＋ 添加一个纪念日</view>
+      <block wx:if="{{adding}}">
+        <view class="chip-row">
+          <view
+            class="chip {{pendingKind === k.id ? 'chip-on' : ''}}"
+            hover-class="pressed"
+            wx:for="{{addable}}"
+            wx:for-item="k"
+            wx:key="id"
+            data-kind="{{k.id}}"
+            bindtap="onPickKind"
+          >{{k.label}}</view>
+          <text class="chip chip-dim" wx:if="{{addable.length === 0}}">能加的日子都加齐啦</text>
+        </view>
+        <picker wx:if="{{pendingKind}}" mode="date" start="1970-01-01" end="{{today}}" value="{{today}}" bindchange="onAddDate">
+          <view class="ghost" hover-class="pressed">选「{{pendingLabel}}」的日子</view>
+        </picker>
+      </block>
     </view>
 
     <!-- 历史记录 -->
