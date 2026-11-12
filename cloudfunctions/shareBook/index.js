@@ -101,6 +101,12 @@ async function ensureSharesCollection() {
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext()
+  // 没有微信身份就不是从小程序里发来的调用（管理端直调、其他链路）：
+  // 分享的归属、配额全靠 OPENID，没有它一切免谈，统一按业务话术拒。
+  if (!OPENID) {
+    console.warn('[shareBook] 调用缺少微信身份（OPENID），已拒绝')
+    return { ok: false, error: '内容不完整，先去填写页补齐昵称和日子' }
+  }
   const answers = validateAnswers(event && event.answers)
   if (!answers) {
     return { ok: false, error: '内容不完整，先去填写页补齐昵称和日子' }
