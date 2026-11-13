@@ -1,0 +1,41 @@
+<view class="support-page">
+  <text class="support-title">{{title}}</text>
+
+  <block wx:if="{{section === 'help'}}">
+    <text class="intro">写册子时遇到的小问题，可以先在这里找找答案。</text>
+    <view class="article">
+      <view class="entry"><text class="heading">怎么查看、编辑或删除册子？</text><text class="body">在主页点一本册子就能翻看；长按封面，可以编辑或删除。写到一半的草稿也在主页，点开就能接着写。</text></view>
+      <view class="entry"><text class="heading">换手机后，册子还在吗？</text><text class="body">已成功存到云端的册子，可以在同一个微信账号下找回。尚未同步的内容只在本机，换设备或清理数据前，请先确认册子已经出现在云端书架中。</text></view>
+      <view class="entry"><text class="heading">图片保存失败怎么办？</text><text class="body">在微信的小程序设置中允许保存到相册，然后重试。也可以在导出预览中点「查看大图」，长按图片保存。</text></view>
+      <view class="entry"><text class="heading">为什么纪念日没有提醒？</text><text class="body">先到「我的 → 纪念日提醒」查看是否已开启、是否需要重新授权，以及提醒计划是否保存成功。提醒计划在纪念日前 7 天发送一次，发送后需再次授权下一次提醒。</text></view>
+      <view class="entry"><text class="heading">分享的册子为什么打不开？</text><text class="body">分享链接有效期为 30 天。过期后请让分享者重新分享；网络不稳定时，可以稍后再打开。</text></view>
+    </view>
+    <button class="action" open-type="feedback" binderror="onFeedbackFail" hover-class="pressed">意见反馈</button>
+    <text class="footnote">反馈时请描述操作步骤和遇到的问题，尽量不要附上私人纪念册内容。</text>
+  </block>
+
+  <block wx:elif="{{section === 'privacy'}}">
+    <text class="intro">你写下的名字、日子和小事，值得被认真对待。</text>
+    <view class="article">
+      <view class="entry"><text class="heading">本机与云端分别保存什么？</text><text class="body">填写中的答案会保存到本机。生成册子时会尝试将册子快照保存到云端，供同一个微信账号在其他设备查看。同步失败时，本机内容与云端版本可能不同。</text></view>
+      <view class="entry"><text class="heading">分享后，谁可以看到？</text><text class="body">分享会在云端生成一份册子副本，持有有效分享链接的人可以查看。链接有效期为 30 天，请仅分享给信任的人；对方已经保存的图片无法收回。</text></view>
+      <view class="entry"><text class="heading">怎么删除自己的册子？</text><text class="body">回到主页，长按册子封面，选择删除并确认。填写页的「清空重写」用于清空本机填写内容。删除云端册子、清空本机草稿与删除分享副本是不同的操作；删除册子不会自动撤回已发出的分享。</text></view>
+      <view class="entry"><text class="heading">怎么管理提醒和相册权限？</text><text class="body">在「我的 → 纪念日提醒」中取消提醒或删除自己添加的日子。相册权限可以在微信的小程序设置中调整；只有保存图片时才需要写入相册。</text></view>
+    </view>
+    <button class="action" bindtap="onOpenPrivacy" hover-class="pressed">查看用户隐私保护指引</button>
+  </block>
+
+  <block wx:else>
+    <view class="about-intro">
+      <text class="about-name">{{appName}}</text>
+      <text class="about-tagline">把重要的日子，装订成册。</text>
+      <text class="version" wx:if="{{version}}">{{version}}</text>
+    </view>
+    <view class="article">
+      <view class="entry"><text class="heading">留住你们的小事</text><text class="body">从两个名字和一个日子开始，写下只有你们懂的口头禅、一起走过的地方，以及想对 TA 说的话。翻成一本小册子，也可以导出图片，或分享给想送的人。</text></view>
+      <view class="entry"><text class="heading">需要联系开发者？</text><text class="body">欢迎通过微信的意见反馈入口，告诉我们使用中遇到的问题或你的想法。</text></view>
+    </view>
+    <button class="action" open-type="feedback" binderror="onFeedbackFail" hover-class="pressed">联系与反馈</button>
+    <button class="text-action" bindtap="onPrivacy" hover-class="pressed">隐私与数据管理</button>
+  </block>
+</view>

@@ -435,7 +435,8 @@
         data-title="{{chip}}"
       >{{chip}}</view>
     </view>
-    <button class="share-go" open-type="share">发给 TA</button>
+    <button class="share-go" open-type="share" disabled="{{!shareReady}}">{{shareReady ? '发给 TA' : (shareError ? '暂时无法分享' : '正在准备分享…')}}</button>
+    <view class="share-cancel" wx:if="{{shareError}}" bindtap="warmShareToken">{{shareError}} · 点此重试</view>
     <!-- 朋友圈没有主动拉起的接口，入口只住在右上角胶囊菜单里。温柔提一句，免得有人找不到。 -->
     <view class="share-timeline">
       <text class="share-timeline-text">也想发朋友圈的话：点右上角「<text class="share-timeline-dots">···</text>」，再选「分享到朋友圈」，就能让更多人看到这本册子。</text>

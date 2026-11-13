@@ -1,0 +1,18 @@
+.support-page { min-height: 100vh; box-sizing: border-box; padding: 56rpx 40rpx calc(64rpx + env(safe-area-inset-bottom)); background: #FFF5F7; color: #2D1B24; }
+.support-title { display: block; font-size: 46rpx; font-weight: 700; line-height: 1.35; overflow-wrap: break-word; }
+.intro { display: block; margin-top: 18rpx; color: #755763; font-size: 27rpx; line-height: 1.8; }
+.article { margin-top: 36rpx; padding: 0 30rpx; border-radius: 28rpx; background: rgba(255,255,255,.7); }
+.entry { padding: 30rpx 0; border-bottom: 1rpx solid #F1E1E6; }
+.entry:last-child { border-bottom: 0; }
+.heading { display: block; font-size: 29rpx; font-weight: 600; line-height: 1.6; }
+.body { display: block; margin-top: 12rpx; font-size: 27rpx; line-height: 1.85; color: #70525E; }
+.action { margin-top: 36rpx; padding: 25rpx 24rpx; border-radius: 24rpx; background: #FBE1E9; color: #9B3452; font-size: 28rpx; font-weight: 600; line-height: 1.5; }
+.action::after, .text-action::after { border: 0; }
+.footnote { display: block; margin: 22rpx 8rpx 0; font-size: 24rpx; line-height: 1.75; color: #755763; }
+.about-intro { padding: 52rpx 0 12rpx; }
+.about-name { display: block; font-size: 42rpx; font-weight: 700; }
+.about-tagline { display: block; margin-top: 20rpx; font-size: 29rpx; line-height: 1.7; color: #70525E; }
+.version { display: block; margin-top: 20rpx; font-size: 24rpx; color: #755763; }
+.text-action { padding: 24rpx; margin-top: 12rpx; font-size: 26rpx; line-height: 1.5; background: transparent; color: #9B3452; }
+.pressed { opacity: .7; }
+.action, .text-action { width: 100%; box-sizing: border-box; font-family: inherit; }

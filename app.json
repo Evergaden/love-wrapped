@@ -4,7 +4,7 @@
     "pages/index/index",
     "pages/wrapped/wrapped",
     "pages/profile/profile",
-    "pages/history/history"
+    "pages/support/support"
   ],
   "window": {
     "navigationBarBackgroundColor": "#FFF5F7",

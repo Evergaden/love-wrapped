@@ -69,13 +69,17 @@
       </block>
     </view>
 
-    <!-- 历史记录 -->
-    <view class="card link" hover-class="pressed" bindtap="goHistory" aria-role="button">
-      <view class="card-head">
-        <text class="card-title">历史记录</text>
-        <text class="chev">›</text>
+    <text class="section-title">支持与设置</text>
+    <view class="settings-list">
+      <view class="settings-row" hover-class="pressed" bindtap="goSupport" data-section="help" aria-role="button">
+        <text>帮助与反馈</text><view class="row-arrow" />
       </view>
-      <text class="card-body">翻看之前写过的册子，可以载回填写页，也可以删掉。</text>
+      <view class="settings-row" hover-class="pressed" bindtap="goSupport" data-section="privacy" aria-role="button">
+        <text>隐私与数据管理</text><view class="row-arrow" />
+      </view>
+      <view class="settings-row" hover-class="pressed" bindtap="goSupport" data-section="about" aria-role="button">
+        <text>关于 {{appName}}</text><view class="row-arrow" />
+      </view>
     </view>
   </view>
 </view>

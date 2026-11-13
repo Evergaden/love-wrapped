@@ -1,11 +1,13 @@
+const reminderSubscription = require('../../utils/reminder-subscription')
 // 我的页。
-// 云开发开通后，这里管云同步状态、纪念日提醒（多节点）和历史记录。
+// 云开发开通后，这里管云同步状态、纪念日提醒和支持与设置。
 // 云同步的身份是微信自己（openid），页面里没有也不需要「登录」按钮。
 
 const cloud = require('../../utils/cloud')
 const storage = require('../../utils/storage')
 const themes = require('../../utils/themes')
 const reminders = require('../../utils/reminders')
+const brand = require('../../utils/brand')
 
 function pad(n) {
   return n < 10 ? '0' + n : '' + n
@@ -19,13 +21,14 @@ Page({
   data: {
     themeBg: '',
     theme: 'cream',
-    appName: '恋爱Wrapped',
+    appName: brand.APP_NAME,
     // 云同步状态：checking / ok / error
     cloudState: 'checking',
     cloudError: '',
     // 纪念日提醒节点列表（渲染态，详见 renderNodes）
     nodes: [],
     onCount: 0,
+    reminderBusy: false,
     // 添加一个纪念日：展开种类 chips → 选中后用 picker 选起点
     adding: false,
     addable: [],
@@ -55,7 +58,9 @@ Page({
   // 只有云端知道），有变化就重画一次。
   refreshNodes() {
     this.renderNodes()
+    const action = this._reminderAction || 0
     cloud.listReminderPlans().then((res) => {
+      if (action !== (this._reminderAction || 0)) return
       if (res && res.list && !res.error && reminders.mergeCloudPlans(res.list)) {
         this.renderNodes()
       }
@@ -81,7 +86,12 @@ Page({
         canCancel: false,
         canDelete: !reminders.kindOf(node.kind).fixed
       }
-      if (node.enabled && node.subscribed) {
+      if (node.pendingSync) {
+        row.chip = '待保存'
+        row.body = '微信已允许提醒，计划还没存到云端，点下面重试。'
+        row.canOn = true
+        row.btnText = '重试保存'
+      } else if (node.enabled && node.subscribed) {
         row.chip = '已开启'
         row.chipCls = 'ok'
         row.body = occ ? '下一个：' + dots(occ.date) + '，前 7 天会提醒你。' : '日子还没定下来。'
@@ -100,6 +110,7 @@ Page({
         row.canOn = true
         row.btnText = '重新开启'
       } else {
+        row.canOn = true
         row.body = occ ? '开启后，' + dots(occ.date) + ' 前 7 天会提醒你。' : '还没定下日子。'
       }
       return row
@@ -122,42 +133,23 @@ Page({
     const idx = Number(e.currentTarget.dataset.idx)
     const node = (this._nodes || [])[idx]
     if (!node) return
-    const tmpl = cloud.reminderTemplateId()
-    if (!tmpl) {
-      wx.showToast({ title: '提醒功能还在准备中', icon: 'none' })
-      return
-    }
-    wx.requestSubscribeMessage({
-      tmplIds: [tmpl],
-      success(sub) {
-        const accepted = sub && sub[tmpl] === 'accept'
-        if (!accepted) {
-          wx.showToast({ title: '好的，想开随时再来', icon: 'none' })
-          return
-        }
-        reminders.updateNode(node.kind, { enabled: true, subscribed: true, declinedFor: '' })
-        cloud.saveReminderPlan({
-          kind: node.kind,
-          date: node.date,
-          nicknames: reminders.nicknamesText(),
-          enabled: true,
-          subscribed: true
-        })
-        page.renderNodes()
-        wx.showToast({ title: '提醒已开启', icon: 'none' })
-      },
-      fail(err) {
-        // 真实原因打进控制台，好排查；开发者工具里本来就弹不出授权面板，提示说清楚。
-        console.warn('[reminder] 订阅授权面板没弹出来：', err && err.errMsg)
-        let inTools = false
-        try { inTools = wx.getSystemInfoSync().platform === 'devtools' } catch (e2) { inTools = false }
-        wx.showToast({ title: inTools ? '开发者工具里开不了，用手机预览就能开' : '这次没开成，下次再试', icon: 'none' })
+    if (this.data.reminderBusy) return
+    this._reminderAction = (this._reminderAction || 0) + 1
+    this.setData({ reminderBusy: true })
+    reminderSubscription.enable(node, reminders.nicknamesText()).then((res) => {
+      page.setData({ reminderBusy: false })
+      page.renderNodes()
+      if (!res.ok) {
+        reminderSubscription.showError(res)
+        return
       }
+      wx.showToast({ title: '提醒已开启', icon: 'none' })
     })
   },
 
   // 取消一个节点：本地关闸并标记这一轮不再问，云端计划同步 enabled: false。
   onNodeCancel(e) {
+    if (this.data.reminderBusy) return
     const page = this
     const idx = Number(e.currentTarget.dataset.idx)
     const node = (this._nodes || [])[idx]
@@ -188,6 +180,7 @@ Page({
 
   // 删除一个自定义日子（在一起的纪念日跟着答案走，删不了）。
   onNodeDelete(e) {
+    if (this.data.reminderBusy) return
     const page = this
     const idx = Number(e.currentTarget.dataset.idx)
     const node = (this._nodes || [])[idx]
@@ -249,7 +242,9 @@ Page({
     this.checkCloud()
   },
 
-  goHistory() {
-    wx.navigateTo({ url: '/pages/history/history' })
+  goSupport(e) {
+    const section = e.currentTarget.dataset.section
+    if (['help', 'privacy', 'about'].indexOf(section) < 0) return
+    wx.navigateTo({ url: '/pages/support/support?section=' + section })
   }
 })

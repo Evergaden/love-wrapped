@@ -317,13 +317,18 @@ function buildParts(ctx, slide, theme, maxWidth) {
       h: 54,
       gap: 38
     })
+    ctx.font = font(40, true)
+    const meta = String(slide.meta || '')
+    // 超宽时优先按逗号分句，避免把「周年」单独挤到下一行。
+    const metaText = ctx.measureText(meta).width > maxWidth ? meta.replace(/([，,])(?=.)/g, '$1\n') : meta
+    const metaLines = wrapText(ctx, metaText, maxWidth)
     parts.push({
       type: 'meta',
-      text: slide.meta,
+      lines: metaLines,
       size: 40,
       bold: true,
       color: theme.ink,
-      h: 54,
+      h: metaLines.length * 54,
       gap: 24
     })
     parts.push({ type: 'sign', text: slide.footer, h: 42, gap: 44 })
@@ -1009,11 +1014,8 @@ function drawParts(ctx, parts, x, y, theme, maxWidth) {
       return
     }
     if (part.type === 'meta') {
-      ctx.fillStyle = part.color
-      ctx.font = font(part.size, part.bold)
-      ctx.textAlign = part.center ? 'center' : 'left'
-      ctx.textBaseline = 'top'
-      ctx.fillText(part.text || '', part.center ? x + maxWidth / 2 : x, cursor)
+      drawLines(ctx, part.lines, part.center ? x + maxWidth / 2 : x, cursor,
+        part.size, part.color, part.bold, 54, part.center ? 'center' : 'left')
       cursor += part.h
       return
     }

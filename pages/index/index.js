@@ -1,3 +1,4 @@
+const reminderSubscription = require('../../utils/reminder-subscription')
 // 填写页。
 // 做三件事：收集答案、存进本机、打开纪念册。
 // 答案放在本地缓存里，不放进网址。网址太短，也带不走这么多字。
@@ -80,6 +81,7 @@ Page({
     theme: themes.DEFAULT,
     themeList: themes.pickerList(),
     accentColor: themes.THEMES[themes.DEFAULT].kicker,
+    reminderBusy: false,
     remindAsk: null
   },
 
@@ -114,7 +116,9 @@ Page({
     })
     // 订阅额度的真相在云端（下发一次就没了）：进页面就悄悄并回来，
     // 生成时「该问哪个日子」的判断才不会拿着过期额度跳过询问。
+    const reminderAction = this._reminderAction || 0
     cloud.listReminderPlans().then((res) => {
+      if (reminderAction !== (this._reminderAction || 0)) return
       if (res && res.list && !res.error) reminders.mergeCloudPlans(res.list)
     })
   },
@@ -218,7 +222,7 @@ Page({
   },
 
   // 分享卡片不放昵称。转发给好友时链接里只有一枚云端令牌，对方点开经云函数取回整册；朋友圈没有答案。
-  // 云不可用时退回一张普通卡片（空白填写页）。令牌就绪后走同步返回，
+  // 令牌未就绪时使用显式异步分享对象；失败显示分享错误，不再落到主页。
   // 避免 Promise 分享的 3 秒兜底超时。
   onShareAppMessage() {
     const form = record.normalize(this.data.form)
@@ -228,27 +232,7 @@ Page({
         path: '/pages/shelf/shelf'
       }
     }
-    // 之前预热时已经拿到过令牌：直接同步返回，不等云端。
-    if (this.shareToken) {
-      return {
-        title: gift.giftTitle(form),
-        path: gift.giftPath(this.shareToken)
-      }
-    }
-    return cloud.shareTokenFor(form, this.data.theme).then((res) => {
-      if (res.ok) {
-        this.shareToken = res.token
-        return {
-          title: gift.giftTitle(form),
-          path: gift.giftPath(res.token)
-        }
-      }
-      console.warn('[share] 令牌没拿到，退回普通卡片。原因：', res.error || '云端不可用')
-      return {
-        title: brand.SHARE_TITLE,
-        path: '/pages/shelf/shelf'
-      }
-    })
+    return gift.shareContent(form, this.data.theme, '', '')
   },
 
   // 选中主题存进本机，导航栏、页面底色和弥散底跟着换。
@@ -563,44 +547,25 @@ Page({
     // 关键：requestSubscribeMessage 必须在 bindtap 的同步调用栈里直接调，
     // 不能等任何异步回调，真机才会弹「允许通知」的授权面板。
     const ask = this.data.remindAsk
+    if (!ask || this.data.reminderBusy) return
     const done = this._remindDone
-    if (!ask) return
-    this.setData({ remindAsk: null })
-    this._remindDone = null
-    const tmpl = cloud.reminderTemplateId()
-    if (!tmpl) {
-      // 模板还没申请：只记意愿（askedFor）；接入后下次生成会再问一次授权。
-      reminders.updateNode(ask.kind, { askedFor: ask.occurrence })
-      wx.showToast({ title: '已记下这个日子', icon: 'none' })
-      done()
-      return
-    }
-    wx.requestSubscribeMessage({
-      tmplIds: [tmpl],
-      success(sub) {
-        const accepted = sub && sub[tmpl] === 'accept'
-        if (accepted) {
-          reminders.updateNode(ask.kind, { enabled: true, subscribed: true, declinedFor: '' })
-          cloud.saveReminderPlan({ kind: ask.kind, date: ask.date, nicknames: ask.nicknames, enabled: true, subscribed: true })
-          wx.showToast({ title: '提醒已开启', icon: 'none' })
-        } else {
-          wx.showToast({ title: '好的，随时可以再开', icon: 'none' })
-        }
-        done()
-      },
-      fail(err) {
-        // 面板被系统或「总是保持以上选择」拦截：当次不记拒绝，下次生成再问。
-        // 真实原因打进控制台；开发者工具里本来就弹不出授权面板，提示说清楚。
-        console.warn('[reminder] 订阅授权面板没弹出来：', err && err.errMsg)
-        let inTools = false
-        try { inTools = wx.getSystemInfoSync().platform === 'devtools' } catch (e) { inTools = false }
-        if (inTools) wx.showToast({ title: '开发者工具里开不了，用手机预览就能开', icon: 'none' })
-        done()
+    this._reminderAction = (this._reminderAction || 0) + 1
+    this.setData({ reminderBusy: true })
+    reminderSubscription.enable({ kind: ask.kind, date: ask.date }, ask.nicknames).then((res) => {
+      this.setData({ reminderBusy: false })
+      if (!res.ok) {
+        reminderSubscription.showError(res)
+        return
       }
+      this.setData({ remindAsk: null })
+      this._remindDone = null
+      wx.showToast({ title: '提醒已开启', icon: 'none' })
+      if (done) done()
     })
   },
 
   onReminderDecline() {
+    if (this.data.reminderBusy) return
     const ask = this.data.remindAsk
     const done = this._remindDone
     if (!ask) return

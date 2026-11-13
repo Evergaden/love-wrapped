@@ -157,6 +157,8 @@ function mergeCloudPlans(plans) {
     if (!plan || !plan.kind || !plan.originDate) return
     const node = nodes.find((n) => n.kind === plan.kind)
     if (node) {
+      // 本机刚取得额度、云端尚未保存成功时，旧计划不能把它覆盖回未开启。
+      if (node.pendingSync) return
       if (node.enabled !== !!plan.enabled || node.subscribed !== !!plan.subscribed) {
         node.enabled = !!plan.enabled
         node.subscribed = !!plan.subscribed

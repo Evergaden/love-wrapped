@@ -6,10 +6,13 @@
 //   - 答案原样落库：没有 normalize、没有长度上限、来者不拒——
 //     服务器按客户端 utils/record.js 的同一套口径自己验一遍，
 //     缺字段 / 超长 / 枚举值不对 / 日期不存在，一律拒；
-//   - 内容不经检测直接进 shares：分享时把答案 + 卡片标题送 contentCheck 复检；
+//   - 内容不经检测直接进 shares：分享时把答案 + 卡片标题在本函数内复检；
 //   - 没有配额：同一 OPENID 可以无限刷 token——一天最多 20 条。
 const cloud = require('wx-server-sdk')
 const crypto = require('crypto')
+// 独立云函数包不能跨目录 require；此文件与 contentCheck/index.js 保持逐字一致，
+// 由 tests/share-moderation.js 校验。直接调用保留分享入口的微信身份，避免云调用丢 OPENID。
+const moderation = require('./moderation')
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV })
 const db = cloud.database()
@@ -126,13 +129,12 @@ exports.main = async (event) => {
     return { ok: false, error: '今天的分享链接开得太多啦，明天再来吧' }
   }
 
-  // 内容安全复检：答案 + 卡片标题一起送 contentCheck。
+  // 内容安全复检：答案 + 卡片标题在当前函数内一起检测。
   // 生成时已经检过一次答案，这里主要是补上「生成之后才输入」的标题，
   // 也防着绕开小程序直调云函数的口子。检测服务不可用时拦下（fail-closed）。
   let verdict = { ok: false, risky: true, reason: '内容检测服务这会儿忙，稍等一下再试试' }
   try {
-    const check = await cloud.callFunction({ name: 'contentCheck', data: { answers: answers, title: title } })
-    verdict = (check && check.result) || verdict
+    verdict = await moderation.main({ answers: answers, title: title })
   } catch (err) {
     console.warn('[shareBook] 内容检测没跑成，先拦下来', err && (err.errMsg || err))
   }

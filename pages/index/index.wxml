@@ -434,8 +434,8 @@
       <text class="remind-body">{{remindAsk.body}}</text>
       <text class="remind-hint" wx:if="{{remindAsk.hint}}">{{remindAsk.hint}}</text>
       <view class="remind-btns">
-        <button class="remind-btn remind-btn-no" hover-class="pressed" bindtap="onReminderDecline">先不</button>
-        <button class="remind-btn remind-btn-yes" hover-class="pressed" bindtap="onReminderAgree">好呀</button>
+        <button class="remind-btn remind-btn-no" hover-class="pressed" disabled="{{reminderBusy}}" bindtap="onReminderDecline">先不</button>
+        <button class="remind-btn remind-btn-yes" hover-class="pressed" disabled="{{reminderBusy}}" loading="{{reminderBusy}}" bindtap="onReminderAgree">{{reminderBusy ? '正在开启…' : '好呀'}}</button>
       </view>
     </view>
   </view>

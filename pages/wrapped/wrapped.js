@@ -67,6 +67,8 @@ Page({
     giftFrom: '',
     giftDateText: '',
     shareSheetOpen: false,
+    shareReady: false,
+    shareError: '',
     shareTitleInput: '',
     shareChips: ['生日快乐', '一周年快乐', '纪念日快乐', '年度报告', '有一册想给你'],
     slides: [],
@@ -91,6 +93,7 @@ Page({
     const metrics = readWindow()
     // 礼物模式：链接里只有一枚令牌，答案要从云端凭令牌取回（异步）。
     const giftToken = gift.parseGiftToken(options)
+    const shareError = !!(options && (options.shareError || (options.gift && !giftToken)))
     // 书架翻看模式：链接里带一册云端快照的编号，凭编号取回这一册。
     const bookId = parseBookId(options)
     // 翻看模式不算「我的册子」：先不按本机草稿排页，免得草稿先闪一版。
@@ -99,12 +102,12 @@ Page({
     const mineReady = !!(saved && record.canGenerate(saved))
     // 主题和答案都从本机读：优先这一册自己选过的配色，再退回全局默认。
     const theme = themes.resolve(storage.loadDraftTheme() || themes.DEFAULT)
-    const slides = mineReady && !viewer ? slidesUtil.buildSlides(saved, null, theme) : []
+    const slides = mineReady && !viewer && !giftToken && !shareError ? slidesUtil.buildSlides(saved, null, theme) : []
     this.setData({
       windowHeight: metrics.windowHeight,
       swiperHeight: metrics.swiperHeight,
       pixelRatio: metrics.pixelRatio,
-      empty: !mineReady && !giftToken && !viewer,
+      empty: !mineReady && !giftToken && !viewer && !shareError,
       viewer: viewer,
       slides: slides,
       current: 0,
@@ -116,6 +119,10 @@ Page({
     // 朋友圈没有主动拉起的接口，入口只住在右上角胶囊菜单里：
     // 两个菜单都先打开，右上角「···」里才见得到「分享到朋友圈」。
     wx.showShareMenu({ menus: ['shareAppMessage', 'shareTimeline'] })
+    if (shareError) {
+      this.setData({ gift: true, giftState: 'error', giftError: '这份分享还没准备好，请让 TA 回到纪念册重新分享一次。' })
+      return
+    }
     if (giftToken) {
       // 礼物模式：先落全屏封面（标题取到后填入），点「立即开启」才演拆信封。
       this.giftToken = giftToken
@@ -294,7 +301,11 @@ Page({
     if (!record.canGenerate(form)) return
     const title = String(this.data.shareTitleInput || '').trim()
     const page = this
+    const request = this.shareRequest = (this.shareRequest || 0) + 1
+    this.setData({ shareReady: false, shareError: '' })
     cloud.shareTokenFor(form, this.data.currentTheme, title).then((res) => {
+      if (page.shareRequest !== request) return
+      page.setData({ shareReady: !!(res.ok && res.token), shareError: res.ok ? '' : (res.error || '分享暂时没准备好，点这里重试') })
       if (res.ok) page.shareToken = res.token
       // 分享时起的标题也写到书架上那一册的封皮上，主页卡片跟着换名字。
       if (res.ok && title && !page.data.viewer && !page.data.gift) {
@@ -336,38 +347,14 @@ Page({
     }
     // 自己的纪念册：分享前云端备好令牌，链接里只有令牌。
     // 翻看模式下分享的是正在看的这一册，不是本机草稿。
-    if (this.data.viewer && !this.bookForm) {
-      // 翻看的册子还没取回来：这时连分享对象都未定，先给一张不带内容的卡片。
-      return { title: brand.SHARE_TITLE, path: '/pages/shelf/shelf', imageUrl: imageUrl }
+    if ((this.data.viewer && !this.bookForm) || this.data.gift) {
+      // 翻看未就绪或分享错误页没有可用令牌，不能借用本机草稿转发。
+      return { title: brand.SHARE_TITLE, path: '/pages/wrapped/wrapped?shareError=1', imageUrl: imageUrl }
     }
     const saved = this.data.viewer && this.bookForm ? this.bookForm : storage.loadAnswers()
     if (saved && record.canGenerate(saved)) {
       const form = record.normalize(saved)
-      // 自定义标题印在卡片图里；标题行保持品牌句。
-      if (this.shareToken) {
-        return {
-          title: gift.giftTitle(form),
-          path: gift.giftPath(this.shareToken),
-          imageUrl: imageUrl
-        }
-      }
-      return cloud.shareTokenFor(form, this.data.currentTheme, String(this.data.shareTitleInput || '').trim()).then((res) => {
-        if (res.ok) {
-          this.shareToken = res.token
-          return {
-            title: gift.giftTitle(form),
-            path: gift.giftPath(res.token),
-            imageUrl: imageUrl
-          }
-        }
-        // 云不可用：退回一张普通卡片，不带内容，落回书架。
-        console.warn('[share] 令牌没拿到，退回普通卡片。原因：', res.error || '云端不可用')
-        return {
-          title: brand.SHARE_TITLE,
-          path: '/pages/shelf/shelf',
-          imageUrl: imageUrl
-        }
-      })
+      return gift.shareContent(form, this.data.currentTheme, String(this.data.shareTitleInput || '').trim(), imageUrl)
     }
     return {
       title: this.data.shareTitle || brand.SHARE_TITLE,

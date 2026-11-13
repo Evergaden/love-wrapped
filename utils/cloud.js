@@ -227,26 +227,32 @@ function checkContent(form) {
 // 注意：只缓存成功的结果——第一次失败后（云端刚部署、网络慢），
 // 后续分享必须真的重试，而不是拿缓存的失败一直退回普通卡片。
 function shareTokenFor(form, theme, title) {
+  if (!init()) return Promise.resolve({ ok: false, error: '云端暂时连不上' })
   const sig = JSON.stringify(form) + '|' + (theme || '') + '|' + (title || '')
   if (shareCache.sig === sig && shareCache.promise) return shareCache.promise
+  const entry = { sig: sig, promise: null, token: '' }
   const promise = new Promise((resolve) => {
-    if (!init()) {
-      resolve({ ok: false, error: null })
-      return
-    }
     // 卡片标题也一并传给云端：它是生成之后才输入的文本，
     // shareBook 在落库前会把它和答案一起送 contentCheck 复检。
     callFunction('shareBook', { answers: form, theme: theme || '', title: title || '' }).then((r) => {
       if (r.ok && r.token) {
+        entry.token = r.token
         resolve({ ok: true, token: r.token })
       } else {
-        shareCache = { sig: '', promise: null }
+        if (shareCache === entry) shareCache = { sig: '', promise: null }
         resolve({ ok: false, error: r.error || null })
       }
     })
   })
-  shareCache = { sig: sig, promise: promise }
+  entry.promise = promise
+  shareCache = entry
   return promise
+}
+
+// 只使用与当前内容、配色、标题完全对应的已就绪令牌，避免旧请求串册。
+function readyShareToken(form, theme, title) {
+  const sig = JSON.stringify(form) + '|' + (theme || '') + '|' + (title || '')
+  return shareCache.sig === sig ? shareCache.token || '' : ''
 }
 
 // 凭令牌取回分享的答案。resolve { ok, answers, theme } 或 { ok:false, error }，永不 reject。
@@ -258,7 +264,7 @@ function fetchSharedBook(token) {
     }
     callFunction('getSharedBook', { token: token }).then((r) => {
       if (r.ok && r.answers) {
-        resolve({ ok: true, answers: r.answers, theme: r.theme || '' })
+        resolve({ ok: true, answers: r.answers, theme: r.theme || '', title: r.title || '' })
       } else {
         resolve({ ok: false, error: r.error || '这份分享打不开' })
       }
@@ -270,7 +276,7 @@ function fetchSharedBook(token) {
 // 订阅消息模板 ID：在 mp 后台「功能 → 订阅消息」申请后填进来。
 // 模板字段：thing1 纪念日名称、time2 日期、thing3 备注（类目信息查询）。
 // 留空时，提醒询问只记下意愿，云端计划会标记为未订阅，定时函数不会下发。
-const REMINDER_TMPL_ID = 'FKHmUCrt7OZgbsElTatpf17YJp2958IBOyIbQ7RunI'
+const REMINDER_TMPL_ID = 'FKHmUCrt7OZgbsElTatpf17YJp2958IBOYyIbQ7RunI'
 
 const REMINDERS_COLLECTION = 'reminders'
 
@@ -388,6 +394,7 @@ module.exports = {
   checkConnection,
   checkContent,
   shareTokenFor,
+  readyShareToken,
   fetchSharedBook,
   reminderTemplateId,
   saveReminderPlan,
